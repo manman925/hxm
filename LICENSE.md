@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2024 数据驱动的可重复性研究课程
+Copyright (c) 2025 数据驱动的可重复性研究课程
 
 特此免费授予任何获得本软件和相关文档文件（"软件"）副本的人不受限制地处理本软件的权利，包括但不限于使用、复制、修改、合并、发布、分发、再许可和/或出售软件副本的权利，以及允许获得软件的人这样做，但须符合以下条件：
 
@@ -12,7 +12,7 @@ Copyright (c) 2024 数据驱动的可重复性研究课程
 
 The MIT License (MIT)
 
-Copyright (c) 2024 Data-Driven Reproducibility Research Course
+Copyright (c) 2025 Data-Driven Reproducibility Research Course
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -75,4 +75,5 @@ credentials.json
 # 依赖管理
 node_modules/
 package-lock.json
-yarn.lock 
+yarn.lock
+/.quarto/
