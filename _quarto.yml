@@ -12,7 +12,18 @@ book:
   chapters:
     - index.qmd
     - intro.qmd
-    - summary.qmd
+    - reproducible-data-analysis-environment.qmd
+    - grouped-data-statistical-analysis-and-visualization.qmd
+    - transcriptomics-data-analysis-and-visualization.qmd
+    - neural-network-from-scratch.qmd
+    - pathogen-identification-with-raman-spectroscopy.qmd
+    - ai-api-application.qmd
+    - machine-learning-algorithms-and-implementation.qmd
+    - collaboration-with-global-developers.qmd
+    - r-package-development.qmd
+    - modern-tools-and-outlook.qmd
+    - microbiome-data-analysis-and-visualization.qmd
+    - computer-vision-image-analysis.qmd
     - references.qmd
 
 bibliography: references.bib

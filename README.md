@@ -193,9 +193,9 @@
 
 在自己电脑上配置一个可重复的数据分析环境。
 
-1.  安装脚本语言工具 R （最新版本）
-    1.  安装 R
-    2.  安装 Rtools
+1.  安装脚本语言工具 R 
+    1.  安装 R（最新版本）
+    2.  安装 Rtools（对应版本）
     3.  安装 `tidyverse` R 包（CRAN）
     4.  安装 `DEseq2` R 包（Bioconductor）
     5.  安装 `ggVennDiagram` R 包（GitHub）
@@ -207,19 +207,19 @@
     1.  安装 Git
     2.  注册 GitHub（国际）/Gitee（国内）账号
     3.  加入课程群
-4.  安装 VScode（推荐）或 RStudio
-    1.  下载安装 VScode 或 RStudio
-    2.  在 VScode 中安装几个插件（R）
+4.  安装 RStudio
+    1.  下载安装RStudio 
 5.  安装 Quarto
     1.  下载安装 Quarto
     2.  在 VSCode 中配置 Quarto
     3.  创建一个“Hello World”项目
-6.  配置 VSCode
-    1.  安装 R 插件（R Language Support）
-    2.  安装 Python 插件（Python 和可用环境）
-    3.  安装 Git 插件
-    4.  安装 Quarto 插件
-    5.  安装 Cline 插件或 CodeGeeX 插件
+6.  安装和配置 VSCode
+    1.  安装 VSCode
+    2.  安装 R 插件（R Language Support）
+    3.  安装 Python 插件（Python 和可用环境）
+    4.  安装 Git 插件
+    5.  安装 Quarto 插件
+    6.  安装 Cline 插件或 CodeGeeX 插件
 
 #### 课后作业
 
