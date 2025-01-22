@@ -6,6 +6,7 @@
 *.Rproj
 .Rprofile
 renv/
+*_files
 
 # Python相关
 __pycache__/
