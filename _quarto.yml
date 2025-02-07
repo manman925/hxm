@@ -11,20 +11,33 @@ book:
   cover-image: cover.png
   chapters:
     - index.qmd
-    - intro.qmd
-    - reproducible-data-analysis-environment.qmd
-    - grouped-data-statistical-analysis-and-visualization.qmd
-    - transcriptomics-data-analysis-and-visualization.qmd
-    - neural-network-from-scratch.qmd
-    - pathogen-identification-with-raman-spectroscopy.qmd
-    - ai-api-application.qmd
-    - machine-learning-algorithms-and-implementation.qmd
-    - collaboration-with-global-developers.qmd
-    - r-package-development.qmd
-    - modern-tools-and-outlook.qmd
-    - microbiome-data-analysis-and-visualization.qmd
-    - computer-vision-image-analysis.qmd
+    - part: 课程简介
+      chapters:
+        - intro.qmd
+    - part: 环境搭建
+      chapters:
+        - reproducible-data-analysis-environment.qmd
+        - modern-tools-and-outlook.qmd
+    - part: 数据分析
+      chapters:
+        - grouped-data-statistical-analysis-and-visualization.qmd
+        - transcriptomics-data-analysis-and-visualization.qmd
+        - microbiome-data-analysis-and-visualization.qmd
+    - part: 人工智能
+      chapters:
+        - neural-network-from-scratch.qmd
+        - pathogen-identification-with-raman-spectroscopy.qmd
+        - ai-api-application.qmd
+        - machine-learning-algorithms-and-implementation.qmd
+        - computer-vision-image-analysis.qmd
+    - part: 开发协作
+      chapters:
+        - collaboration-with-global-developers.qmd
+        - r-package-development.qmd      
     - references.qmd
+  appendices:
+    - markdown-syntax.qmd
+    - write-math-equation.qmd
 
 bibliography: references.bib
 
