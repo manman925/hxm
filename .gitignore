@@ -62,6 +62,7 @@ site_libs/
 *.html
 *.pdf
 *.docx
+_freeze/
 
 # 安全相关
 *.pem
