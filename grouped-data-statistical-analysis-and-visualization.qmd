@@ -216,8 +216,6 @@ ggplot(ToothGrowth, aes(x = supp, y = len, fill = supp)) +
     geom_jitter(width = 0.2, alpha = 0.5) +
     labs(
         title = "Tooth Growth Analysis",
-        subtitle = paste("t =", round(t_result$statistic, 3),
-                        ", p =", round(t_result$p.value, 3)),
         x = "Supplement",
         y = "Tooth Length"
     ) +
@@ -586,7 +584,7 @@ ggscatter(mtcars, x = "hp", y = "mpg",
 以下是使用R语言内置数据集进行 MANOVA、RDA、CCA和PERMANOVA分析的示例代码及详细解释：
 
 
-### 1. MANOVA（多变量方差分析）
+### MANOVA（多变量方差分析）
 
 **数据集**：`iris`（R内置数据集）  
 **生物学意义**：比较不同鸢尾花物种（setosa、versicolor、virginica）在萼片和花瓣形态特征上的差异。
@@ -612,7 +610,7 @@ summary.aov(manova_fit)
 
 
 
-### 2. RDA（冗余分析）
+### RDA（冗余分析）
 
 **数据集**：`varespec`和`varechem`（`vegan`包）  
 **生物学意义**：分析土壤化学性质（如pH、氮含量）如何影响植被群落组成。
@@ -645,7 +643,7 @@ plot(rda_result, display = c("sites", "bp"), scaling = 2)
 ```
 
 
-### 3. CCA（典型对应分析）
+### CCA（典型对应分析）
 
 **数据集**：`dune`和`dune.env`（`vegan`包）  
 **生物学意义**：探究土壤厚度（A1）和湿度（Moisture）对沙丘植物群落分布的影响。
@@ -675,7 +673,7 @@ plot(cca_result, display = c("sites", "cn"))
 
 
 
-### 4. PERMANOVA（非参数多变量方差分析）
+### PERMANOVA（非参数多变量方差分析）
 
 **数据集**：`dune`和`dune.env`（`vegan`包）  
 **生物学意义**：检验不同管理方式（Management）对沙丘植物群落组成的影响。
@@ -717,7 +715,7 @@ print(permanova_result)
 Mantel 分析用于比较 **两个距离矩阵之间的相关性**，在生态学研究中常用于分析 **群落结构与环境因子之间的关系**。这里我们使用 **vegan** 包中的 **dune**（植物群落数据）和 **dune.env**（环境数据）进行 Mantel 分析，并进行可视化。
 
 
-### **1. 加载必要的 R 包和数据**  
+### 加载必要的 R 包和数据 
 
 ```{r}
 # 加载必要的 R 包
@@ -732,7 +730,7 @@ data("dune.env")   # 环境因子数据
 ```
 
 
-### **2. 计算距离矩阵**  
+### 计算距离矩阵
 
 ```{r}
 # 计算物种群落的 Bray-Curtis 距离矩阵
@@ -742,13 +740,13 @@ dune_dist = vegdist(dune, method = "bray")
 env_dist = dist(dune.env[, c("A1", "Moisture", "Management")])  # 选择部分环境变量
 ```
 
-#### **解释**：
+#### 解释
 
 - `vegdist(dune, method = "bray")` 计算 **群落物种丰度的 Bray-Curtis 距离矩阵**，适用于生态数据。  
 - `dist(dune.env[, c("A1", "Moisture", "Management")])` 计算 **环境因子的欧几里得距离矩阵**，选取 `A1`、`Moisture`、`Management` 变量。  
 
 
-### **3. 进行 Mantel 分析**  
+### 进行 Mantel 分析 
 
 ```{r}
 # 进行 Mantel 检验
@@ -758,7 +756,7 @@ mantel_result = mantel(dune_dist, env_dist, method = "spearman", permutations = 
 print(mantel_result)
 ```
 
-#### **解释**：
+#### 解释
 
 - `mantel(dune_dist, env_dist, method = "spearman", permutations = 999)`：
   - `method = "spearman"`：使用 **Spearman 相关性**（适用于非线性关系）。
@@ -768,7 +766,7 @@ print(mantel_result)
   - `Significance (p-value)`：若 **p < 0.05**，说明群落结构与环境因子显著相关。
 
 
-### **4. 可视化 Mantel 相关性**  
+### 可视化 Mantel 相关性 
 
 ```{r}
 # 提取距离矩阵中的非对角元素
@@ -789,7 +787,7 @@ ggplot(mantel_data, aes(x = Env_Distance, y = Dune_Distance)) +
        y = "物种群落距离")
 ```
 
-#### **解释**：
+#### 解释
 
 1. `as.vector(as.dist(dune_dist))` 和 `as.vector(as.dist(env_dist))`：提取距离矩阵的 **非对角元素**，转换为向量。
 2. `ggplot()` 可视化：
@@ -798,14 +796,14 @@ ggplot(mantel_data, aes(x = Env_Distance, y = Dune_Distance)) +
    - **标题显示 Mantel 统计量和 p 值**，直观了解相关性大小和显著性。
 
 
-### **5. Mantel 分析的生物学意义**
+### Mantel 分析的生物学意义
 
-#### **1. 生态学背景**
+#### 生态学背景
 
 - **生态群落结构** 受 **环境因子**（如土壤湿度、养分、管理方式）影响。
 - Mantel 检验评估 **环境梯度如何驱动群落变化**，可用于 **生物地理学、生态恢复、物种共存机制** 研究。
 
-#### **2. Mantel 结果解读**
+#### Mantel 结果解读
 
 - **r > 0 & p < 0.05**：群落组成 **显著受环境因子影响**，环境因子可能驱动物种分布。  
 - **r 近 0 & p > 0.05**：环境因子与群落 **无显著相关性**，说明可能受 **竞争、演替、历史过程等** 影响。  
@@ -871,165 +869,3 @@ $$
   - 对距离矩阵的选择敏感（如欧几里得距离、Bray-Curtis距离）
   - 对于复杂非线性关系，可能无法充分捕捉。
 
-
-### 示例：环境因子与微生物群落结构的关联分析
-
-首先，我们生成一些模拟数据。`otu_data` 是一个 30 行 50 列的矩阵，表示 30 个样本和 50 个物种的 OTU 表。`env_data` 是一个 30 行 3 列的数据框，表示 30 个样本和 3 个环境因子（pH、温度、盐度）。
-
-```{r}
-library(vegan)
-library(tidyverse)
-
-# 模拟微生物群落数据（OTU表）
-set.seed(123)
-n_samples = 30
-n_species = 50
-
-# 首先生成环境数据，这样可以基于环境数据来生成相关的群落数据
-env_data = data.frame(
-    pH = rnorm(n_samples, mean = 7, sd = 0.5),
-    temperature = rnorm(n_samples, mean = 25, sd = 2),
-    salinity = rnorm(n_samples, mean = 35, sd = 3),
-    row.names = paste0("Sample_", 1:n_samples)
-)
-
-# 基于环境因子生成物种数据，使其具有相关性
-otu_data = matrix(0, nrow = n_samples, ncol = n_species,
-                 dimnames = list(rownames(env_data),
-                               paste0("OTU_", 1:n_species)))
-
-# 为不同的物种设置不同的环境响应
-for(i in 1:n_species) {
-    # 使物种丰度与环境因子产生关联
-    env_effect = 0.7 * scale(env_data$pH) + 
-                 0.5 * scale(env_data$temperature) + 
-                 0.3 * scale(env_data$salinity)
-    
-    # 生成基础丰度
-    base_abundance = rpois(n_samples, lambda = 10)
-    
-    # 将环境效应添加到物种丰度中
-    otu_data[,i] = round(pmax(0, base_abundance + 5 * env_effect + rnorm(n_samples)))
-}
-
-# 查看数据
-otu_data
-env_data
-```
-
-
-其次，计算两个距离矩阵。`community_dist` 是群落距离矩阵，`env_dist` 是环境距离矩阵。计算群落距离矩阵使用 Bray-Curtis 距离，计算环境距离矩阵使用标准化的欧氏距离。
-
-```{r}
-# 计算群落距离矩阵（使用 Bray-Curtis 距离）
-community_dist = vegdist(otu_data, method = "bray")
-
-# 计算环境距离矩阵（使用标准化的欧氏距离）
-env_scaled = scale(env_data)  # 标准化环境变量
-env_dist = dist(env_scaled)
-
-# 查看数据
-community_dist
-env_dist
-```
-
-再次，进行 Mantel 检验。使用 Spearman 相关系数，并进行 999 次置换检验。
-
-```{r}
-# 进行 Mantel 检验
-mantel_result = mantel(community_dist, env_dist, 
-                      method = "spearman",   # 使用 Spearman 相关系数
-                      permutations = 999)    # 进行 999 次置换检验
-
-# 显示结果
-print(mantel_result)
-```
-
-再次，可视化距离矩阵关系。
-
-```{r}
-# 可视化距离矩阵关系
-dist_df = data.frame(
-    community_dist = as.vector(community_dist),
-    env_dist = as.vector(env_dist)
-)
-
-ggplot(dist_df, aes(x = env_dist, y = community_dist)) +
-    geom_point(alpha = 0.5) +
-    geom_smooth(method = "lm", color = "red") +
-    labs(
-        title = "Mantel Correlation: Environment vs. Community Structure",
-        x = "Environmental Distance",
-        y = "Community Composition Distance"
-    ) +
-    theme_bw()
-```
-
-最后，单个环境因子的 Mantel 检验。
-
-```{r}
-# 单个环境因子的 Mantel 检验
-env_vars = colnames(env_data)
-mantel_results = lapply(env_vars, function(var) {
-    var_dist = dist(scale(env_data[, var, drop = FALSE]))
-    mantel(community_dist, var_dist, method = "spearman", permutations = 999)
-})
-
-# 显示各环境因子的 Mantel 检验结果
-results_summary = data.frame(
-    Environmental_Factor = env_vars,
-    Mantel_r = sapply(mantel_results, function(x) round(x$statistic, 3)),
-    P_value = sapply(mantel_results, function(x) round(x$signif, 3))
-)
-print(results_summary)
-```
-
-在 `results_summary` 中，`Mantel_r` 表示 Spearman 相关系数，`P_value` 表示显著性水平。`Mantel_r` 相关系数越大，表示环境因子与群落结构的关系越强。这里，`pH` 与群落结构的关系显著正相关（`Mantel_r = 0.395`， `P = 0.001`），而 `temperature` 和 `salinity` 与群落结构的关系不显著（`P > 0.05`）。
-
-针对 `pH` 因子，我们可以进一步可视化其与群落结构的关系。
-
-```{r}
-# 确保 pH 和 community_dist 的长度相同
-pH_vector = as.vector(env_data$pH)
-community_dist_vector = as.vector(community_dist[upper.tri(community_dist)])  # 只取上三角部分
-
-# 创建数据框
-df = data.frame(
-    pH = rep(pH_vector, each = length(pH_vector) - 1),  # 重复 pH 值以匹配社区距离
-    community_dist = community_dist_vector
-)
-
-# 可视化 pH 与群落结构的关系
-ggplot(df, aes(x = pH, y = community_dist)) +
-    geom_point(alpha = 0.5) +
-    geom_smooth(method = "lm", color = "red") +
-    labs(
-        x = "pH",
-        y = "Community Composition Distance",
-        title = "pH vs. Community Structure"
-    ) +
-    theme_bw()
-```
-
-这个示例展示了：
-
-1. **数据准备**：
-   - 微生物群落数据（OTU表）
-   - 环境因子数据（pH、温度、盐度）
-
-2. **分析步骤**：
-   - 计算群落 Bray-Curtis 距离
-   - 计算标准化的环境距离
-   - 整体环境效应的 Mantel 检验
-   - 单个环境因子的 Mantel 检验
-
-3. **结果解读**：
-   - Mantel r 值表示相关强度
-   - p 值表示显著性水平
-   - 散点图直观展示关系
-   - 各环境因子的独立影响比较
-
-4. **实际应用意义**：
-   - 评估环境异质性对群落结构的影响
-   - 识别关键环境驱动因子
-   - 为微生物生态位分化研究提供依据
