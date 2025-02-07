@@ -38,6 +38,7 @@ book:
   appendices:
     - markdown-syntax.qmd
     - write-math-equation.qmd
+    - technical-writing-with-quarto.qmd
 
 bibliography: references.bib
 
