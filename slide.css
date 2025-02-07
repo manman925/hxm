@@ -30,3 +30,12 @@
     pointer-events: none; /* 避免影响交互 */
     z-index: -1; /* 置于底层 */
 }
+
+
+.reveal h1 {
+    background: #43464B;
+    color: white; /* 让文字更清晰 */
+    padding: 10px; /* 添加内边距 */
+    border-radius: 5px; /* 圆角美化 */
+    display: inline-block; /* 让背景适应文本宽度 */
+}
