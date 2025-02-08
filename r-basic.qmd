@@ -383,17 +383,6 @@ print(summarized_data)
 ```
 
 
-#### 数据变换与重组
-
-dplyr还提供了`spread()`和`gather()`等函数，可以帮助用户进行数据的转置和重组。例如，`gather()`函数可以将宽格式数据转换为长格式数据，而`spread()`则可以将长格式数据转换为宽格式。
-
-```{r}
-# 使用gather()函数将宽格式数据转换为长格式数据
-long_data <- gather(data_frame, key = "variable", value = "value", -name)
-
-# 打印转换后的数据
-print(long_data)
-```
 
 ### ggplot2包
 
@@ -702,6 +691,20 @@ wide_data_again
 ```
 
 tidyr中的`pivot_longer()`和`pivot_wider()`函数分别用于实现宽表和长表之间的转换，帮助数据分析师根据不同分析需求选择合适的数据格式。
+
+
+### 数据变换与重组
+
+tidyr 还提供了`spread()`和`gather()`等函数，可以帮助用户进行数据的转置和重组。例如，`gather()`函数可以将宽格式数据转换为长格式数据，而`spread()`则可以将长格式数据转换为宽格式。
+
+```{r}
+library(tidyr)
+# 使用gather()函数将宽格式数据转换为长格式数据
+long_data <- gather(data_frame, key = "variable", value = "value", -name)
+
+# 打印转换后的数据
+print(long_data)
+```
 
 ### 数据检查和清洗
 

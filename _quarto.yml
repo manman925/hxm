@@ -20,6 +20,7 @@ book:
         - linux-shell.qmd
         - r-basic.qmd
         - python-basic.qmd
+        - python-vs-r.qmd
         - modern-tools-and-outlook.qmd
     - part: 数据分析
       chapters:
