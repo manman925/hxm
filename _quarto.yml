@@ -17,6 +17,7 @@ book:
     - part: 环境搭建
       chapters:
         - reproducible-data-analysis-environment.qmd
+        - linux-shell.qmd
         - modern-tools-and-outlook.qmd
     - part: 数据分析
       chapters:
