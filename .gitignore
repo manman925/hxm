@@ -79,3 +79,5 @@ node_modules/
 package-lock.json
 yarn.lock
 /.quarto/
+
+logs/
