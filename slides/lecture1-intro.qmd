@@ -12,8 +12,8 @@ format:
   pptx:
     reference-doc: template.pptx
 bibliography: 
-    - references.bib
-    - packages.bib
+    - ../references.bib
+    - ../packages.bib
 ---
 
 # 概述
