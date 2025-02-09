@@ -44,6 +44,7 @@ book:
     - markdown-syntax.qmd
     - write-math-equation.qmd
     - technical-writing-with-quarto.qmd
+    - ggplot2-cheatsheet.qmd
 
 bibliography: references.bib
 
