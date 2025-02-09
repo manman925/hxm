@@ -1,4 +1,4 @@
-# Python 和 R 在数据科学领域的对比
+# Python 还是 R？
 
 Python 和 R 在数据科学方面的应用都非常广泛。
 

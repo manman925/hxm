@@ -21,10 +21,10 @@ book:
         - r-basic.qmd
         - python-basic.qmd
         - python-vs-r.qmd
-        - modern-tools-and-outlook.qmd
+        - modern-tool-chain.qmd
     - part: 数据分析
       chapters:
-        - grouped-data-statistical-analysis-and-visualization.qmd
+        - grouped-data-analysis.qmd
         - grouped-data-analysis-in-action.qmd
         - transcriptomics-data-analysis-and-visualization.qmd
         - microbiome-data-analysis-and-visualization.qmd
