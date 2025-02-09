@@ -1,0 +1,186 @@
+# dplyr 语法速查表
+
+**dplyr** 函数配合管道符使用，要求处理的是**整洁数据**。  
+
+整洁数据的特征：
+
+- 每个**变量**独占一**列**
+- 每个**观测值**或**个案**独占一**行**
+- **管道符** `x |> f(y)` 等价于 `f(x,y)`
+
+```{r}
+# 加载dplyr包
+library(dplyr)
+```
+
+```{r}
+#| label: other-used-packages
+#| include: false
+
+# 加载tibble包（隐式调用）
+library(tibble)
+```
+
+## 汇总数据
+
+对列应用**汇总函数**生成统计摘要表。汇总函数将向量作为输入并返回单个值（参见摘要函数章节）。
+
+- `summarize(.data, ...)`：计算汇总统计表
+
+    ```{r}
+    # 计算mpg列的平均值
+    mtcars |> summarize(avg = mean(mpg))
+    ```
+    
+
+
+- `count(.data, ..., wt = NULL, sort = FALSE, name = NULL)`：按分组统计行数。另有`tally()`, `add_count()`, 和`add_tally()`
+
+    ```{r}
+    # 按气缸数统计车辆数量
+    mtcars |> count(cyl)
+    ```
+    
+
+
+## 分组操作
+
+- `group_by(.data, ..., .add = FALSE, .drop = TRUE)`：创建分组副本，后续操作将分别应用于每个分组
+
+    ```{r}
+    # 按气缸分组计算平均油耗
+    mtcars |>
+      group_by(cyl) |>
+      summarize(avg = mean(mpg))
+    ```
+
+
+- `rowwise(.data, ...)`：按行分组，可处理列表列（list-columns）
+
+    ```{r}
+    # 计算每个角色出演电影数量
+    starwars |>
+      rowwise() |>
+      mutate(film_count = length(films))
+    ```
+    
+
+
+- `ungroup(x, ...)`：返回取消分组的副本
+
+## 行操作
+
+### 筛选数据
+
+- `filter(.data, ..., .preserve = FALSE)`：按逻辑条件筛选行
+
+    ```{r}
+    # 筛选油耗大于20的记录
+    mtcars |> filter(mpg > 20)
+    ```
+    
+
+
+- `distinct(.data, ..., .keep_all = FALSE)`：去重操作
+
+    ```{r}
+    # 获取不同的档位类型
+    mtcars |> distinct(gear)
+    ```
+    
+
+### 行列排序
+
+- `arrange(.data, ..., .by_group = FALSE)`：按列值排序，使用desc()降序排列
+
+    ```{r}
+    # 按油耗升序排列
+    mtcars |> arrange(mpg)
+    # 按油耗降序排列
+    mtcars |> arrange(desc(mpg))
+    ```
+
+## 变量操作
+
+### 列选择
+
+- `select(.data, ...)`：选择指定列
+
+    ```{r}
+    # 选择mpg和wt两列
+    mtcars |> select(mpg, wt)
+    ```
+
+### 变量重命名
+
+- `rename(.data, ...)`：重命名列
+
+    ```{r}
+    # 将mpg列重命名
+    mtcars |> rename(miles_per_gallon = mpg)
+    ```
+
+## 数据合并
+
+### 横向合并
+
+```{r}
+# 定义示例数据集
+x <- tribble(
+   ~A,  ~B, ~C,
+  "a", "t",  1,
+  "b", "u",  2,
+  "c", "v",  3
+)
+
+y <- tribble(
+   ~A,  ~B, ~D,
+  "a", "t",  3,
+  "b", "u",  2,
+  "d", "w",  1
+)
+```
+
+- `left_join()`：左连接
+
+    ```{r}
+    left_join(x, y, by = join_by(A))
+    ```
+    
+
+
+## 实用函数
+
+### 条件判断
+
+- `case_when()`：多条件判断
+
+    ```{r}
+    # 角色分类
+    starwars |>
+      mutate(type = case_when(
+        height > 200 | mass > 200 ~ "大型生物",
+        species == "Droid" ~ "机器人",
+        TRUE ~ "其他"
+      ))
+    ```
+
+### 行列转换
+
+- `rownames_to_column()`：将行名转为列
+
+    ```{r}
+    # 转换行名为列
+    a <- rownames_to_column(mtcars, var = "car_model")
+    ```
+
+### 分组统计
+
+```{r}
+# 多列批量计算
+df <- tibble(x_1 = c(1, 2), x_2 = c(3, 4), y = c(4, 5))
+
+# 计算各列均值
+df |> summarize(across(everything(), mean))
+```
+
