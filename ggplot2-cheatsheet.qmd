@@ -1,4 +1,4 @@
-# ggplot2 快速指南
+# ggplot2 速查表
 
 资料来源：<https://rstudio.github.io/cheatsheets/>
 
