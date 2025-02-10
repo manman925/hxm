@@ -1,0 +1,433 @@
+# Git 与 GitHub 入门
+
+本章旨在帮助读者循序渐进地掌握 Git 及 GitHub 的基本使用方法。从环境搭建、基本操作到进阶功能，本章均提供详细的命令示例和实际操作流程，适合初学者和希望提升实战能力的开发者。
+
+## 环境搭建与基础配置
+
+### Git 与 GitHub 简介
+
+Git 是一种分布式版本控制系统，能够高效地记录项目的历史变更；而 GitHub 则是一个支持 Git 的公共代码托管平台，特别适合存放文本文件，如代码、Markdown 文档等。通过 GitHub，开发者不仅可以管理自己的项目，还能与他人协作、提交 Pull Request 贡献代码。
+
+### 安装 Git 与注册 GitHub 账号
+
+完成以下两步，即可开始使用 Git 与 GitHub：
+
+1. **安装 Git 客户端**  
+   访问 [Git 官网](https://git-scm.com/downloads) 下载并安装适合自己操作系统的版本。
+
+2. **注册 GitHub 账号**  
+   前往 [GitHub 注册页面](https://github.com) 完成账号注册。
+
+> **提示：** 在 Windows 系统中安装 Git 后，右键菜单中会出现“Git GUI here”与“Git Bash here”。其中，“Git Bash”是一个命令行工具，建议初学者使用该终端进行 Git 操作。
+
+### 配置 Git 终端的中文显示
+
+为避免中文显示乱码，可执行以下命令进行配置：
+
+```bash
+git config --global core.quotepath false          # status 输出中文不再转码
+git config --global gui.encoding utf-8            # 图形界面编码设置
+git config --global i18n.commit.encoding utf-8    # 提交信息编码设置
+git config --global i18n.logoutputencoding utf-8  # 日志输出编码设置
+export LESSCHARSET=utf-8                           # 为 less 分页器设置编码
+```
+
+### 配置用户名与邮箱
+
+在 Git 上提交代码时，需要配置用户名与邮箱：
+
+```bash
+git config --global user.name "your_name"
+git config --global user.email "your_email"
+```
+
+## Git 基础操作
+
+### 初始化与克隆仓库
+
+- **初始化本地仓库**  
+  在当前目录下创建一个新目录并启用 Git：
+
+  ```bash
+  git init sample
+  ```
+
+- **克隆远程仓库**  
+  将 GitHub 上的项目克隆到本地（示例仓库为 `course_bioinfo_training`）：
+
+  ```bash
+  git clone https://github.com/GuangchuangYu/course_bioinfo_training.git
+  ```
+
+### 常用命令
+
+- **查看仓库状态**
+
+  ```bash
+  git status
+  ```
+
+- **添加文件到暂存区**
+
+  ```bash
+  git add newfile.R
+  ```
+
+- **提交更改**
+
+  ```bash
+  git commit -m "添加新功能代码"
+  ```
+
+- **查看提交历史**
+
+  ```bash
+  git log          # 显示所有提交记录
+  git log -- [file]    # 查看某个文件的提交历史
+  git log -p [file]    # 显示文件内容的变动详情
+  ```
+
+- **管理远程仓库**
+
+  ```bash
+  git remote -v      # 查看所有上游仓库地址
+  ```
+
+
+## 分支管理
+
+分支使我们能够在同一项目中独立开发新功能或修复错误，避免直接修改主分支（master）。
+
+### 创建、切换与删除分支
+
+- **创建新分支**
+
+  ```bash
+  git branch <branch_name>
+  ```
+
+- **从特定提交创建分支（回溯操作）**
+
+  ```bash
+  git checkout <commit_id> -b new_branch
+  ```
+
+- **切换分支**
+
+  ```bash
+  git checkout <branch_name>
+  ```
+
+- **合并分支到主分支**
+
+  ```bash
+  git checkout master
+  git merge <branch_name>
+  # 出现冲突时，解决后再 commit
+  ```
+
+- **删除本地分支**
+
+  ```bash
+  git branch -d <branch_name>   # 安全删除
+  git branch -D <branch_name>   # 强制删除
+  ```
+
+### 从远程分支检出
+
+当远程仓库存在分支时，可按以下步骤操作：
+
+- **仅有一个 Remote 时**
+
+  ```bash
+  git fetch
+  git checkout test
+  ```
+
+- **有多个 Remote 时**
+
+  ```bash
+  git fetch
+  git checkout -b test <remote_name>/test
+  # 或使用跟踪模式
+  git checkout -t <remote_name>/test
+  ```
+
+## 标签（Tag）管理
+
+标签常用于标记版本发布点，便于后续查找和回滚。
+
+### 打标签与删除标签
+
+- **打标签**
+
+  ```bash
+  git tag -a v1.01 -m "Release version 1.01"
+  ```
+
+- **删除本地标签**
+
+  ```bash
+  git tag -d v1.01
+  ```
+
+- **删除远程标签**
+
+  ```bash
+  git push origin :refs/tags/v1.01
+  ```
+
+### 推送标签到远程仓库
+
+- **推送单个标签**
+
+  ```bash
+  git push origin v1.0
+  ```
+
+- **推送所有标签**
+
+  ```bash
+  git push --tags
+  ```
+
+> **注意：** 如果需要在 tag 基础上进行修改，请先创建一个分支：
+>
+> ```bash
+> git checkout -b new_branch tag_name
+> ```
+
+## 与远程仓库同步
+
+### 基本的 Push 与 Pull 操作
+
+- **从远程仓库拉取最新更改**
+
+  ```bash
+  git pull
+  ```
+
+- **将本地提交推送到远程仓库**
+
+  ```bash
+  git push
+  ```
+
+### 更新 Fork 的仓库
+
+当 fork 的项目有了更新，可以按以下步骤同步：
+
+```bash
+# 添加上游仓库
+git remote add upstream https://github.com/ORIGINAL_OWNER/ORIGINAL_REPOSITORY.git
+
+# 同步上游更新到本地
+git fetch upstream
+git checkout master
+git merge upstream/master
+```
+
+> 如果本地 master 有修改，合并可能会冲突。建议在开发时在其他分支上操作，保持 master 的干净。
+
+## GitHub 的高级使用
+
+### 配置 SSH 密钥
+
+为避免每次推送代码时输入用户名和密码，可配置 SSH 密钥：
+
+1. **生成 SSH 密钥**
+
+   ```bash
+   ssh-keygen
+   ```
+
+   默认情况下，私钥存放在 `~/.ssh/id_rsa`，公钥存放在 `~/.ssh/id_rsa.pub`。
+
+2. **查看公钥并复制内容**
+
+   ```bash
+   cat ~/.ssh/id_rsa.pub
+   ```
+
+3. **添加公钥到 GitHub**  
+   登录 GitHub，进入 *Settings → SSH and GPG keys*，点击“New SSH key”，粘贴公钥后保存。
+
+### 在 GitHub 上创建和配置 Repository
+
+#### 方法一：直接克隆已有仓库
+
+```bash
+git clone https://github.com/your_username/your_repo.git
+```
+
+#### 方法二：从零开始新建仓库
+
+1. 在 GitHub 上点击右上角的 “+” 按钮，选择 “Create a new repository”，并设置仓库名称、描述、公开或私有等信息。
+
+2. 在本地新建仓库并关联远程仓库：
+
+   ```bash
+   mkdir myfirstrepo
+   cd myfirstrepo
+   git init
+
+   # 添加远程仓库地址（可使用 HTTPS 或 SSH 协议）
+   git remote add origin https://github.com/your_username/myfirstrepo.git
+   # 或更改为 SSH 地址
+   git remote set-url origin git@github.com:your_username/myfirstrepo.git
+
+   # 添加文件并提交
+   echo "# myfirstrepo" > README.md
+   git add README.md
+   git commit -m "first commit"
+
+   # 推送到远程仓库
+   git push -u origin master
+   ```
+
+3. 查看和管理远程仓库链接：
+
+   ```bash
+   git remote -v           # 查看所有远程仓库信息
+   git remote show origin  # 查看 origin 详细信息
+   ```
+
+### Pull Request 流程
+
+当发现他人项目中的问题并希望贡献代码时，可通过 Pull Request 提交改动。流程如下：
+
+1. 在 GitHub 上 Fork 目标仓库。
+2. 在自己的 Fork 上创建新分支，进行修改、提交并推送。
+3. 在 GitHub 网站上进入目标仓库的 “Pull requests” 页面，点击 “compare across forks”。
+4. 选择正确的 base repository 与 head repository，填写描述后提交 Pull Request。
+5. 作为项目维护者，可对提交的改动进行审核、讨论，确认无误后合并代码。
+
+## Git 子模块管理
+
+子模块允许一个 Git 仓库中嵌入另一个独立的 Git 仓库，适用于引入第三方库或依赖项目。
+
+### 克隆包含子模块的仓库
+
+在克隆仓库时，使用 `--recursive` 参数以同时获取子模块：
+
+```bash
+git clone --recursive https://github.com/username/parent_repo.git
+```
+
+若已经克隆仓库但未包含子模块，可执行：
+
+```bash
+git submodule update --init
+# 若存在嵌套子模块：
+git submodule update --init --recursive --jobs 2
+```
+
+### 子模块日常操作
+
+- **拉取主仓库及子模块的更新**
+
+  ```bash
+  git pull --recurse-submodules
+  ```
+
+- **更新子模块至最新提交**
+
+  ```bash
+  git submodule update --remote
+  ```
+
+- **添加子模块**
+
+  ```bash
+  git submodule add https://github.com/your_username/child_repo.git path/to/submodule
+  git submodule init
+  ```
+
+## GitHub 替代方案与高级话题
+
+### 代码托管平台替代方案
+
+除了 GitHub，还可以使用腾讯云开发平台等国内服务。以腾讯云为例，操作步骤如下：
+
+1. 在腾讯云开发平台上创建一个同名项目。
+2. 将远程仓库地址修改为腾讯云提供的地址：
+
+   ```bash
+   git remote rm origin
+   git remote add origin https://git.dev.tencent.com/your_username/your_project.git
+   git push --set-upstream origin master
+   ```
+
+> **注意：** 部分平台的 URL 可能较长，需注意在远程链接配置时的准确性。
+
+### 自建 Git 服务器
+
+只要服务器支持 SSH，均可搭建自己的 Git 服务器。具体操作可参阅相关教程，如《设置私有 Git 服务器》。
+
+### 清理 Git 历史
+
+在项目开发过程中，可能需要删除大文件或敏感信息。推荐使用 [BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/) 工具进行清理：
+
+```bash
+java -jar bfg-1.13.0.jar --delete-files M.RDS
+```
+
+## 实战案例：实现一个小目标
+
+下面展示一个实际的 Git 使用流程，记录完成一个小目标的全过程：
+
+1. **初始化仓库**
+
+   ```bash
+   mkdir myfirstrepo
+   cd myfirstrepo
+   git init
+   ```
+
+2. **编辑代码**  
+
+   在本地仓库中新建或修改文件（如 `xiaomubiao.R`），实现一个小功能或目标。
+
+3. **查看状态**
+
+   ```bash
+   git status
+   ```
+
+4. **添加文件**
+
+   ```bash
+   git add xiaomubiao.R
+   ```
+
+5. **提交更改**
+
+   ```bash
+   git commit -m "完成了一个小目标"
+   ```
+
+6. **设置远程仓库**
+
+   在 GitHub 上创建一个新仓库，并获取远程仓库地址。将远程仓库地址添加为本地仓库的 origin 远程仓库：
+
+   ```bash
+   git remote add origin https://github.com/your_username/myfirstrepo.git
+   ```
+
+7. **推送至远程仓库**
+
+   ```bash
+   git push
+   ```
+
+8. **查看提交历史**
+
+   ```bash
+   git log
+   ```
+
+通过不断记录并提交每个小目标，逐步构建出完整的项目版本历史。
+
+## 总结
+
+本章内容涵盖了 Git 与 GitHub 的基本操作与常见进阶功能，希望读者通过反复练习，能够在实际开发中灵活运用这些命令，构建高效的版本控制与协作流程。
