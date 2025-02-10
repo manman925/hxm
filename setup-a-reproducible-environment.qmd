@@ -1,0 +1,300 @@
+# 环境配置
+
+## 配置一个可重复的数据分析环境
+
+在自己电脑上配置一个可重复的数据分析环境。
+
+1.  安装脚本语言工具 R 
+    1.  安装 R（最新版本）
+    2.  安装 Rtools（对应版本）
+    3.  安装 `tidyverse` R 包（CRAN）
+    4.  安装 `DEseq2` R 包（Bioconductor）
+    5.  安装 `ggVennDiagram` R 包（GitHub）
+
+2.  安装 Conda（Anaconda/Miniconda）和 Python（3.10 版本）
+    1.  安装 Anaconda/Miniconda，创建一个 Python 3.10 的环境
+    2.  使用 Conda 安装 `matplotlib` 模块
+    3.  使用 Pip 安装 `htseq` 模块
+
+3.  安装 Git，注册 GitHub/Gitee 账号
+    1.  安装 Git
+    2.  注册 GitHub（国际）/Gitee（国内）账号
+    3.  加入课程群组（QQ 群：973581293，GitHub Organization：<https://github.com/D2RS-2025spring>）
+
+4.  安装 Quarto
+    1.  下载安装 Quarto
+    2.  在 VSCode 中配置 Quarto
+    3.  创建一个“Hello World”项目
+
+5.  安装和配置 VSCode
+    1.  安装 VSCode
+    2.  安装 R 插件（R Language Support）
+    3.  安装 Python 插件（Python 和可用环境）
+    4.  安装 Git 插件
+    5.  安装 Quarto 插件
+    6.  安装 Cline 插件或 CodeGeeX 插件
+
+6.  安装 IDE：RStudio/VSCode/Cursor
+    1.  下载安装 RStudio/VSCode/Cursor
+    2.  配置 VSCode/Cursor
+        1.  安装 R 插件（R Language Support）
+        2.  安装 Python 插件（Python 和可用环境）
+        3.  安装 Git 插件
+        4.  安装 Quarto 插件
+        5.  安装 Cline 插件或 CodeGeeX 插件
+
+## 课后作业
+
+-   确保电脑上安装了 R、Python 等需要用到的软件
+
+-   请在雨课堂内完成分组（第二次上课时确认）
+
+-   请与助教取得联系，建立学习小组
+
+## 课后作业解答
+
+下面是根据提纲展开的详细操作步骤说明，每一步均附有具体的操作说明和注意事项，帮助你在电脑上搭建一个可重复的数据分析环境。
+
+### 安装脚本语言工具 R
+
+#### 安装 R（最新版本）
+
+- **操作说明：**
+  1. 打开浏览器，访问 [R 官方网站](https://cran.r-project.org/)。
+  2. 根据你的操作系统（Windows、macOS 或 Linux）选择合适的安装包下载最新版本的 R。
+  3. 运行下载的安装程序，并按照向导完成安装。建议使用默认安装路径，以免后续配置出错。
+  4. 安装完成后，可在命令行或 RStudio 中输入 `R --version` 检查 R 是否安装成功。
+
+#### 安装 Rtools（对应版本）
+
+- **操作说明（仅限 Windows 用户）：**
+  1. 访问 [Rtools 官网](https://cran.r-project.org/bin/windows/Rtools/)。
+  2. 下载与已安装 R 版本匹配的 Rtools 版本（例如：Rtools42 对应 R 4.x）。
+  3. 运行安装程序，并在安装选项中勾选“将 Rtools 添加到系统 PATH”。
+  4. 完成安装后，可在命令行输入 `gcc --version` 来验证 Rtools 是否正确配置。
+
+#### 安装 `tidyverse` R 包（CRAN）
+
+- **操作说明：**
+  1. 启动 R 或 RStudio。
+  2. 在 R 控制台中输入以下命令以从 CRAN 安装 tidyverse：
+     ```r
+     install.packages("tidyverse")
+     ```
+  3. 安装完成后，输入 `library(tidyverse)` 加载包，确保没有报错。
+
+#### 安装 `DEseq2` R 包（Bioconductor）
+
+- **操作说明：**
+  1. 启动 R 或 RStudio。
+  2. 如果尚未安装 BiocManager，请先执行：
+     ```r
+     install.packages("BiocManager")
+     ```
+  3. 然后使用 BiocManager 安装 DESeq2：
+     ```r
+     BiocManager::install("DESeq2")
+     ```
+  4. 安装完成后，通过 `library(DESeq2)` 加载包进行验证。
+
+#### 安装 `ggVennDiagram` R 包（GitHub）
+
+- **操作说明：**
+  1. 启动 R 或 RStudio。
+  2. 如果没有安装 `devtools`，请先安装：
+     ```r
+     install.packages("devtools")
+     ```
+  3. 使用 `devtools` 从 GitHub 安装 `ggVennDiagram`：
+     ```r
+     devtools::install_github("gaospecial/ggVennDiagram")
+     ```
+  4. 安装完成后，通过 `library(ggVennDiagram)` 加载包检查是否正常。
+
+---
+
+### 安装 Conda（Anaconda/Miniconda）
+
+#### 创建一个 Python 3.10 的环境
+
+- **操作说明：**
+  1. 访问 [Anaconda官网](https://www.anaconda.com/products/individual) 或 [Miniconda官网](https://docs.conda.io/en/latest/miniconda.html)，下载适合你操作系统的安装包。
+  2. 根据安装向导完成安装。
+  3. 安装后，打开终端（Terminal）或 Anaconda Prompt，输入以下命令创建 Python 3.10 环境（此处环境名称可自定义，如 `py310`）：
+     ```bash
+     conda create -n py310 python=3.10
+     ```
+  4. 激活新环境：
+     ```bash
+     conda activate py310
+     ```
+
+#### 使用 Conda 安装 `matplotlib` 模块
+
+- **操作说明：**
+  1. 在激活的 Python 环境中，输入以下命令安装 matplotlib：
+     ```bash
+     conda install matplotlib
+     ```
+  2. 安装完成后，可启动 Python，输入以下代码验证安装：
+     ```python
+     import matplotlib.pyplot as plt
+     plt.plot([1, 2, 3], [4, 5, 6])
+     plt.show()
+     ```
+
+#### 使用 Pip 安装 `htseq` 模块
+
+- **操作说明：**
+  1. 在已激活的 Python 环境中，使用 pip 安装 htseq：
+     ```bash
+     pip install htseq
+     ```
+  2. 安装完成后，可在 Python 中输入以下代码测试：
+     ```python
+     import HTSeq
+     print(HTSeq.__version__)
+     ```
+
+
+### 安装 Git，注册 GitHub/Gitee 账号
+
+#### 安装 Git
+
+- **操作说明：**
+  1. 访问 [Git 官网](https://git-scm.com/downloads) 下载适合你操作系统的 Git 安装包。
+  2. 运行安装程序，并按提示完成安装。建议保留默认选项。
+  3. 安装完成后，在命令行输入 `git --version` 检查是否安装成功。
+
+#### 注册 GitHub（国际）/Gitee（国内）账号
+
+- **操作说明：**
+  - **GitHub：**
+    1. 访问 [GitHub 注册页面](https://github.com/join)。
+    2. 填写邮箱、用户名、密码等信息完成注册。
+  - **Gitee：**
+    1. 访问 [Gitee 注册页面](https://gitee.com/signup)。
+    2. 根据提示填写相关信息完成注册。
+
+#### 加入课程群组
+
+- **操作说明：**
+  1. **QQ 群：** 打开 QQ 客户端，搜索群号 `973581293`，申请加入该群组。
+  2. **GitHub Organization：** 访问 [GitHub Organization 链接](https://github.com/D2RS-2025spring)，按照页面提示申请加入或联系管理员。
+
+
+### 安装 Quarto
+
+#### 下载安装 Quarto
+
+- **操作说明：**
+  1. 访问 [Quarto 官方网站](https://quarto.org)。
+  2. 下载适用于你操作系统的 Quarto 安装包。
+  3. 运行安装程序并完成安装，建议在安装时勾选将 Quarto 添加到系统 PATH 中，以便在终端中直接调用。
+
+#### 在 VSCode 中配置 Quarto
+
+- **操作说明：**
+  1. 启动 VSCode，点击左侧的扩展图标（Extensions）。
+  2. 在扩展市场搜索 “Quarto”，找到并安装 Quarto 插件（通常为 “Quarto Language Support”）。
+  3. 安装完成后，插件通常会自动检测系统中的 Quarto 安装路径。如果未自动检测，可手动在 VSCode 设置中配置 Quarto 的路径。
+
+#### 创建一个“Hello World”项目
+
+- **操作说明：**
+  1. 在 VSCode 中新建一个文件，文件名以 `.qmd` 结尾（例如 `hello.qmd`）。
+  2. 输入以下内容作为基础模板：
+     ```markdown
+     ---
+     title: "Hello World"
+     format: html
+     ---
+
+     # Hello World
+
+     欢迎使用 Quarto！
+     ```
+  3. 保存文件后，可通过命令行执行 `quarto render hello.qmd` 或直接使用 VSCode 的 Quarto 插件渲染，生成 HTML 文件预览页面，确认输出正常。
+
+
+### 安装和配置 VSCode
+
+#### 安装 VSCode
+
+- **操作说明：**
+  1. 访问 [Visual Studio Code 官网](https://code.visualstudio.com/)。
+  2. 下载适合你操作系统的安装包，并按照提示完成安装。
+  3. 安装完成后，启动 VSCode。
+
+#### 安装 R 插件（R Language Support）
+
+- **操作说明：**
+  1. 在 VSCode 左侧的扩展市场（Extensions）中搜索 “R Language” 或 “R Language Support”。
+  2. 找到相应插件后点击安装。
+  3. 插件安装后将为 VSCode 提供 R 语法高亮、代码补全和基本调试支持。
+
+#### 安装 Python 插件（Python 和可用环境）
+
+- **操作说明：**
+  1. 在扩展市场中搜索 “Python”（由 Microsoft 提供）。
+  2. 安装后，VSCode 会自动检测你系统中的 Python 解释器（包括 Conda 环境）。
+  3. 你可以在 VSCode 状态栏中点击 Python 版本，选择合适的解释器。
+
+#### 安装 Git 插件
+
+- **操作说明：**
+  1. 虽然 VSCode 内置基本的 Git 支持，但建议安装增强插件，如 “GitLens”。
+  2. 在扩展市场中搜索 “GitLens”，点击安装。
+  3. 安装完成后，你可以在 VSCode 中获得更加详细的 Git 版本历史、作者信息等功能。
+
+#### 安装 Quarto 插件
+
+- **操作说明：**
+  1. 在扩展市场中搜索 “Quarto”，安装 “Quarto Language Support” 插件。
+  2. 插件安装后，会自动识别 `.qmd` 文件，并提供预览、渲染支持。
+
+#### 安装 Cline 插件或 CodeGeeX 插件
+
+- **操作说明：**
+  1. 根据个人需求选择安装代码辅助插件：  
+     - **Cline 插件** 或  
+     - **CodeGeeX 插件**
+  2. 在扩展市场中搜索相应插件名称，点击安装。
+  3. 按照插件提示进行简单配置（如有配置项），确保插件能在代码编辑中提供智能补全和建议。
+
+
+### 安装 IDE：RStudio/VSCode/Cursor
+
+#### 下载安装 RStudio/VSCode/Cursor
+
+- **操作说明：**
+  1. **RStudio：**
+     - 访问 [RStudio 官网](https://www.rstudio.com/products/rstudio/download/)，下载适合你操作系统的 RStudio 桌面版安装包。
+     - 按照向导完成安装。RStudio 专为 R 开发提供了良好的支持。
+  2. **VSCode：**
+     - 如果你已安装 VSCode，可直接使用上面配置的版本。
+  3. **Cursor：**
+     - 如果你对 Cursor 感兴趣，访问其官网或应用市场，下载并安装最新版本。
+
+#### 配置 VSCode/Cursor
+
+- **操作说明：**
+  在 VSCode 或 Cursor 中进行以下插件安装和配置，确保你的开发环境满足所有需求：
+  1. **安装 R 插件（R Language Support）：**
+     - 在扩展市场中搜索并安装 R 语言插件，确保 R 文件具有语法高亮和运行支持。
+  2. **安装 Python 插件（Python 和可用环境）：**
+     - 确保已安装 “Python” 插件，并在 VSCode 状态栏选择正确的 Python 解释器（例如：之前创建的 Conda 环境）。
+  3. **安装 Git 插件：**
+     - 安装 “GitLens” 或其他 Git 扩展，增强 Git 的使用体验。
+  4. **安装 Quarto 插件：**
+     - 安装 “Quarto Language Support” 插件，以支持 Quarto 文件的编辑与渲染。
+  5. **安装 Cline 插件或 CodeGeeX 插件：**
+     - 根据个人喜好，安装其中一个代码辅助插件，提升代码编辑效率。
+  6. **测试配置：**
+     - 分别创建 R 脚本、Python 脚本和 Quarto 文件，确保各自的语法高亮、代码补全、调试及版本控制功能正常运行。
+  7. **重启 IDE：**
+     - 所有插件安装完成后，建议重启 VSCode/Cursor，以确保所有配置生效。
+
+
+
+通过以上步骤，你就可以在自己的电脑上构建一个集 R、Python、Git、Quarto 以及多种 IDE（如 RStudio、VSCode 或 Cursor）于一体的、可重复使用的数据分析环境。每一步的详细操作和说明将帮助你逐步配置好所有必备工具，确保在数据分析和科研工作中具备灵活、稳定的工作平台。

@@ -14,6 +14,7 @@ book:
     - part: 课程简介
       chapters:
         - intro.qmd
+        - what-is-reproducible-study.qmd
     - part: 环境搭建
       chapters:
         - reproducible-data-analysis-environment.qmd
@@ -21,7 +22,9 @@ book:
         - r-basic.qmd
         - python-basic.qmd
         - python-vs-r.qmd
+        - git-basic.qmd
         - modern-tool-chain.qmd
+        - setup-a-reproducible-environment.qmd
     - part: 数据分析
       chapters:
         - grouped-data-analysis.qmd
