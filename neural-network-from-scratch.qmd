@@ -1,1 +1,772 @@
 # 手搓神经网络模型
+
+本项目将展示如何利用 PyTorch 从零开始构建一个神经网络模型，以解决手写字母（实际上这里使用的是 MNIST 手写数字）识别问题。本文内容不仅介绍了神经网络的基础知识、训练本质和卷积操作的优势，还给出了完整代码实现，让你能够亲自动手构建并训练模型。
+
+## 神经网络模型基础
+
+在开始代码实现之前，我们先介绍一些神经网络的基本概念和原理。
+
+### 什么是神经网络？
+
+神经网络是一种受人脑神经元连接方式启发而构造的数学模型。它由大量节点（神经元）构成，这些节点以不同的层级进行排列：  
+- **输入层**：接收外界数据。  
+- **隐藏层**：对数据进行特征提取与变换。  
+- **输出层**：给出最终的预测结果。
+
+下面的 Mermaid 图展示了一个简单神经网络的基本结构[@fig-nn_architecture]：
+
+```{mermaid}
+flowchart LR
+    A[输入层] --> B[隐藏层]
+    B --> C[输出层]
+```
+<!--
+::: {#fig-nn_architecture fig-cap="简单神经网络架构示意图"}
+:::
+-->
+
+### 神经网络训练的本质
+
+神经网络的训练主要分为以下几个步骤：
+
+1. **前向传播**：将输入数据通过网络，得到预测输出。  
+2. **计算损失**：比较预测输出和真实标签之间的误差。  
+3. **反向传播**：根据损失计算梯度，确定每个参数应如何调整。  
+4. **梯度下降**：利用梯度更新网络参数，逐步减小预测误差。
+
+这种不断迭代的过程使得模型能够从数据中学习并不断改进。
+
+### 卷积操作为什么有用？
+
+卷积操作是卷积神经网络（CNN）的核心，主要有以下优点：
+
+- **局部特征提取**：卷积核能捕捉局部区域内的边缘、纹理等特征。  
+- **参数共享**：同一卷积核在整个图像上滑动，显著减少模型参数数量。  
+- **平移不变性**：卷积操作能保证特征检测不受物体在图像中位置变化的影响。
+
+下面的图示意了卷积操作的基本原理：
+
+```{mermaid}
+flowchart LR
+    subgraph Input_Image[输入图像]
+        A[像素矩阵]
+    end
+    subgraph Convolution[卷积操作]
+        B[滤波器]
+        C[特征提取]
+    end
+    A --> B
+    B --> C
+```
+<!--
+::: {#fig-conv_operation fig-cap="卷积操作示意图"}
+:::
+-->
+
+
+## 手写字母识别的历史
+
+手写字母或数字识别一直是人工智能领域的经典问题。早期研究中，专家需要手工设计特征提取方法来识别图像中的字母或数字。  
+随着神经网络，尤其是卷积神经网络（CNN）的出现，系统能够自动学习并提取图像特征，大幅提升了识别准确率。  
+MNIST 数据集便是一个经典的例子，它包含了 60000 张训练图像和 10000 张测试图像，每张图像为 28x28 像素的灰度图，广泛用于手写数字识别的教学和研究中。
+
+
+## 配置环境和下载数据集
+
+在动手构建神经网络之前，请确保你已配置好 Conda 环境并安装所需的软件包。
+
+### 配置 Conda 环境
+
+```bash
+# 创建一个新的 Conda 环境，命名为 pytorch_env，使用 Python 3.8 版本
+conda create -n pytorch_env python=3.8
+
+# 激活该环境
+conda activate pytorch_env
+```
+
+### 安装 PyTorch 和 torchvision
+
+```bash
+# 使用 conda 安装 PyTorch 及其相关工具包
+conda install pytorch torchvision torchaudio -c pytorch
+```
+
+### 下载 MNIST 数据集
+
+在下面的代码中，我们将利用 torchvision 自动下载 MNIST 数据集。这个数据集包含手写数字图像，是机器学习领域的经典数据集。
+
+```{python}
+# 导入必要的库
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+import torch.nn.functional as F
+```
+
+
+定义图像预处理流程：
+
+- `transforms.ToTensor()`  将 PIL 图像或 numpy 数组转换为 tensor，并将像素值归一化到 [0, 1] 范围内
+- `transforms.Normalize()` 进一步将数据标准化，均值和标准差是针对 MNIST 数据集计算得到的
+
+```{python}
+# 定义图像预处理流程
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,))
+])
+
+# 下载并加载数据集
+train_dataset = datasets.MNIST(
+    root='./data',
+    train=True,
+    download=True,
+    transform=transform
+)
+
+test_dataset = datasets.MNIST(
+    root='./data',
+    train=False,
+    download=True,
+    transform=transform
+)
+
+# 创建数据加载器
+train_loader = torch.utils.data.DataLoader(
+    dataset=train_dataset,
+    batch_size=64,
+    shuffle=True
+)
+
+test_loader = torch.utils.data.DataLoader(
+    dataset=test_dataset,
+    batch_size=1000,
+    shuffle=False
+)
+```
+
+### 绘制数据集
+
+绘制 12 张训练集和 4 张测试集图像，并在图上右下角标出数据集图像的id。
+
+```{python}
+plt.figure(figsize=(10, 6))
+
+# 绘制训练集图像
+plt.title("MNIST Dataset Examples")
+for i in range(21):
+    plt.subplot(4, 7, i+1)
+    plt.axis("off")
+    img = train_dataset[i][0].squeeze()
+    label = train_dataset[i][1]
+    plt.imshow(img, cmap="gray")
+    plt.text(18, 26, f"{label}", fontsize=10, color="red")
+
+# 绘制测试集图像
+for i in range(7):
+    plt.subplot(4, 7, i+22)
+    plt.axis("off")
+    img = test_dataset[i][0].squeeze()
+    label = test_dataset[i][1]
+    plt.imshow(img, cmap="gray")
+    plt.text(20, 25, f"{label}", fontsize=10, color="green")
+
+plt.tight_layout()
+plt.show()
+```
+
+## 构建 LeNet 神经网络模型
+
+LeNet 是最早用于手写数字识别的卷积神经网络之一，其结构包括卷积层、池化层和全连接层。下面我们将从零开始搭建 LeNet 模型。
+
+### 数据加载与预处理
+
+下面的代码将下载 MNIST 数据集，并对数据进行预处理。每行代码均有详细注释，便于理解。
+
+```{python}
+# 导入必要的库
+import torch                # PyTorch 主库
+import torch.nn as nn       # 构建神经网络相关模块
+import torch.optim as optim # 定义优化器，更新网络参数
+from torchvision import datasets, transforms  # 用于加载和预处理数据集
+
+transform = transforms.Compose([
+    transforms.ToTensor(),                       
+    transforms.Normalize((0.1307,), (0.3081,))
+])
+
+# 下载 MNIST 训练数据集，并应用上述预处理
+train_dataset = datasets.MNIST(
+    root='./data',      # 数据保存路径
+    train=True,         # 指定下载训练集
+    download=True,      # 如果数据不存在则下载
+    transform=transform # 应用预处理
+)
+
+# 下载 MNIST 测试数据集
+test_dataset = datasets.MNIST(
+    root='./data',
+    train=False,        # 指定下载测试集
+    download=True,
+    transform=transform
+)
+
+# 利用 DataLoader 将数据分批加载，便于模型训练
+train_loader = torch.utils.data.DataLoader(
+    dataset=train_dataset,
+    batch_size=64,      # 每批次加载 64 张图像
+    shuffle=True        # 打乱顺序，提高训练效果
+)
+
+test_loader = torch.utils.data.DataLoader(
+    dataset=test_dataset,
+    batch_size=1000,    # 每批次加载 1000 张图像，测试时不需要太小批次
+    shuffle=False       # 测试集不打乱
+)
+```
+
+**代码说明：**  
+此代码块完成了数据集的下载与预处理工作。利用 `transforms` 对图像数据进行归一化，然后通过 `DataLoader` 将数据分批加载，为后续的模型训练提供数据支持。
+
+
+
+### 构建 LeNet 模型
+
+下面代码定义了 LeNet 模型，其中包含两个卷积层、两个池化层和三个全连接层。每一步均附有详细注释。
+
+```{python}
+# 定义 LeNet 神经网络模型类，继承自 nn.Module
+class LeNet(nn.Module):
+    def __init__(self):
+        super(LeNet, self).__init__()
+        # 第一个卷积层：
+        # 输入通道：1（灰度图像），输出通道：6，卷积核大小：5x5
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5)
+        
+        # 定义池化层：
+        # 使用 2x2 的最大池化，能够减小特征图的尺寸
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        
+        # 第二个卷积层：
+        # 输入通道：6，输出通道：16，卷积核大小：5x5
+        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5)
+        
+        # 第一个全连接层：
+        # 输入特征数为 16*4*4（经过两次卷积和池化后的特征图尺寸），输出特征数为 120
+        self.fc1 = nn.Linear(in_features=16*4*4, out_features=120)
+        
+        # 第二个全连接层：将 120 个特征映射到 84 个特征
+        self.fc2 = nn.Linear(in_features=120, out_features=84)
+        
+        # 第三个全连接层：输出 10 个类别，对应 MNIST 中 10 个数字
+        self.fc3 = nn.Linear(in_features=84, out_features=10)
+
+    def forward(self, x):
+        # 将输入通过第一个卷积层，并使用 ReLU 激活函数增加非线性
+        x = torch.relu(self.conv1(x))
+        # 应用池化层，减小特征图尺寸
+        x = self.pool(x)
+        # 第二个卷积层 + ReLU 激活
+        x = torch.relu(self.conv2(x))
+        # 再次池化
+        x = self.pool(x)
+        # 将多维特征图展平为一维向量，为全连接层做准备
+        x = x.view(-1, 16*4*4)
+        # 第一个全连接层 + ReLU 激活
+        x = torch.relu(self.fc1(x))
+        # 第二个全连接层 + ReLU 激活
+        x = torch.relu(self.fc2(x))
+        # 第三个全连接层得到最终输出（未经过激活，后续会结合损失函数使用）
+        x = self.fc3(x)
+        return x
+```
+
+**代码说明：**  
+本部分代码定义了 LeNet 模型。通过两个卷积层和池化层逐步提取图像特征，再通过全连接层进行分类。注意，由于 MNIST 图像尺寸为 28×28，经过两次卷积和池化后，特征图尺寸正好为 4×4（通道数为 16），因此全连接层的输入特征数为 `16*4*4`。
+
+### LeNet 模型结构图
+
+初始化一个 LeNet 模型，并打印其结构。
+
+```{python}
+# 打印模型结构
+model = LeNet()
+print(model)
+```
+
+让我们详细解释一下模型的每一层结构：
+
+1. **第一个卷积层 `(conv1)`**：
+   - 输入：1 个通道（灰度图像）
+   - 输出：6 个特征图
+   - 卷积核：5×5
+   - 步长：1
+   - 输入尺寸：28×28 → 输出尺寸：24×24
+
+2. **第一个池化层 `(pool)`**：
+   - 池化窗口：2×2
+   - 步长：2
+   - 输入尺寸：24×24 → 输出尺寸：12×12
+
+3. **第二个卷积层 `(conv2)`**：
+   - 输入：6 个通道
+   - 输出：16 个特征图
+   - 卷积核：5×5
+   - 步长：1
+   - 输入尺寸：12×12 → 输出尺寸：8×8
+
+4. **第二个池化层 `(pool)`**：
+   - 池化窗口：2×2
+   - 步长：2
+   - 输入尺寸：8×8 → 输出尺寸：4×4
+
+5. **第一个全连接层 `(fc1)`**：
+   - 输入：256 个特征（16×4×4）
+   - 输出：120 个神经元
+
+6. **第二个全连接层 `(fc2)`**：
+   - 输入：120 个特征
+   - 输出：84 个神经元
+
+7. **第三个全连接层 `(fc3)`**：
+   - 输入：84 个特征
+   - 输出：10 个神经元（对应 10 个数字类别）
+
+**数据流向说明**：
+
+1. 输入的 28×28 图像首先经过第一个卷积层，生成 6 个 24×24 的特征图
+2. 经过池化层后，特征图变为 6 个 12×12
+3. 第二个卷积层将特征图转换为 16 个 8×8 的特征图
+4. 再次池化后，得到 16 个 4×4 的特征图
+5. 将特征图展平为一维向量（16×4×4 = 256）
+6. 通过三个全连接层逐步将特征降维，最终输出 10 个类别的概率分布
+
+这种结构设计使得网络能够逐层提取图像的特征，从低级的边缘特征到高级的抽象特征，最终实现手写数字的分类。
+
+## 模型训练和评估
+
+接下来，我们将编写训练和测试的代码，并整合到主函数中，实现对模型的训练和评估。
+
+### 定义训练函数
+
+```{python}
+# 定义训练函数，用于在训练集上训练模型
+def train(model, device, train_loader, optimizer, criterion, epoch):
+    model.train()
+    train_loss = 0
+    correct = 0
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = criterion(output, target)
+        loss.backward()
+        optimizer.step()
+        
+        # 累计损失和正确预测数
+        train_loss += loss.item() * data.size(0)
+        pred = output.argmax(dim=1, keepdim=True)
+        correct += pred.eq(target.view_as(pred)).sum().item()
+        
+        if batch_idx % 5000 == 0:
+            print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}]\tLoss: {loss.item():.6f}")
+    
+    # 计算平均损失和准确率
+    train_loss /= len(train_loader.dataset)
+    accuracy = 100. * correct / len(train_loader.dataset)
+    return train_loss, accuracy
+```
+
+**代码说明：**  
+训练函数中，模型对每个批次数据进行前向传播，计算损失后进行反向传播，并使用优化器更新权重。每隔一定批次输出当前损失，方便观察训练进度。
+
+
+### 定义测试函数
+
+```{python}
+# 定义测试函数，用于评估模型在测试集上的表现
+def test(model, device, test_loader, criterion):
+    model.eval()  # 将模型设置为评估模式，关闭 dropout 等训练特性
+    test_loss = 0  # 初始化测试损失
+    correct = 0    # 初始化预测正确的样本计数
+    # 在测试阶段不计算梯度，节省内存和加快计算速度
+    with torch.no_grad(): # 不计算梯度，节省内存和加快计算速度
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += criterion(output, target).item() * data.size(0)
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+    
+    test_loss /= len(test_loader.dataset) # 计算平均损失
+    accuracy = 100. * correct / len(test_loader.dataset) # 计算准确率
+    return test_loss, accuracy
+```
+
+**代码说明：**  
+测试函数中，模型在测试集上进行前向传播，并累计计算总体损失与正确预测数量，最终输出平均损失及准确率，以评估模型的泛化能力。
+
+
+### 训练过程中的损失指标
+
+在训练神经网络时，我们主要关注两个重要的损失指标：
+
+1. **训练损失（Training Loss）**：
+   - 表示模型在训练数据集上的预测误差
+   - 反映了模型对训练数据的拟合程度
+   - 训练损失持续下降表明模型正在学习数据中的模式
+   - 但过低的训练损失可能意味着过拟合
+
+2. **测试损失（Test Loss）**：
+   - 表示模型在从未见过的测试数据上的预测误差
+   - 反映了模型的泛化能力
+   - 测试损失应该与训练损失保持相近
+   - 如果测试损失明显高于训练损失，说明模型可能过拟合
+
+**理想的训练过程**应该表现为：
+- 训练损失和测试损失同时下降
+- 两者之间保持较小的差距
+- 最终都收敛到一个较低的水平
+
+如果观察到以下情况，则需要调整模型或训练策略：
+- 训练损失持续下降但测试损失上升：过拟合的典型特征
+- 两种损失都居高不下：欠拟合，可能需要增加模型复杂度
+- 损失剧烈波动：学习率可能过大
+
+
+### 主函数：训练与评估模型
+
+模型训练推荐使用 CUDA 或 MPS 进行训练（GPU），如果 CUDA 或 MPS 不可用，则使用 CPU 进行训练。
+
+```{python}
+# 主函数，整合数据加载、模型构建、训练和测试过程
+# 检查是否有 GPU 可用，否则使用 CPU
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
+
+# 实例化 LeNet 模型，并移动到指定设备上
+model = LeNet().to(device)
+```
+
+### 优化器与损失函数
+
+在神经网络训练中，优化器和损失函数是两个核心组件：
+
+1. **随机梯度下降优化器（SGD）**：
+   - **原理**：通过计算损失函数对模型参数的梯度，沿着梯度的反方向更新参数
+   - **学习率**：控制每次参数更新的步长（这里设为 0.01）
+   - **动量**：
+     - 作用：累积之前的梯度方向，帮助模型跳出局部最小值
+     - 数值：这里设为 0.9，表示保留 90% 的历史梯度信息
+     - 优势：加速收敛，减少震荡
+
+2. **交叉熵损失函数（CrossEntropyLoss）**：
+   - **适用场景**：多分类问题（如本例中的 10 个数字分类）
+   - **计算过程**：
+     - 首先对模型输出进行 softmax 归一化，得到每个类别的概率
+     - 然后计算预测概率分布与真实标签分布的交叉熵
+   - **特点**：
+     - 能有效处理多分类问题
+     - 对错误预测施加更大的惩罚
+     - 输出值在 [0, ∞) 范围内，0 表示完美预测
+
+
+```{python}
+# 定义优化器：使用随机梯度下降（SGD），学习率为 0.01，动量为 0.9
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+
+# 定义损失函数：交叉熵损失函数常用于分类问题
+criterion = nn.CrossEntropyLoss()
+```
+
+
+### 开始训练
+
+训练过程中，我们记录了训练损失、训练准确率、测试损失和测试准确率。
+
+```{python}
+# 用于记录训练过程的指标
+train_losses = []
+train_accs = []
+test_losses = []
+test_accs = []
+
+epochs = 5  # 设定训练轮数为 5
+# 循环训练和测试模型
+for epoch in range(1, epochs + 1):
+    # 训练并记录指标
+    train_loss, train_acc = train(model, device, train_loader, optimizer, criterion, epoch)
+    test_loss, test_acc = test(model, device, test_loader, criterion)
+    
+    # 保存指标
+    train_losses.append(train_loss)
+    train_accs.append(train_acc)
+    test_losses.append(test_loss)
+    test_accs.append(test_acc)
+    
+    print(f"\nEpoch {epoch}:")
+    print(f"Train - Loss: {train_loss:.4f}, Accuracy: {train_acc:.2f}%")
+    print(f"Test  - Loss: {test_loss:.4f}, Accuracy: {test_acc:.2f}%\n")
+```
+
+### 绘制训练过程图表
+
+训练结束后，我们可以绘制训练过程的损失曲线和准确率曲线。
+
+```{python}
+# 绘制训练过程图表
+epochs_range = range(1, epochs + 1)
+
+plt.figure(figsize=(12, 5))
+
+# 绘制损失曲线
+plt.subplot(1, 2, 1)
+plt.plot(epochs_range, train_losses, 'bo-', label='Training Loss')
+plt.plot(epochs_range, test_losses, 'ro-', label='Test Loss')
+plt.title('Model Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+
+# 绘制准确率曲线
+plt.subplot(1, 2, 2)
+plt.plot(epochs_range, train_accs, 'bo-', label='Training Accuracy')
+plt.plot(epochs_range, test_accs, 'ro-', label='Test Accuracy')
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy (%)')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+**代码说明：**
+
+在主函数中，我们首先检测计算设备，然后实例化模型、定义优化器和损失函数，并依次调用训练和测试函数。每个 epoch 结束后，终端会输出当前的训练状态和测试结果。
+
+    
+
+## 总结
+
+本项目详细介绍了：
+
+- **神经网络基础知识**：从基本结构、训练过程到卷积操作的优势，帮助你了解神经网络的工作原理。  
+- **数据集**：通过 MNIST 数据集的介绍，了解了手写数字识别问题的背景。  
+- **环境配置**：如何利用 Conda 创建环境，并安装 PyTorch、torchvision 等必备工具。  
+- **完整代码实现**：从数据加载、模型构建到训练和评估，每一步均有详细注释，确保即使是初学者也能理解和上手。
+
+通过本项目的学习，你不仅能掌握如何用 PyTorch 实现一个简单的 LeNet 神经网络，还能理解神经网络训练的基本原理及卷积操作在图像处理中的优势。希望本章内容能激发你对人工智能和深度学习的兴趣，并为进一步探索打下坚实基础！
+
+
+## 详解训练过程
+
+下面以一个最简单的神经网络——只有一个神经元的单层模型——为例，展示训练过程中神经元参数（权重和偏置）是如何一步步确定下来的。这个例子帮助理解神经网络的基本训练流程，包括**前向传播**、**损失计算**、**反向传播**（梯度计算）和**参数更新**。
+
+
+### 网络结构与设定
+
+假设我们的神经网络只有一个神经元，该神经元接收一个输入 $x$ 并输出 $y$。神经元具有两个可训练参数：
+
+- **权重 $w$**
+- **偏置 $b$**
+
+采用**线性激活函数**（即不做非线性变换），则神经元的输出为：
+$$
+y = w \cdot x + b.
+$$
+
+同时，设定一个**平方误差损失函数**（Mean Squared Error, MSE）来衡量输出与目标之间的差距：
+$$
+L = \frac{1}{2}(y - y_{\text{target}})^2,
+$$
+其中 $y_{\text{target}}$ 为给定的目标输出。
+
+
+### 训练流程概述
+
+整个训练过程可以分为以下几个步骤：
+
+1. **初始化参数**  
+   随机或按照某种策略给定初始的 $w$ 和 $b$。
+
+2. **前向传播**  
+   给定输入 $x$，计算神经元输出：
+   $$
+   y = w \cdot x + b.
+   $$
+
+3. **损失计算**  
+   根据神经元输出和目标输出 $y_{\text{target}}$ 计算损失：
+   $$
+   L = \frac{1}{2}(y - y_{\text{target}})^2.
+   $$
+
+4. **反向传播（梯度计算）**  
+   利用链式法则计算损失关于参数 $w$ 和 $b$ 的梯度，具体如下：
+   - 对 $y$ 求导：
+     $$
+     \frac{\partial L}{\partial y} = y - y_{\text{target}}.
+     $$
+   - 由于 $y = w \cdot x + b$，有：
+     $$
+     \frac{\partial y}{\partial w} = x,\quad \frac{\partial y}{\partial b} = 1.
+     $$
+   - 所以利用链式法则：
+     $$
+     \frac{\partial L}{\partial w} = \frac{\partial L}{\partial y} \cdot \frac{\partial y}{\partial w} = (y - y_{\text{target}}) \cdot x,
+     $$
+     $$
+     \frac{\partial L}{\partial b} = \frac{\partial L}{\partial y} \cdot \frac{\partial y}{\partial b} = y - y_{\text{target}}.
+     $$
+
+5. **参数更新**  
+   利用梯度下降法调整参数：
+   $$
+   w_{\text{new}} = w - \eta \cdot \frac{\partial L}{\partial w},\quad b_{\text{new}} = b - \eta \cdot \frac{\partial L}{\partial b},
+   $$
+   其中 $\eta$ 为学习率，控制每次更新的步长。
+
+6. **重复迭代**  
+   重复步骤2～5，直至损失足够小或达到预定的迭代次数。
+
+
+### 数值示例
+
+假设我们有以下设定：
+
+- **输入**：$x = 1.0$
+- **目标输出**：$y_{\text{target}} = 2.0$
+- **初始参数**：$w = 0.5$，$b = 0.1$
+- **学习率**：$\eta = 0.1$
+
+我们来看几次迭代的具体计算过程。
+
+### **迭代 1**
+
+1. **前向传播**  
+   计算输出：
+   $$
+   y = 0.5 \times 1.0 + 0.1 = 0.6.
+   $$
+
+2. **损失计算**  
+   $$
+   L = \frac{1}{2}(0.6 - 2.0)^2 = \frac{1}{2} \times (-1.4)^2 = \frac{1}{2} \times 1.96 = 0.98.
+   $$
+
+3. **反向传播（梯度计算）**  
+   - 首先计算：
+     $$
+     \frac{\partial L}{\partial y} = 0.6 - 2.0 = -1.4.
+     $$
+   - 然后：
+     $$
+     \frac{\partial L}{\partial w} = -1.4 \times 1.0 = -1.4,
+     $$
+     $$
+     \frac{\partial L}{\partial b} = -1.4.
+     $$
+
+4. **参数更新**  
+   $$
+   w_{\text{new}} = 0.5 - 0.1 \times (-1.4) = 0.5 + 0.14 = 0.64,
+   $$
+   $$
+   b_{\text{new}} = 0.1 - 0.1 \times (-1.4) = 0.1 + 0.14 = 0.24.
+   $$
+
+### **迭代 2**
+
+使用更新后的参数 $w = 0.64$ 和 $b = 0.24$。
+
+1. **前向传播**  
+   $$
+   y = 0.64 \times 1.0 + 0.24 = 0.88.
+   $$
+
+2. **损失计算**  
+   $$
+   L = \frac{1}{2}(0.88 - 2.0)^2 = \frac{1}{2} \times (-1.12)^2 = \frac{1}{2} \times 1.2544 \approx 0.6272.
+   $$
+
+3. **反向传播**  
+   $$
+   \frac{\partial L}{\partial y} = 0.88 - 2.0 = -1.12,
+   $$
+   $$
+   \frac{\partial L}{\partial w} = -1.12 \times 1.0 = -1.12,
+   $$
+   $$
+   \frac{\partial L}{\partial b} = -1.12.
+   $$
+
+4. **参数更新**  
+   $$
+   w_{\text{new}} = 0.64 - 0.1 \times (-1.12) = 0.64 + 0.112 = 0.752,
+   $$
+   $$
+   b_{\text{new}} = 0.24 - 0.1 \times (-1.12) = 0.24 + 0.112 = 0.352.
+   $$
+
+### **迭代 3**
+
+使用更新后的参数 $w = 0.752$ 和 $b = 0.352$。
+
+1. **前向传播**  
+   $$
+   y = 0.752 \times 1.0 + 0.352 = 1.104.
+   $$
+
+2. **损失计算**  
+   $$
+   L = \frac{1}{2}(1.104 - 2.0)^2 = \frac{1}{2} \times (-0.896)^2 \approx \frac{1}{2} \times 0.802 = 0.401.
+   $$
+
+3. **反向传播**  
+   $$
+   \frac{\partial L}{\partial y} = 1.104 - 2.0 = -0.896,
+   $$
+   $$
+   \frac{\partial L}{\partial w} = -0.896 \times 1.0 = -0.896,
+   $$
+   $$
+   \frac{\partial L}{\partial b} = -0.896.
+   $$
+
+4. **参数更新**  
+   $$
+   w_{\text{new}} = 0.752 - 0.1 \times (-0.896) = 0.752 + 0.0896 \approx 0.8416,
+   $$
+   $$
+   b_{\text{new}} = 0.352 - 0.1 \times (-0.896) = 0.352 + 0.0896 \approx 0.4416.
+   $$
+
+
+### 训练过程总结
+
+在这个简单例子中，神经网络的参数更新过程可以总结为：
+
+1. **初始化**：随机或预设初始值（本例中 $w = 0.5, \, b = 0.1$）。
+2. **前向传播**：利用当前参数计算输出 $y = w \cdot x + b$。
+3. **计算损失**：用损失函数衡量输出与目标的差异。
+4. **反向传播**：计算损失对各参数的梯度，得到更新方向。
+5. **参数更新**：利用梯度下降公式更新 $w$ 和 $b$。
+6. **迭代训练**：重复上述步骤，直至损失减小到可以接受的程度或达到预定的迭代次数。
+
+经过多次迭代后，神经元的参数会逐渐调整，使得神经元的输出越来越接近目标输出，从而达到训练的目的。
+
+
+### 拓展：多层神经网络
+
+在实际应用中，我们通常使用多层神经网络（即深度神经网络）。其基本原理与上述单神经元相同，只不过：
+
+- **每一层都有多个神经元**，每个神经元都有各自的参数；
+- **激活函数**可能为非线性函数（如ReLU、Sigmoid、Tanh等）；
+- **反向传播**时需要利用链式法则将梯度从输出层依次传递到各个隐藏层，计算每个参数对最终损失的贡献。
+
+无论网络有多复杂，核心思想都是：**通过不断前向计算输出、衡量输出与目标之间的误差，再通过反向传播调整参数，从而使得网络能够更好地拟合数据。**
+
+通过上述极简示例，我们可以直观地看到神经网络训练过程中参数是如何一步步从初始值调整到能够较好地“解释”训练数据的。这就是神经网络训练中参数确定的基本机制。
