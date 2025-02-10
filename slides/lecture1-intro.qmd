@@ -3,6 +3,7 @@ title: "课程简介"
 author: "高春辉"
 format:
   revealjs: 
+    theme: white
     slide-number: true
     chalkboard: 
       buttons: false
@@ -86,9 +87,9 @@ Speaker notes go here.
 
 环境搭建模块的项目内容包括：
 
-1.  电脑硬件和操作系统
-2.  可重复的数据分析环境
-3. 现代工具与展望
+1. 电脑硬件和操作系统
+2. 可重复的数据分析环境
+3. 现代工具链
 
 ## 数据分析模块
 
@@ -105,7 +106,7 @@ Speaker notes go here.
 7.  机器学习算法及实现
 8.  手搓神经网络模型
 9.  利用拉曼光谱识别病原菌
-10.  调用通用大语言模型执行任务
+10. 调用通用大语言模型执行任务
 11. 计算机视觉辅助分析实验图片
 
 ## 开发协作模块
@@ -127,11 +128,12 @@ Speaker notes go here.
     3.  安装 `Conda` & `Python`
     4.  安装 `Git`，注册 `GitHub`/`Gitee` 账号
     5.  安装 VSCode、JupyterLab、Quarto 等工具
-3. **现代工具与展望**
+3. **现代工具链**
     1.  Markdown 和 Latex
     2.  R Markdown 和 JupyterLab
     3.  Quarto 文档
-    4.  AI 代码编辑器
+    4.  Git 和 GitHub/Gitee
+    5.  AI 代码编辑器
 
 
 ## 数据分析模块
@@ -179,7 +181,7 @@ Speaker notes go here.
 
 8.  **手搓神经网络模型**
 
-    以手写字母识别为例，从零搭建一个VGG16神经网络模型。
+    以手写字母识别为例，从零搭建一个 LeNet 神经网络模型。
 
     1.  神经网络模型基本概念
     2.  评估模型的准确率
@@ -204,7 +206,7 @@ Speaker notes go here.
 
 11. **计算机视觉分析实验图片**
 
-    以植物图片分割为例，讲解如何
+    以植物图片分割为例，讲解如何使用计算机视觉技术分析实验图片。
 
     1.  分割植株及背景
     2.  评价植物生长情况
@@ -218,6 +220,8 @@ Speaker notes go here.
     1.  Fork、Pull Request
     2.  GitHub Actions
     3.  GitHub Issues
+    4.  使用 Quarto 创建网站
+    5.  部署 Netlify 静态网站
 
 ## 开发协作模块
 
