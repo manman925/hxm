@@ -9,6 +9,9 @@ book:
   author: "高春辉"
   date: now
   cover-image: cover.png
+  repo-url: https://github.com/D2RS-2025spring/data-driven-reproducible-study
+  issue-url: https://github.com/D2RS-2025spring/data-driven-reproducible-study/issues/
+  repo-actions: [edit, source, issue]
   chapters:
     - index.qmd
     - part: 课程简介
