@@ -1,3 +1,6 @@
 [submodule "ratio"]
 	path = ratio
 	url = ./ratio
+[submodule "deg"]
+	path = deg
+	url = ./deg
