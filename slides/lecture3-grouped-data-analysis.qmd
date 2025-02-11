@@ -1,0 +1,545 @@
+---
+title: "分组数据分析实战"
+author: "高春辉"
+format:
+  revealjs: 
+    theme: white
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    css: slide.css
+    footer: '[课程仓库](https://github.com/D2RS-2025spring)'
+  pptx:
+    reference-doc: template.pptx
+bibliography: 
+    - ../references.bib
+    - ../packages.bib
+---
+
+## 分析体系架构 {.smaller .scrollable}
+
+| 分析层次       | 使用场景                   | 参数方法          | 非参数方法          |
+|----------------|------------------------|-------------------|---------------------|
+| **单组数据**   | 样本与参考值比较           | 单样本 t 检验     | 单样本 Wilcoxon 符号检验 |
+| **两组比较**   | 组间均值比较               | 独立样本 t 检验   | Wilcoxon 秩和检验    |
+| **配对设计**   | 同一对象不同处理       | 配对 t 检验       | Wilcoxon 符号秩检验  |
+| **多组比较**   | 多个组别比较               | ANOVA  | Kruskal-Wallis 检验  |
+| **相关分析**   | 变量关联性             | Pearson 相关系数  | Spearman 相关系数   |
+| **多变量分析** | 多变量关系       | MANOVA, RDA, CCA  | Mantel 检验, PERMANOVA |
+
+
+---
+
+## 适用性差异 {.smaller}
+
+### 1. 数据分布假设
+
+- **参数方法**：假设数据服从特定分布（如正态分布）。
+- **非参数方法**：不依赖具体分布，适用于非正态数据。
+
+
+### 2. 样本量要求
+
+- **参数方法**：大样本时适用，小样本对正态性要求较高。
+- **非参数方法**：适合小样本，但在大样本时效率可能较低。
+
+### 3. 统计效率
+
+- 参数方法利用全部数据信息，效率高；
+- 非参数方法只依赖秩次，效率相对较低。
+
+---
+
+## 适用场景概览 {.smaller .scrollable}
+
+| **分析类型**   | **参数方法适用情况**           | **非参数方法适用情况**           |
+|----------------|------------------------------|---------------------------------|
+| 单组数据       | 样本量较大，数据正态           | 小样本、数据偏态、含离群值          |
+| 两组比较       | 数据正态、方差齐性             | 数据偏态、有异常值               |
+| 配对设计       | 数据正态、测量误差小           | 数据非正态、存在明显离群点         |
+| 多组比较       | 数据正态、方差相等             | 数据分布不一致、异方差            |
+| 相关分析       | 线性关系、数据正态             | 非线性关系、数据偏态              |
+| 多变量分析     | 数据正态、线性关系             | 数据不正态或非线性，结构复杂        |
+
+<br />
+
+  - 当数据满足假设时，优先使用参数方法，统计效能更高。
+  - 当数据不满足正态性或样本较小时，建议使用非参数方法。
+  - 选择方法时需结合数据特性与研究问题。
+
+---
+
+## 单样本 T 检验
+
+用于比较一组样本均值与参考总体均值的差异。
+
+**假设：**
+
+- H₀：样本均值 = 参考值
+- H₁：样本均值 ≠ 参考值
+
+我们以 `ToothGrowth` 数据集为例：
+
+```{r}
+library(tidyverse)
+library(ggpubr)
+library(showtext)
+theme_set(theme_bw())
+showtext::showtext.auto()
+
+data("ToothGrowth")
+```
+
+---
+
+### 数据特性
+
+`ToothGrowth` 数据集包含 60 个观测值，记录豚鼠在不同补充剂（VC 与 OJ）及剂量下的牙齿生长情况。
+
+变量说明：
+
+- **len**：牙齿长度（毫米）
+- **supp**：补充剂类型（VC, OJ）
+- **dose**：剂量（0.5, 1.0, 2.0）
+
+```{r}
+# 数据集维度
+cat("数据集维度:", dim(ToothGrowth), "\n")
+print(table(ToothGrowth$supp, ToothGrowth$dose))
+
+ggplot(ToothGrowth, aes(x = factor(dose), fill = supp)) +
+  geom_bar(position = "dodge") +
+  labs(x = "剂量（毫克/天）", y = "样本数量", title = "实验设计结构") +
+  scale_fill_brewer(palette = "Set2")
+```
+
+---
+
+### 单样本正态性检验
+
+使用 Shapiro-Wilk 检验判断数据是否服从正态分布：
+
+```{r}
+shapiro_total = shapiro.test(ToothGrowth$len)
+if(shapiro_total$p.value > 0.05) {
+  cat("数据符合正态分布（p >", shapiro_total$p.value, "），可采用参数检验。\n")
+} else {
+  cat("数据偏离正态分布（p =", shapiro_total$p.value, "），建议使用非参数方法。\n")
+}
+
+ggqqplot(ToothGrowth, "len") +
+  labs(title = "Q-Q 正态性检验图",
+       subtitle = paste("W =", round(shapiro_total$statistic, 3),
+                        "p =", round(shapiro_total$p.value, 3))) +
+  theme(legend.position = "none")
+```
+
+---
+
+### 单样本 T 检验
+
+设定参考值 `mu = 18`，进行 t 检验：
+
+```{r}
+reference_value = 18
+t_one_sample = t.test(ToothGrowth$len, mu = reference_value)
+
+ggplot(ToothGrowth, aes(x = factor(1), y = len)) +
+  geom_violin(fill = "lightblue") +
+  geom_boxplot(width = 0.1) +
+  geom_hline(yintercept = reference_value, color = "red", linetype = "dashed", linewidth = 1) +
+  annotate("text", x = 0.8, y = reference_value + 1,
+           label = paste("参考值 =", reference_value),
+           color = "red", size = 4) +
+  labs(x = NULL, y = "牙齿长度",
+       title = "单样本均值比较",
+       subtitle = paste("t(", t_one_sample$parameter, ") =", round(t_one_sample$statistic, 2),
+                        "p =", round(t_one_sample$p.value, 3)))
+```
+
+**结论：** 结果显示 p 值较大，表明样本均值与参考值无显著差异。
+
+---
+
+## 单样本 Wilcoxon 符号检验
+
+当数据不满足正态性假设时，可使用非参数检验方法：
+
+```{r}
+wilcox.test(ToothGrowth$len, mu = 18, alternative = "two.sided")
+```
+
+直方图展示数据分布：
+
+```{r}
+ggplot(ToothGrowth, aes(x = len)) +
+  geom_histogram(binwidth = 5, fill = "steelblue", color = "black", alpha = 0.7) +
+  geom_vline(xintercept = 18, linetype = "dashed", color = "red", linewidth = 1) +
+  labs(title = "牙齿生长长度分布", x = "长度", y = "频数")
+```
+
+---
+
+## 独立样本 T 检验
+
+用于比较两个独立组（OJ 与 VC）之间均值是否有显著差异。
+
+```{r}
+ggplot(ToothGrowth, aes(x = supp, y = len, fill = supp)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, alpha = 0.5) +
+  labs(title = "Tooth Growth Analysis", x = "补充剂", y = "牙齿长度") +
+  theme(legend.position = "none")
+```
+
+进行正态性及方差齐性检验：
+
+```{r}
+shapiro_OJ = shapiro.test(ToothGrowth$len[ToothGrowth$supp == "OJ"])
+shapiro_VC = shapiro.test(ToothGrowth$len[ToothGrowth$supp == "VC"])
+var_test = var.test(len ~ supp, data = ToothGrowth)
+
+cat("正态性检验：\n")
+cat("OJ组: W =", round(shapiro_OJ$statistic, 3), ", p =", round(shapiro_OJ$p.value, 3), "\n")
+cat("VC组: W =", round(shapiro_VC$statistic, 3), ", p =", round(shapiro_VC$p.value, 3), "\n")
+cat("方差齐性检验：\n")
+print(var_test)
+```
+
+接着进行 t 检验：
+
+```{r}
+t_result = t.test(len ~ supp, data = ToothGrowth)
+print(t_result)
+```
+
+**结论：** p 值约 0.061，未达到显著性水平。
+
+---
+
+## Wilcoxon 秩和检验
+
+使用非参数检验比较两组差异：
+
+```{r}
+library(ggpubr)
+ggboxplot(ToothGrowth, x = "supp", y = "len", color = "supp", palette = "jco") +
+  stat_compare_means(method = "wilcox.test", label = "p.format") +
+  labs(title = "OJ vs. VC 补充剂对牙齿生长的影响（Wilcoxon 检验）",
+       x = "补充剂类型", y = "牙齿生长长度")
+```
+
+并给出方法选择建议：
+
+```{r}
+assumptions_met = shapiro_OJ$p.value > 0.05 & shapiro_VC$p.value > 0.05 & var_test$p.value > 0.05
+if (assumptions_met) {
+  cat("数据满足参数假设，建议采用 t 检验。\n")
+} else {
+  cat("数据违反参数假设，建议采用 Wilcoxon 检验。\n")
+}
+```
+
+---
+
+## 配对 t 检验
+
+利用 `sleep` 数据集比较同一受试者在两种药物下的额外睡眠时间：
+
+```{r}
+data("sleep")
+group1 = sleep$extra[sleep$group == 1]
+group2 = sleep$extra[sleep$group == 2]
+t_test_result = t.test(group1, group2, paired = TRUE)
+print(t_test_result)
+```
+
+可视化配对结果：
+
+```{r}
+ggpaired(sleep, x = "group", y = "extra",
+         color = "group", line.color = "gray", line.size = 0.5,
+         palette = "jco") +
+  stat_compare_means(method = "t.test", paired = TRUE, label = "p.format") +
+  labs(title = "两种药物对睡眠时间的影响（配对 t 检验）",
+       x = "药物组", y = "额外睡眠时间")
+```
+
+---
+
+## Wilcoxon 符号秩检验（配对）
+
+当配对数据不满足正态性时，可采用非参数方法：
+
+```{r}
+wilcox_test_result = wilcox.test(group1, group2, paired = TRUE)
+print(wilcox_test_result)
+```
+
+配对数据可视化：
+
+```{r}
+ggpaired(sleep, x = "group", y = "extra",
+         color = "group", line.color = "gray", line.size = 0.5,
+         palette = "jco") +
+  stat_compare_means(method = "wilcox.test", paired = TRUE, label = "p.format") +
+  labs(title = "两种药物对睡眠时间的影响（Wilcoxon 符号秩检验）",
+       x = "药物组", y = "额外睡眠时间")
+```
+
+检查差值正态性，并给出建议：
+
+```{r}
+diff_values = group2 - group1
+shapiro_result = shapiro.test(diff_values)
+cat("差值正态性检验：\nW =", round(shapiro_result$statistic, 3), 
+    ", p =", round(shapiro_result$p.value, 3), "\n")
+if(shapiro_result$p.value > 0.05) {
+  cat("建议使用配对 t 检验。\n")
+} else {
+  cat("建议使用 Wilcoxon 符号秩检验。\n")
+}
+```
+
+---
+
+## 方差分析 (ANOVA)
+
+以 VC 组数据为例，检验不同剂量对牙齿生长的影响：
+
+```{r}
+vc_data = subset(ToothGrowth, supp == "VC")
+anova_result = aov(len ~ factor(dose), data = vc_data)
+summary(anova_result)
+
+ggboxplot(vc_data, x = "dose", y = "len", color = "dose", palette = "jco") +
+  stat_compare_means(method = "anova") +
+  labs(title = "VC 处理下不同剂量对牙齿生长的影响（ANOVA）",
+       x = "剂量", y = "牙齿长度")
+```
+
+检验各组正态性及方差齐性：
+
+```{r}
+shapiro_05 = shapiro.test(vc_data$len[vc_data$dose == 0.5])
+shapiro_10 = shapiro.test(vc_data$len[vc_data$dose == 1.0])
+shapiro_20 = shapiro.test(vc_data$len[vc_data$dose == 2.0])
+bartlett_result = bartlett.test(len ~ factor(dose), data = vc_data)
+
+cat("0.5mg组: W =", round(shapiro_05$statistic, 3), ", p =", round(shapiro_05$p.value, 3), "\n")
+cat("1.0mg组: W =", round(shapiro_10$statistic, 3), ", p =", round(shapiro_10$p.value, 3), "\n")
+cat("2.0mg组: W =", round(shapiro_20$statistic, 3), ", p =", round(shapiro_20$p.value, 3), "\n")
+print(bartlett_result)
+```
+
+事后多重比较（Tukey HSD）：
+
+```{r}
+tukey_result = TukeyHSD(anova_result)
+print(tukey_result)
+plot(tukey_result)
+```
+
+---
+
+## Kruskal-Wallis 检验
+
+当数据不满足正态性时，采用非参数方法：
+
+```{r}
+kruskal_result = kruskal.test(len ~ factor(dose), data = vc_data)
+print(kruskal_result)
+
+ggboxplot(vc_data, x = "dose", y = "len", color = "dose", palette = "jco") +
+  stat_compare_means(method = "kruskal.test") +
+  labs(title = "VC 处理下不同剂量对牙齿生长的影响（Kruskal-Wallis）",
+       x = "剂量", y = "牙齿长度")
+```
+
+事后 Dunn 检验及可视化：
+
+```{r}
+library(dunn.test)
+dunn_result = dunn.test(vc_data$len, factor(vc_data$dose), method = "bonferroni")
+
+ggboxplot(vc_data, x = "dose", y = "len", color = "dose", palette = "jco") +
+  stat_compare_means(method = "wilcox.test", 
+                     comparisons = list(c("0.5", "1"), c("1", "2"), c("0.5", "2")),
+                     p.adjust.method = "bonferroni") +
+  labs(title = "VC 剂量组间多重比较", x = "剂量 (mg)", y = "牙齿长度")
+```
+
+---
+
+## Pearson 相关系数
+
+利用 `mtcars` 数据集检验马力与燃油效率之间的线性相关性。
+
+```{r}
+data("mtcars")
+pearson_cor = cor.test(mtcars$mpg, mtcars$hp, method = "pearson")
+print(pearson_cor)
+
+ggscatter(mtcars, x = "hp", y = "mpg",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson",
+          color = "blue", shape = 16) +
+  labs(title = "Pearson 相关性分析：马力 vs. 燃油效率",
+       x = "马力 (hp)", y = "燃油效率 (mpg)")
+```
+
+检验正态性及线性关系：
+
+```{r}
+shapiro_mpg = shapiro.test(mtcars$mpg)
+shapiro_hp = shapiro.test(mtcars$hp)
+cat("MPG: W =", round(shapiro_mpg$statistic, 3), ", p =", round(shapiro_mpg$p.value, 3), "\n")
+cat("HP: W =", round(shapiro_hp$statistic, 3), ", p =", round(shapiro_hp$p.value, 3), "\n")
+
+ggplot(mtcars, aes(x = hp, y = mpg)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = TRUE) +
+  labs(title = "马力与燃油效率关系（LOESS 曲线）",
+       x = "马力 (hp)", y = "燃油效率 (mpg)")
+```
+
+---
+
+## Spearman 相关系数
+
+当数据不满足正态性时，可采用 Spearman 相关系数检验单调关系。
+
+```{r}
+spearman_cor = cor.test(mtcars$mpg, mtcars$hp, method = "spearman")
+print(spearman_cor)
+
+ggscatter(mtcars, x = "hp", y = "mpg",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "spearman",
+          color = "red", shape = 16) +
+  labs(title = "Spearman 相关性分析：马力 vs. 燃油效率",
+       x = "马力 (hp)", y = "燃油效率 (mpg)")
+```
+
+比较两种相关性方法：
+
+```{r}
+correlations = data.frame(
+  Method = c("Pearson", "Spearman"),
+  Coefficient = c(pearson_cor$estimate, spearman_cor$estimate),
+  P_value = c(pearson_cor$p.value, spearman_cor$p.value)
+)
+print(correlations)
+
+par(mfrow = c(1, 2))
+plot(mtcars$hp, mtcars$mpg, main = "Pearson 相关", xlab = "马力", ylab = "燃油效率")
+abline(lm(mpg ~ hp, data = mtcars), col = "blue")
+plot(rank(mtcars$hp), rank(mtcars$mpg), main = "Spearman 相关（秩）",
+     xlab = "马力（秩）", ylab = "燃油效率（秩）")
+abline(lm(rank(mpg) ~ rank(hp), data = mtcars), col = "red")
+```
+
+---
+
+## 多变量分析
+
+下面展示 MANOVA、RDA、CCA 及 PERMANOVA 的示例。
+
+### MANOVA（多变量方差分析）
+
+```{r}
+data(iris)
+manova_fit <- manova(cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species, data = iris)
+summary(manova_fit, test = "Pillai")
+summary.aov(manova_fit)
+```
+
+---
+
+### RDA（冗余分析）
+
+```{r}
+library(vegan)
+data(varespec)
+data(varechem)
+spe_hel <- decostand(varespec, method = "hellinger")
+rda_result <- rda(spe_hel ~ ., data = varechem)
+summary(rda_result)
+anova(rda_result, permutations = 999)
+plot(rda_result, display = c("sites", "bp"), scaling = 2)
+```
+
+---
+
+### CCA（典型对应分析）
+
+```{r}
+library(vegan)
+data(dune)
+data(dune.env)
+cca_result <- cca(dune ~ A1 + Moisture, data = dune.env)
+summary(cca_result)
+anova(cca_result, permutations = 999)
+plot(cca_result, display = c("sites", "cn"))
+```
+
+---
+
+### PERMANOVA（非参数多变量方差分析）
+
+```{r}
+library(vegan)
+data(dune)
+data(dune.env)
+dist_dune <- vegdist(dune, method = "bray")
+permanova_result <- adonis2(dist_dune ~ Management, data = dune.env, permutations = 999)
+print(permanova_result)
+```
+
+---
+
+## Mantel 分析
+
+用于比较两个距离矩阵之间的相关性。
+
+```{r}
+library(vegan)
+library(ggplot2)
+library(ggpubr)
+library(ape)
+data("dune")
+data("dune.env")
+dune_dist = vegdist(dune, method = "bray")
+env_dist = dist(dune.env[, c("A1", "Moisture", "Management")])
+mantel_result = mantel(dune_dist, env_dist, method = "spearman", permutations = 999)
+print(mantel_result)
+
+dune_values = as.vector(as.dist(dune_dist))
+env_values = as.vector(as.dist(env_dist))
+mantel_data = data.frame(Dune_Distance = dune_values, Env_Distance = env_values)
+
+ggplot(mantel_data, aes(x = Env_Distance, y = Dune_Distance)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  labs(title = "Mantel 相关性分析",
+       subtitle = paste("Mantel 统计量 r =", round(mantel_result$statistic, 3),
+                        ", p =", mantel_result$signif),
+       x = "环境因子距离", y = "物种群落距离")
+```
+
+---
+
+## 总结
+
+- 根据数据分布、样本量及研究目标，选择合适的统计方法（参数或非参数）。
+- 对于配对、两组、多组比较以及相关性分析，各方法具有各自优势。
+- 多变量方法（MANOVA、RDA、CCA、PERMANOVA）适用于复杂数据分析。
+- Mantel 检验在生态、遗传等领域揭示距离矩阵间的相关性。
+
+---
+
+## 谢谢大家！
+
+欢迎提问讨论。
+
