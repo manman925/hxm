@@ -1,1 +1,198 @@
 # 转录组学数据分析和可视化
+
+在本项目中，我们使用 RNA-seq 技术定量细菌基因表达差异。首先，介绍实验设计、数据预处理、比对、计数、差异分析和功能富集的完整流程。然后，通过一个案例研究，展示如何将这些步骤应用于实际数据。此处选用的案例是 2021 年发表在 ISME Communications 上的论文[@gao2021a]。
+
+## 项目简介
+
+-   利用 RNA-seq 技术定量细菌基因表达差异
+-   从样品制备到数据分析的完整流程
+-   强调实验设计、数据预处理、比对、计数、差异分析和功能富集
+
+## 实验设计
+
+-   **组别设置：** 对照组与实验组，建议每组至少 3 个生物学重复
+-   **关键点：**
+    -   RNA 提取及文库构建（推荐使用链特异性 RNA-seq）
+    -   样品处理需注意 RNA 的稳定性及操作规范
+
+## RNA-seq 实验流程概览
+
+1.  **样品准备**
+    -   RNA 提取
+    -   文库构建（推荐链特异性 RNA-seq）
+2.  **测序**
+    -   生成双端 paired-end reads (`*.fastq.gz`)
+3.  **数据预处理**
+    -   质量控制（例如 FastQC、Trimmomatic）
+
+------------------------------------------------------------------------
+
+## 数据分析流程
+
+1.  **短序列比对**
+    -   将 reads 比对到参考基因组（工具：hisat2、bowtie2）
+2.  **计数**
+    -   统计每个基因上的 reads 数（工具：featureCounts 或 htseq-count）
+3.  **差异表达分析**
+    -   使用 DESeq2 进行统计检验
+4.  **功能富集分析**
+    -   利用 ClusterProfiler 进行通路及 GO 富集分析
+
+------------------------------------------------------------------------
+
+## 短序列比对
+
+使用 hisat2 建立索引并进行比对：
+
+``` bash
+# 建立基因组索引
+hisat2-build genome.fasta genome_index
+
+# 比对 paired-end reads
+hisat2 -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz -x genome_index -S sample.sam
+```
+
+------------------------------------------------------------------------
+
+## 计数步骤
+
+转换比对结果并统计每个基因的 reads 数：
+
+``` bash
+# SAM 转 BAM 并排序
+samtools view -bS sample.sam -o sample.bam
+samtools sort sample.bam -o sample.sorted.bam
+
+# 计数（使用 featureCounts）
+featureCounts -T 4 -t CDS -g ID -a gene.gff -o counts.txt sample.sorted.bam
+```
+
+------------------------------------------------------------------------
+
+## 差异表达分析 (DESeq2)
+
+在 R 中使用 DESeq2 进行差异表达基因分析：
+
+``` r
+library(DESeq2)
+
+# 读取计数数据
+countData <- read.table("counts.txt", header = TRUE, row.names = 1)
+# 定义实验条件 (示例)
+colData <- data.frame(condition = factor(c("Control", "Control", "Control", "Treated", "Treated", "Treated")))
+rownames(colData) <- colnames(countData)
+
+# 构建 DESeq2 数据集并运行分析
+dds <- DESeqDataSetFromMatrix(countData, colData, design = ~ condition)
+dds <- DESeq(dds)
+res <- results(dds)
+
+# 查看显著差异表达基因
+head(res[order(res$pvalue), ])
+```
+
+------------------------------------------------------------------------
+
+## 功能富集分析 (ClusterProfiler)
+
+利用 ClusterProfiler 对差异表达基因进行 KEGG 或 GO 富集分析：
+
+### 方法一：富集分析
+
+``` r
+library(clusterProfiler)
+
+# 假设 gene_list 为筛选后的基因 ID 向量
+kk <- enrichKEGG(gene         = gene_list,
+                 organism     = 'ko',
+                 pAdjustMethod = "BH",
+                 qvalueCutoff  = 0.05)
+
+# 可视化富集结果
+dotplot(kk)
+```
+
+------------------------------------------------------------------------
+
+### 方法二：GSEA 分析
+
+``` r
+library(clusterProfiler)
+
+# 假设 gene_list 为筛选后的基因 ID 向量
+gse <- gseKEGG(geneList=gene_list,
+               organism="ko",
+               nPerm=1000,
+               minGSSize=10,
+               maxGSSize=500,
+               pvalueCutoff=0.05,
+               pAdjustMethod="BH")
+
+# 可视化 GSEA 结果
+dotplot(gse)
+```
+
+------------------------------------------------------------------------
+
+# 案例研究：种间互作分析
+
+## 研究背景
+
+- 微生物群落的趋同现象广泛存在，但其分子机制尚不清楚。
+- 本研究通过构建双物种合成群落，研究基因表达如何影响群落演替。
+- 采用时间序列转录组分析，揭示基因表达的动态变化。
+
+## 研究方法
+
+::: {.columns}
+::: {.column width="60%"}
+- **合成菌群构建**：  
+  - 模式菌种：  
+    - *E. coli*（大肠杆菌）  
+    - *P. putida*（恶臭假单胞菌）  
+  - 初始结构差异：100万倍  
+- **观测周期**：24小时内动态追踪  
+- **分析手段**：  
+  - 群落结构变化  
+  - 全基因组转录组测序  
+:::
+
+::: {.column width="40%"}
+![合成菌群实验设计](media/image1.png){width=80%}  
+*图1：合成菌群基因表达收敛过程*  
+:::
+:::
+
+---
+
+## 研究结果
+
+### **结构收敛**  
+- 初始差异显著，24小时内完成收敛  
+- 群落结构初期变化小，基因表达变化显著  
+
+### **基因表达的涌现性特征**  
+1. **零时效应**：  
+   - 群落形成初期即启动基因表达调控  
+2. **群体数量效应**：  
+   - 优势物种（数量多）主导调控方向  
+3. **严谨调控效应**：  
+   - 基因网络精准优化生存策略  
+
+---
+
+## 科学意义
+
+- **理论突破**：  
+  - 首次揭示基因表达调控驱动收敛的核心机制  
+  - 补充环境因素外的内在调控理论  
+- **应用潜力**：  
+  - 土壤生物膜功能定向调控  
+  - 合成微生物群落工程优化  
+
+---
+
+## 参考文献
+
+- 论文来源: [ISME Communications](https://doi.org/10.1038/s43705-021-00049-5)
+- 相关代码与数据: [GitHub](http://github.com/gaospecial/community-convergence)
