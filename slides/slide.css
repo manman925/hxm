@@ -24,7 +24,7 @@
     width: 80%;
     height: 80%;
     background: url("hzau-logo.png") no-repeat center center;
-    background-size: 80%;
+    background-size: 63%;
     transform: translate(-50%, -50%); /* 居中对齐 */
     opacity: 0.05; /* 透明度 */
     pointer-events: none; /* 避免影响交互 */
