@@ -39,3 +39,11 @@
     border-radius: 5px; /* 圆角美化 */
     display: inline-block; /* 让背景适应文本宽度 */
 }
+
+/* 自定义代码块样式 */
+.reveal pre code {
+    white-space: pre;       /* 保留换行符，禁止行内换行 */
+    overflow-x: auto;       /* 添加水平滚动条 */
+    display: block;         /* 确保代码块为块级元素 */
+    max-width: 100%;        /* 限制最大宽度 */
+}
