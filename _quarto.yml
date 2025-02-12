@@ -33,6 +33,7 @@ book:
         - grouped-data-analysis.qmd
         - grouped-data-analysis-in-action.qmd
         - transcriptomics-data-analysis-and-visualization.qmd
+        - transcriptomics-data-analysis-in-action.qmd
         - microbiome-data-analysis-and-visualization.qmd
     - part: 人工智能
       chapters:

@@ -66,6 +66,36 @@ bibliography:
 
 ------------------------------------------------------------------------
 
+## 基因组文件格式
+
+-   `*.fasta`：基因组序列
+
+``` bash
+head genome.fa
+```
+
+```{bash}
+#| echo: false
+head ../data/RNA-seq/data/genome/genome.fa
+```
+
+------------------------------------------------------------------------
+
+## 基因组文件格式
+
+-   `*.gtf`：基因组注释  
+
+``` bash
+head annotation.gtf
+```
+
+```{bash}
+#| echo: false
+head ../data/RNA-seq/data/genome/annotation.gtf
+```
+
+------------------------------------------------------------------------
+
 ## 短序列比对
 
 使用 bowtie2 建立索引并进行比对：
@@ -90,6 +120,21 @@ hisat2 -1 sample_R1.fq.gz -2 sample_R2.fq.gz -x genome_index -S sample.sam
 
 ------------------------------------------------------------------------
 
+## 比对文件格式（SAM）
+
+-   `*.sam`：比对结果
+
+``` bash
+head sample.sam
+```
+
+```{bash}
+#| echo: false
+head ../data/RNA-seq/data/alignments/treated_1.sam
+```
+
+------------------------------------------------------------------------
+
 ## 计数步骤
 
 转换比对结果并统计每个基因的 reads 数：
@@ -108,6 +153,34 @@ htseq-count -f bam -r pos -s no -t CDS -i ID sample.sorted.bam gene.gff > counts
 
 ------------------------------------------------------------------------
 
+## BAM 文件格式
+
+-   `*.bam`：比对结果
+
+``` bash
+samtools view sample.bam
+```
+
+```{bash}
+#| echo: false
+samtools view ../data/RNA-seq/data/alignments/treated_1.bam | head
+```
+
+## Counts 文件格式
+
+-   `*.txt`：计数结果
+
+``` bash
+head counts.txt
+```
+
+```{bash}
+#| echo: false
+head ../data/RNA-seq/data/counts/counts.txt
+```
+
+------------------------------------------------------------------------
+
 ## 差异表达分析 (DESeq2)
 
 在 R 中使用 DESeq2 进行差异表达基因分析：
@@ -117,6 +190,7 @@ library(DESeq2)
 
 # 读取计数数据
 countData <- read.table("counts.txt", header = TRUE, row.names = 1)
+countData <- countData[-(1:5)]
 
 # 定义实验条件 (示例)
 colData <- data.frame(condition = factor(c("Control", "Control", "Control", "Treated", "Treated", "Treated")))
@@ -150,6 +224,7 @@ head(res[order(res$pvalue), ])
 富集分析通常针对差异表达基因列表分析，找出**显著差异表达的部分基因**的生物学意义。
 
 ```{r}
+# 使用clusterProfiler包
 library(clusterProfiler)
 
 # 生成随机基因列表
@@ -160,7 +235,13 @@ kk <- enrichKEGG(gene         = gene_list,
                  organism     = 'eco',
                  pAdjustMethod = "BH",
                  qvalueCutoff  = 0.05)
+```
 
+------------------------------------------------------------------------
+
+### 可视化富集结果
+
+```{r}
 # 可视化富集结果
 dotplot(kk)
 ```
@@ -185,7 +266,13 @@ gse <- gseKEGG(geneList=gene_list,
                pvalueCutoff=0.05,
                pAdjustMethod="BH")
 
-# 可视化 GSEA 结果
+```
+
+------------------------------------------------------------------------
+
+### 可视化 GSEA 结果
+
+```{r}
 dotplot(gse)
 ```
 
@@ -233,6 +320,7 @@ dotplot(gse)
 ## 研究结果
 
 ### **结构收敛**  
+
 - 初始差异显著，24小时内完成收敛  
 - 群落结构初期变化小，基因表达变化显著  
 
