@@ -355,7 +355,7 @@ plot(graph,
 - **模块检测**：可以使用 `igraph` 中的社区检测算法（如Louvain方法）来识别网络中的模块。
 - **网络属性**：计算网络的拓扑属性（如节点度、聚类系数等）以深入了解微生物群落的结构。
 
-```{r}
+```r
 # 检测社区
 communities <- cluster_louvain(graph)
 membership <- membership(communities)

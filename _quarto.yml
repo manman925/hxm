@@ -63,6 +63,8 @@ format:
     theme: cosmo
     fig-width: 7
     fig-asp: 0.618
+    fig-align: center
+    out-width: 100%
     warning: false
     message: false
     include-after-body:
