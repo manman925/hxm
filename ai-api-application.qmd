@@ -1,1 +1,1363 @@
 # 人工智能API应用
+
+本章节以 Hugging Face、ChatAnywhere、百炼平台为例，介绍大模型API调用的重要知识。
+
+## Hugging Face
+
+[HuggingFace 10分钟快速入门（一），利用Transformers，Pipeline探索AI](https://www.bilibili.com/video/BV1vN41127ob/?share_source=copy_web&vd_source=d345aeeaedba2347709dc8ca7b1b5cb1)
+
+Hugging Face 是一个专注于人工智能（AI）和机器学习（ML）的平台，特别以自然语言处理（NLP）工具和模型而闻名。它提供了一个丰富的开源生态系统，供研究人员、开发者和数据科学家使用。其中，最著名的工具之一是 **Transformers** 库，这个库包含了多种预训练的模型（如BERT、GPT、T5等），这些模型可以用于各种 任务，如文本生成、翻译、问答、情感分析等。
+
+Hugging Face 还提供了 **Hub**，一个模型托管平台，用户可以在上面分享和下载各种预训练的AI模型。此外，它还支持自定义训练模型和通过API进行推理。Hugging Face 的平台和社区非常活跃，是当前AI和NLP领域的重要资源之一。
+
+
+### 安装
+
+1. 安装机器学习基础库（pytorch 或者 TensorFlow）。
+    首先创建一个 Conda 环境，然后安装 Pytorch。`conda install pytorch::pytorch torchvision torchaudio -c pytorch`
+
+2. 安装 transformers：
+   `pip install transformers datasets evaluate accelerate`。
+
+### 配置 GPU 加速
+
+Pytorch 支持 CUDA（NVIDIA）和 MPS（Mac）平台的 GPU 加速，所以这里检测一下硬件环境。
+
+```{python}
+import torch
+
+# select the device for computation
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+else:
+    device = torch.device("cpu")
+
+print(f"using device: {device}")
+```
+
+
+### Pipeline
+
+`pipeline` 是 `transformers` 库中的一个高层接口，旨在简化模型的使用。它封装了模型的加载、输入处理、预测和输出处理的细节，使得用户可以以更简单的方式执行常见任务。
+
+在 Hugging Face Transformers 库中，pipelines 可以被分为不同的类别，以适应音频、计算机视觉、自然语言处理（NLP）和多模态任务。以下是这些类别中常见的 pipelines：
+
+1. **音频（Audio）**:
+   - 语音识别（Speech Recognition）: 将音频转换为文本。
+   - 语音合成（Text-to-Speech）: 将文本转换为语音。
+   - 语音分类（Speech Classification）: 对音频进行分类，如情绪识别。
+
+2. **计算机视觉（Computer Vision）**:
+   - 图像分类（Image Classification）: 识别图像中的主要对象或场景。
+   - 对象检测（Object Detection）: 识别并定位图像中的对象。
+   - 图像分割（Image Segmentation）: 将图像分割成多个部分或对象。
+   - 图像生成（Image Generation）: 根据文本描述生成图像。
+
+3. **自然语言处理（NLP）**:
+   - 文本分类（Text Classification）: 对文本进行分类，如情感分析。
+   - 命名实体识别（Named Entity Recognition, NER）: 识别文本中的实体。
+   - 问答（Question Answering）: 从文本中找到问题的答案。
+   - 文本生成（Text Generation）: 生成新的文本内容。
+   - 摘要（Summarization）: 生成文本的摘要。
+   - 翻译（Translation）: 将文本从一种语言翻译成另一种语言。
+
+4. **多模态（Multimodal）**:
+   - 视觉问答（Visual Question Answering, VQA）: 结合图像和文本问题，提供答案。
+   - 图像字幕生成（Image Captioning）: 为图像生成描述性文本。
+   - 视频问答（Video Question Answering）: 根据视频内容回答问题。
+   - 多模态情感分析（Multimodal Sentiment Analysis）: 结合文本、音频和视觉信息进行情感分析。
+
+这些 pipelines 利用了预训练的模型，可以处理各种任务，从单一模态的音频或图像处理到结合多种模态信息的复杂任务。用户可以根据自己的需求选择合适的模型和pipeline来实现特定的任务。
+
+
+```{python}
+import inspect
+from transformers import pipelines
+
+# 获取 transformers.pipeline 模块中的所有成员
+pipeline_members = inspect.getmembers(pipelines)
+
+# 过滤出类，并且名称以 'Pipeline' 结尾
+pipeline_classes = [name for name, obj in pipeline_members if inspect.isclass(obj) and name.endswith('Pipeline')]
+
+# 打印符合条件的类名称
+print("Classes ending with 'Pipeline':")
+for class_name in pipeline_classes:
+    print(class_name)
+
+```
+
+
+以下是一些常见的 `pipeline` 类型和它们的应用场景：
+
+#### 文本分类 (`text-classification`)
+
+用于对输入文本进行分类，例如情感分析。
+
+```{python}
+from transformers import pipeline
+from pprint import pprint  # pretty print
+
+classifier = pipeline('text-classification')
+result = classifier("I love using transformers!")
+pprint(result)
+```
+
+#### 命名实体识别 (`ner`)
+
+用于识别文本中的命名实体（如人名、地点、组织等）。
+
+```{python}
+from transformers import pipeline
+
+ner = pipeline('ner', device = device)
+result = ner("Hugging Face is based in New York City.")
+pprint(result)
+```
+
+#### 问答 (`question-answering`)
+
+用于从给定上下文中回答问题。
+
+```{python}
+from transformers import pipeline
+
+question_answerer = pipeline('question-answering', device = device)
+result = question_answerer(question="What is the capital of France?", context="The capital of France is Paris.")
+pprint(result)
+```
+
+#### 文本生成 (`text-generation`)
+
+用于生成文本，例如生成续写或对话。
+
+```{python}
+from transformers import pipeline
+
+generator = pipeline('text-generation', device = device)
+result = generator("Once upon a time", max_length=50)
+pprint(result)
+```
+
+#### 翻译 (`translation`)
+
+用于将文本从一种语言翻译成另一种语言。
+
+```{python}
+from transformers import pipeline
+
+translator = pipeline('translation_en_to_fr', device = device)
+result = translator("Hello, how are you?")
+pprint(result)
+```
+
+#### 文本摘要 (`summarization`)
+
+用于对长文本进行摘要，提取主要内容。
+
+```{python}
+from transformers import pipeline
+
+summarizer = pipeline('summarization', device = device)
+result = summarizer("Hugging Face is creating a tool that democratizes AI. The library will support various tasks and models.")
+pprint(result)
+```
+
+### 运行机制
+
+使用 Hugging Face 的 `pipeline` 运行任务时，任务默认是在本地执行的。
+
+当你使用 `pipeline` 函数时，它会加载一个预训练的模型（可以是 Hugging Face Hub 上的模型，也可以是你本地的模型），然后在你的本地机器上执行推理任务。这意味着所有计算都是在你的本地计算机上进行的，而不是在 Hugging Face 的服务器上进行的。
+
+不过，`pipeline` 也可以访问在线的模型存储库。如果你指定了一个在线模型（例如 Hugging Face Hub 上的某个模型），那么 `pipeline` 会先从在线存储库下载模型到本地，然后在本地运行推理任务。因此，即使你访问的是在线模型，执行过程仍然是在本地完成的。
+
+本地运行推理，可以很方便的执行批处理任务。
+
+
+```{python}
+from transformers import pipeline
+
+classifier = pipeline("sentiment-analysis", device=device)
+
+results = classifier(["We are very happy to show you the 🤗 Transformers library.", "We hope you don't hate it."])
+for result in results:
+    print(f"label: {result['label']}, with score: {round(result['score'], 4)}")
+```
+
+
+#### 配置模型和参数
+
+`pipeline` 会自动下载和使用默认的预训练模型。但是有些任务可能没有指定模型，这时候就需要配置模型参数。此外，如果需要使用特定的模型，也可以在 `pipeline` 构造函数中指定模型名称。
+
+`pipeline` 会根据任务类型自动处理输入和输出。例如，文本分类任务的输出通常是每个类别的概率，而翻译任务的输出是翻译后的文本。如果提供的任务名称不正确，`pipeline` 可能会抛出错误。如果模型不适合特定任务，也可能会得到不准确的结果或遇到运行时错误。
+
+
+下面的示例中，我们针对 `ZeroShotClassificationPipeline` 任务指定使用了 Facebook 的 `bart-large-mnli` 模型。
+
+```{python}
+oracle = pipeline("zero-shot-classification", 
+                  model="facebook/bart-large-mnli",
+                  device=device)
+oracle(
+    "I have a problem with my iphone that needs to be resolved asap!!",
+    candidate_labels=["urgent", "not urgent", "phone", "tablet", "computer"],
+)
+```
+
+```{python}
+oracle(
+    "I have a problem with my iphone that needs to be resolved asap!!",
+    candidate_labels=["english", "german"],
+)
+```
+
+整个流程以及本地模型的安装和运行情况：
+
+1. **模型下载**：
+   - 当你指定 `model="facebook/bart-large-mnli"` 时，Hugging Face 的 `transformers` 库会从 Hugging Face Hub 下载这个预训练模型（`facebook/bart-large-mnli`）。
+   - 模型下载后，会被存储在你的本地文件系统中，默认位置通常是 `~/.cache/huggingface/transformers/` 目录下。如果你有自定义的缓存目录设置，模型将下载到指定位置。
+
+2. **模型加载**：
+   - 下载完成后，`pipeline` 会将该模型加载到内存中。这包括模型的权重、配置文件以及与之相关的词汇表（tokenizer）。
+
+3. **任务执行**：
+   - 当你使用 `oracle` 这个 `pipeline` 对象来进行零样本分类任务时，所有的计算和推理（inference）都是在你的本地机器上执行的。这包括文本的预处理、模型的前向传播计算、以及后处理和输出结果。
+
+#### 本地模型的存储和管理
+
+- **存储位置**：模型的权重文件、配置文件和词汇表会存储在 `~/.cache/huggingface/hub/` 下的一个以模型名称命名的目录中。例如：`~/.cache/huggingface/hub/models--facebook--bart-large-mnli/`。
+  
+- **缓存机制**：如果你再次使用同一个模型（如 `facebook/bart-large-mnli`），`pipeline` 会直接从本地缓存中加载模型，而不会再次从 Hugging Face Hub 下载，除非你手动清除缓存或指定下载新的模型版本。
+
+#### 配置一个翻译器
+
+上面我们调用一个翻译器，将英文翻译为法文。
+
+```{python}
+en_fr_translator = pipeline("translation_en_to_fr", device=device)
+en_fr_translator("How old are you?")
+```
+
+不过，调用 `pipeline("tranlation_en_to_zh")` 却会出错。这是因为：虽然 "translation_en_to_zh" 是一个有效的任务标识符，但它并不是直接指定模型的名称。这时，需要显式指定模型名称来避免这种情况：
+
+::: {.callout-note}
+这里还需要安装一个缺失的模块：`SentencePiece`。
+
+`SentencePiece` 是一个用于文本分词和词汇生成的工具，它在自然语言处理（NLP）任务中非常有用，尤其是在训练和使用基于子词单元的模型时。`SentencePiece` 由 Google 开发，作为一种无语言依赖的方法，它可以处理几乎任何语言的文本数据。
+
+**`SentencePiece` 的主要功能**
+
+1. **子词单元（Subword Units）生成**:
+   - `SentencePiece` 不依赖于语言的特定词汇表，而是通过数据驱动的方法生成子词单元。它通过分析训练数据中的常见字符序列，生成适合该数据集的子词单元，这些子词单元可以是完整的词、词的一部分（如词缀、词根）、甚至是单个字符。
+   - 这在处理低资源语言或多语言任务时特别有用，因为它可以生成跨语言的统一词汇表，减少OOV（Out of Vocabulary，词汇表外的词）问题。
+
+2. **BPE（Byte-Pair Encoding）和 Unigram 模型**:
+   - `SentencePiece` 支持多种子词分割方法，包括 BPE（Byte-Pair Encoding）和 Unigram 模型。BPE 是一种常用的子词分割算法，通过频繁地合并字符对来生成子词单元。Unigram 模型则是一种基于概率的模型，它根据子词单元的概率来分割文本。
+
+3. **语言无关性**:
+   - 与传统的分词器不同，`SentencePiece` 不需要依赖于空格或其他特定的标记来分割词语。这使得它在处理没有明确单词边界的语言（如中文、日文、泰语等）时非常有效。
+
+4. **处理未归一化的文本**:
+   - `SentencePiece` 可以直接处理未经归一化的原始文本（如带有标点符号的文本），这在实际应用中非常有用，避免了对数据进行预处理的需求。
+
+**使用 `SentencePiece` 的场景**
+
+- **机器翻译**: 在训练机器翻译模型时，使用 `SentencePiece` 可以将输入和输出文本分割成子词单元，减少词汇表大小，并提高模型的泛化能力。
+- **预训练语言模型**: 诸如 BERT、GPT、T5 等模型在预训练时，通常使用 `SentencePiece` 生成子词单元词汇表，这些词汇表有助于处理多语言数据和稀有词汇。
+- **文本生成**: 在生成任务中，子词单元可以更好地表示稀有或长尾词汇，减少生成过程中出现的OOV问题。
+
+
+`SentencePiece` 是一个强大的分词工具，它通过生成数据驱动的子词单元词汇表，在 NLP 任务中广泛使用，特别是在处理多语言文本和训练深度学习模型时。
+:::
+
+```{python}
+translator = pipeline("translation_en_to_zh",
+                      model="Helsinki-NLP/opus-mt-en-zh", device=device)
+translator("This is a introduction to Huggingface.")
+```
+
+结果很一般。这是因为翻译任务不仅需要模型支持，还需要有一个中文的分词器。而默认的分词器不适合进行中文分词的任务。下面，我们优化一下分词器的设置。
+
+```{python}
+from transformers import AutoModelWithLMHead,AutoTokenizer,pipeline
+mode_name = 'liam168/trans-opus-mt-en-zh'
+model = AutoModelWithLMHead.from_pretrained(mode_name)
+tokenizer = AutoTokenizer.from_pretrained(mode_name)
+translation = pipeline("translation_en_to_zh", 
+                      model=model, 
+                      tokenizer=tokenizer, device=device)
+translation('This is a introduction to Huggingface.')
+```
+
+让我们逐行解释代码的含义：
+
+```python
+from transformers import AutoModelWithLMHead, AutoTokenizer, pipeline
+```
+
+- **`AutoModelWithLMHead`**: 这是一个自动加载语言模型（Language Model）的类，通常用于加载带有语言建模头的模型。`LMHead` 代表语言模型的输出层。
+- **`AutoTokenizer`**: 这是一个自动加载适当的分词器（tokenizer）的类。分词器用于将输入文本转换为模型可以处理的令牌（tokens）序列。
+- **`pipeline`**: 这是 Hugging Face 的高层 API，它提供了各种 NLP 任务的预定义管道（pipeline），如文本分类、翻译、文本生成等。
+
+```python
+mode_name = 'liam168/trans-opus-mt-en-zh'
+```
+
+- **`mode_name`**: 这是一个字符串变量，存储了模型的名称或路径。这里的 `liam168/trans-opus-mt-en-zh` 是在 Hugging Face 模型库中的一个模型名称，表示一个预训练的从英语到中文翻译的模型。
+
+```python
+model = AutoModelWithLMHead.from_pretrained(mode_name)
+```
+
+- **`AutoModelWithLMHead.from_pretrained(mode_name)`**: 这行代码加载了 `liam168/trans-opus-mt-en-zh` 模型的预训练权重和配置。`from_pretrained` 方法从 Hugging Face 的模型库下载（如果尚未下载）并加载该模型到内存中。
+
+```python
+tokenizer = AutoTokenizer.from_pretrained(mode_name)
+```
+
+- **`AutoTokenizer.from_pretrained(mode_name)`**: 这行代码加载了与模型配套的分词器。分词器将输入的英文句子转换为模型所需的令牌（tokens），并且会执行必要的文本预处理。
+
+```python
+translation = pipeline("translation_en_to_zh", model=model, tokenizer=tokenizer)
+```
+
+- **`pipeline("translation_en_to_zh", model=model, tokenizer=tokenizer)`**: 这里使用了 `pipeline` 函数来创建一个翻译管道，指定了任务类型为 `"translation_en_to_zh"`（从英语到中文的翻译），并传入了之前加载的模型和分词器。这个管道封装了翻译任务的所有步骤，使得翻译文本变得简单且易于使用。
+
+```python
+translation('This is a introduction to Huggingface.')
+```
+
+- **`translation('This is a introduction to Huggingface.')`**: 这行代码调用了翻译管道，将输入的英文句子 `"This is a introduction to Huggingface."` 翻译为中文。管道会自动执行以下步骤：
+  1. 使用 `tokenizer` 将输入的英文句子分词为令牌。
+  2. 将令牌输入到 `model` 中进行翻译。
+  3. 生成的中文令牌序列被解码成自然语言文本。
+
+最终输出会是 `"This is a introduction to Huggingface."` 的中文翻译版本，例如 `"这是对 Huggingface 的介绍。"`（具体翻译结果可能有所不同，取决于模型的性能）。
+
+这段代码通过加载 Hugging Face 提供的预训练模型和分词器，实现了从英语到中文的自动翻译任务，并且通过使用高层的 `pipeline` API，简化了翻译任务的执行。
+
+
+### 两种调用模型的方式
+
+查找 GPU 设备。
+
+```{python}
+import torch
+from pprint import pprint
+
+# select the device for computation
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+else:
+    device = torch.device("cpu")
+
+print(f"using device: {device}")
+```
+
+图片数据。
+
+```{python}
+import io
+import requests
+from PIL import Image
+
+url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+image = Image.open(requests.get(url, stream=True).raw)
+```
+
+#### 使用 Pipeline
+
+```{python}
+#| cache: true
+# Use a pipeline as a high-level helper
+from transformers import pipeline
+
+object_detector = pipeline("object-detection", model="facebook/detr-resnet-50", device=device)
+
+detection_results = object_detector(image)
+pprint(detection_results)
+```
+
+
+#### 直接使用模型
+
+```{python}
+# Load model directly
+from transformers import AutoImageProcessor, AutoModelForObjectDetection
+
+image_processor = AutoImageProcessor.from_pretrained("facebook/detr-resnet-50", device=device)
+model = AutoModelForObjectDetection.from_pretrained("facebook/detr-resnet-50")
+```
+
+
+### 对象检测
+
+DEtection TRansformer（DETR）模型，通过端到端训练在 COCO 2017 对象检测数据集上进行训练（包含 118K 张标注图像）。
+
+DETR 模型是一种具有卷积骨干的编码器-解码器变换器。在解码器输出之上添加了两个头部，以执行对象检测：一个线性层用于类别标签，一个多层感知器（MLP）用于边界框。该模型使用所谓的对象查询来检测图像中的对象。每个对象查询都在寻找图像中的特定对象。对于 COCO，设置的对象查询数量为 100。
+
+模型使用“二部匹配损失”进行训练：将预测的 N=100 个对象查询中的每个类别的预测框与 ground truth 注释进行比较，填充到相同的长度 N（如果一张图片只包含 4 个对象，那么 96 个注释将只是“无对象”作为类别，“无框”作为框）。匈牙利匹配算法用于在每个 N 查询和每个 N 注释之间创建最优的一对一映射。接下来，使用标准交叉熵（对于类别）以及 L1 和通用 IoU 损失的线性组合（对于框）来优化模型参数。
+
+下面是使用第一种调用方式调用 DETR 模型时结果的处理示例。
+
+```{python}
+import matplotlib.pyplot as plt
+from PIL import Image
+import numpy as np
+import matplotlib.patches as patches
+
+def random_color():
+    """Generate a random color."""
+    return np.random.rand(3,)
+
+# Create a figure and axis for plotting
+fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+
+# Display the original image
+ax.imshow(image)
+
+# Overlay bounding boxes and labels with random colors
+for result in detection_results:
+    score = result['score']
+    label = result['label']
+    box = result['box']
+    
+    # Generate a random color
+    color = random_color()
+    
+    # Draw bounding box
+    rect = patches.Rectangle(
+        (box['xmin'], box['ymin']),
+        box['xmax'] - box['xmin'],
+        box['ymax'] - box['ymin'],
+        linewidth=2,
+        edgecolor=color,
+        facecolor='none'
+    )
+    ax.add_patch(rect)
+    
+    # Draw label and score with the same color as the rectangle
+    label_text = f"{label}: {score:.2f}"
+    ax.text(
+        box['xmin'],
+        box['ymin'] - 10,
+        label_text,
+        color=color,
+        fontsize=12,
+        bbox=dict(facecolor='white', alpha=0.5, 
+                  edgecolor=color, boxstyle='round,pad=0.5')
+    )
+
+
+# Hide axis
+plt.axis('off')
+
+# Show the plot with bounding boxes and labels
+plt.show()
+
+```
+
+
+下面是对第二种调用方式结果处理的方法。
+
+```{python}
+#| cache: true
+# prepare image for the model
+inputs = image_processor(images=image, return_tensors="pt")
+
+# forward pass
+outputs = model(**inputs)
+
+# convert outputs (bounding boxes and class logits) to COCO API
+# let's only keep detections with score > 0.9
+target_sizes = torch.tensor([image.size[::-1]])
+results = image_processor.post_process_object_detection(
+    outputs, 
+    target_sizes=target_sizes, 
+    threshold=0.9)[0]
+
+for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
+    box = [round(i, 2) for i in box.tolist()]
+    print(
+            f"Detected {model.config.id2label[label.item()]} with confidence "
+            f"{round(score.item(), 3)} at location {box}"
+    )
+```
+
+
+### YOLOv8
+
+YOLOv8 需要使用 pip 或者 conda 安装。安装后提供 cli 和 Python 等两种运行方式。详情参见：https://docs.ultralytics.com/quickstart/。
+
+
+### ViT 图像分类
+
+The Vision Transformer（ViT）是一种以监督方式在大量图像集合（即 ImageNet - 21k）上进行预训练的 Transformer 编码器模型（类似于 BERT），图像分辨率为 224x224 像素。接下来，该模型在 ImageNet（也称为 ILSVRC2012）上进行微调，这是一个包含 100 万张图像和 1000 个类别的数据集，图像分辨率同样为 224x224。
+
+图像作为一系列固定大小的补丁（分辨率为 16x16）呈现给模型，这些补丁是线性嵌入的。还在序列开头添加一个[CLS]标记，用于分类任务。在将序列输入到 Transformer 编码器的层之前，还添加了绝对位置嵌入。
+
+通过对模型进行预训练，它学习到图像的内部表示，然后可用于提取对下游任务有用的特征：例如，如果您有一个带标签图像的数据集，则可以通过在预训练的编码器顶部放置一个线性层来训练标准分类器。通常会在 [CLS] 标记的顶部放置一个线性层，因为此标记的最后一个隐藏状态可以视为整个图像的表示。
+
+```{python}
+image_classifier = pipeline("image-classification", 
+                            model="google/vit-base-patch16-224", 
+                            device=device)
+
+class_results = image_classifier(image)
+pprint(class_results)
+```
+
+
+### ViT 特征提取
+
+视觉转换器（ViT）模型在 ImageNet-21k 上预训练，包含 1.4 亿张图片和 21843 个类别。其分辨率为 224 x 224。
+
+
+```{python}
+#| cache: true
+from transformers import ViTImageProcessor, ViTModel
+from PIL import Image
+import requests
+
+url = 'http://images.cocodataset.org/val2017/000000039769.jpg'
+image = Image.open(requests.get(url, stream=True).raw)
+
+processor = ViTImageProcessor.from_pretrained('google/vit-base-patch16-224-in21k')
+model = ViTModel.from_pretrained('google/vit-base-patch16-224-in21k')
+inputs = processor(images=image, return_tensors="pt")
+
+outputs = model(**inputs)
+last_hidden_states = outputs.last_hidden_state
+```
+
+`BaseModelOutputWithPooling` 是 Hugging Face 的 `transformers` 库中的一个类，用于模型输出的表示。这个类通常在模型返回的输出中包含了池化层的结果，这对于一些任务，比如文本分类或嵌入生成，特别有用。
+
+#### 主要功能
+
+`BaseModelOutputWithPooling` 类是从 `BaseModelOutput` 派生而来的，它包含以下几个重要的组件：
+
+- **`last_hidden_state`**：模型在所有隐藏层的输出，这些输出通常用于获取序列的特征表示。
+- **`pooler_output`**：经过池化层（通常是池化后的第一个 token）的输出，用于获得序列的整体表示。对于 BERT 等模型，这通常是 `[CLS]` token 的输出经过池化操作的结果。
+- **`hidden_states`**（可选）：模型在每个隐藏层的输出（如果 `output_hidden_states=True` 时会返回）。
+
+#### 用途
+
+- **`pooler_output`**：这个输出是用来获取序列的整体表示的，例如用于分类任务。对于很多预训练模型来说，这个输出是对 `[CLS]` token 的表示经过池化后的结果。
+- **`last_hidden_state`**：如果你需要对每个 token 的表示进行进一步的处理或分析（例如，进行序列标注任务），这个输出将是有用的。
+
+#### 示例
+
+以下是如何在使用 Hugging Face 模型时，利用 `BaseModelOutputWithPooling` 获取模型输出的一个例子：
+
+```{python}
+# Extract the output
+last_hidden_state = outputs.last_hidden_state  # Shape: [batch_size, sequence_length, hidden_size]
+pooler_output = outputs.pooler_output  # Shape: [batch_size, hidden_size]
+
+print("Last hidden state:", last_hidden_state.shape)
+print("Pooler output:", pooler_output.shape)
+```
+
+#### 说明：
+
+1. **`last_hidden_state`**：通常是三维张量，形状为 `[batch_size, sequence_length, hidden_size]`。
+2. **`pooler_output`**：通常是二维张量，形状为 `[batch_size, hidden_size]`，用于表示整个序列的特征。
+
+`BaseModelOutputWithPooling` 是一个结构化的返回对象，帮助你从模型中提取有用的特征表示，特别是当需要处理序列数据时。
+
+## ChatAnyWhere 服务
+
+ChatAnyWhere 主要提供 OpenAI 大模型接入服务（也包括少量非 OpenAI 的模型）。
+
+基本信息如下：
+
+-   服务器地址：<https://api.chatanywhere.tech>
+-   API KEY 购买与续费：<https://peiqishop.me>
+-   API KEY 余量查询：<https://api.chatanywhere.org>
+
+### 模型列表
+
+ChatAnyWhere 提供的模型名字可能会与 OpenAI 不同。例如 `*-ca` 模型会有更优惠的价格。为了配置调用参数时写对模型名称，需要查询提供的模型列表。
+
+```{r}
+library(httr)
+library(glue)
+
+# 读取 CHATANYWHERE_API_KEY 环境变量
+OPENAI_API_KEY = Sys.getenv("CHATANYWHERE_API_KEY")
+
+headers = c(
+   'Authorization' = glue('Bearer {OPENAI_API_KEY}'),
+   'User-Agent' = 'Apifox/1.0.0 (https://apifox.com)',
+   'Content-Type' = 'application/json'
+)
+
+# 使用 GET 方法获取
+res <- VERB("GET", 
+            url = "https://api.chatanywhere.tech/v1/models", 
+            add_headers(headers))
+```
+
+将 JSON 输出为表格。
+
+
+```{r}
+library(jsonlite)
+library(tidyverse)
+library(gt)
+
+models = jsonlite::fromJSON(content(res, as = "text", encoding = "UTF-8"))$data
+
+models |> 
+  mutate(created = as_datetime(created) |> as_date()) |> 
+  gt(groupname_col = "owned_by")
+```
+
+下面依次介绍这些模型的用法。
+
+### 对话模型
+
+以 `gpt-*` 开头的都是文本对话模型。调用 OpenAI 的模型时，通常需要配置以下一些关键参数来控制模型的行为和生成结果的方式。
+
+1.  **Prompt（提示）**
+    -   模型的输入文本，通常称为“提示”。
+    -   可以是简单的文本，或者带有一些问题或任务描述，告诉模型生成哪类内容。
+2.  **Max Tokens（最大令牌数）**
+    -   指定生成的文本中最多包含多少个令牌（tokens）。一个令牌大约对应一个英文单词或标点符号。
+    -   该参数可以控制生成的响应长度，但包括输入和输出在内的令牌总数不能超过模型的上下文长度限制。
+3.  **Temperature（温度）**
+    -   控制生成文本的随机性。范围是 `0` 到 `2`：
+        -   `temperature=0` 时，输出更加确定和保守，偏向生成常见的或“最可能”的答案。
+        -   较高的 `temperature` 值（如 `0.7`）会让生成的内容更加随机和多样化。
+4.  **n（生成次数）**
+    -   控制生成多少个不同的响应。
+    -   `n=1` 只生成一个响应；`n=2` 会生成多个响应，适合比较或选择最合适的内容。
+
+调用 OpenAI 模型时，通常需要设置 **模型名称、提示、最大令牌数、温度、top-p、生成次数** 等参数，视任务需求还可以调整 **出现惩罚、频率惩罚、停止序列** 等其他配置，以控制生成的内容质量和行为。
+
+下面这个例子，展示了 ChatGPT 数不清楚“temperature”这个单词里面有几个字母“e”。
+
+```{r}
+body = '{
+   "model": "gpt-4o-mini",
+   "messages": [
+      {
+         "role": "system",
+         "content": "You are a helpful assistant."
+      },
+      {
+         "role": "user",
+         "content": "Temperature这个单词中含有几个字母e？"
+      }
+   ],
+   "temperature": 2
+}';
+
+res <- VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/chat/completions", 
+            body = body, 
+            add_headers(headers))
+
+content(res, 'text', encoding = "UTF-8") |> 
+  fromJSON() |> 
+  str()
+```
+
+### 使用 OpenAI API
+
+```{python}
+from openai import OpenAI
+import os
+
+# 创建 client
+client = OpenAI(
+    api_key=os.getenv("CHATANYWHERE_API_KEY"), # 如果您没有配置环境变量，请在此处用您的API Key进行替换
+    base_url="https://api.chatanywhere.tech",  # 填写 openAI 服务的 base_url
+)
+
+# 生成对话
+completion = client.chat.completions.create(
+    model="gpt-4o-ca",
+    messages=[
+        {'role': 'system', 'content': 'You are a helpful assistant.'},
+        {'role': 'user', 'content': '你是谁'}],
+    temperature=0.8,
+    top_p=0.8
+    )
+
+print(completion.choices[0].message.content)
+```
+
+
+### 词嵌入模型
+
+所有三个词嵌入模型都是基于 Transformer 架构，这使得它们在处理自然语言时具有良好的性能。下表比较了 `text-embedding-ada-002`、`text-embedding-3-small` 和 `text-embedding-3-large` 这三个词嵌入模型的特点：
+
+| **模型名称**             | **参数量** | **嵌入维度** | **性能**           | **适用场景**                             | **优点**                             | **缺点**                           |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| `text-embedding-ada-002` | 中等       | 1536         | 高效，性能优秀     | 通用文本嵌入，适用于广泛的 NLP 任务      | 高精度嵌入，适合各种语义匹配任务     | 相比小型模型，计算资源需求较高     |
+| `text-embedding-3-small` | 小         | 512          | 较快，资源效率高   | 资源受限的应用场景，低计算成本的嵌入生成 | 计算效率高，适合实时或资源有限的场景 | 嵌入维度较低，可能影响语义表达能力 |
+| `text-embedding-3-large` | 大         | 2048         | 更高性能，精度极高 | 高端应用场景，如高精度语义搜索和推荐系统 | 嵌入维度更高，能够捕捉复杂语义关系   | 资源消耗大，适合计算资源充足的场景 |
+
+```{r}
+body = '{
+   "model": "text-embedding-ada-002",
+   "input": "The food was delicious and the waiter..."
+}';
+
+res = VERB("POST", 
+           url = "https://api.chatanywhere.tech/v1/embeddings", 
+           body = body, 
+           add_headers(headers))
+
+content = content(res, 'text', encoding = "UTF-8")
+
+embedding = fromJSON(content)
+str(embedding)
+```
+
+### 文生图模型
+
+`dall-e-2` 和 `dall-e-3` 是文生图模型。
+
+DALL-E 2 支持以下三种图像尺寸：
+
+1.  **256x256**
+2.  **512x512**
+3.  **1024x1024**
+
+DALL-E 3 支持以下图像尺寸：
+
+1.  **1024x1024**: 正方形图像，适合大多数使用场景，是默认推荐的尺寸。
+2.  **1792x1024**: 宽屏图像，适合需要更宽视野的场景或横向布局的设计。
+3.  **1024x1792**: 纵向图像，适合需要更高视野的场景或纵向布局的设计。
+
+你可以根据具体需求选择合适的图像尺寸进行生成。
+
+```{r}
+url = "https://api.chatanywhere.tech/v1/images/generations"
+
+body = '{
+   "prompt": "A colorful sunset over the snow mountains",
+   "n": 1,
+   "model":  "dall-e-2",
+   "size": "256x256"
+}';
+
+response = VERB("POST", url, body = body, add_headers(headers))
+
+content = content(response, "text", encoding = "UTF-8")
+print(content)
+```
+
+获取图片。
+
+```{r}
+#| results: asis
+
+# 获取生成的图像 URL
+image_url = fromJSON(content)[["data"]][["url"]]
+
+# 下载图片
+response <- GET(image_url)
+
+# 检查请求是否成功
+if (status_code(response) == 200) {
+  # 将图片保存到磁盘
+  writeBin(content(response, "raw"), "output/sunset.png")
+  cat("图片已成功保存到 `output/sunset.png`。")
+} else {
+  cat("下载图片失败，状态码：", status_code(response), "\n")
+}
+```
+
+
+```{r}
+#| echo: false
+knitr::include_graphics("output/sunset.png")
+```
+
+
+### 识图功能（不支持）
+
+使用多模态模型，可以识别图片中的信息。
+
+```{r}
+# 设置请求体
+body = list(
+  model = "gpt-4o-ca",
+  file = upload_file("output/sunset.png"),  # 文件路径
+  prompt = "这是什么?",  # 提示
+  encode = "multipart"
+  )
+
+res = VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/chat/completions", 
+            body = body, 
+            add_headers(headers))
+
+cat(content(res, 'text', encoding = "UTF-8"))
+```
+
+
+
+### 文字转语音模型
+
+将一段文字转变为语音，支持中英文混合。
+
+```{r}
+body = '{
+   "model": "tts-1",
+   "input": "今天天气不错。It is a nice day today.",
+   "voice": "alloy"
+}';
+
+res <- VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/audio/speech", 
+            body = body, 
+            add_headers(headers))
+
+# 检查请求是否成功
+if (status_code(res) == 200) {
+  # 将响应保存为音频文件（假设返回的是二进制音频数据）
+  audio_file <- "output/audio-goodday.mp3"  # 你可以更改文件名和扩展名
+  writeBin(content(res, "raw"), audio_file)
+  message("Audio saved successfully as: ", audio_file)
+} else {
+  message("Request failed with status: ", status_code(res))
+}
+```
+
+
+### 语音识别模型
+
+`whisper-1` 是 OpenAI 开发的一个强大的语音识别模型。它主要用于将语音转换为文本（也称为语音转文字，Speech-to-Text，简称 STT）。该模型能够处理多种语言的语音输入，并能够识别不同的口音和语音风格，非常适用于各种音频转录任务。
+
+```{r}
+headers_multipart = c(
+   'Authorization' = glue('Bearer {OPENAI_API_KEY}'),
+   'User-Agent' = 'Apifox/1.0.0 (https://apifox.com)',
+   'Content-Type' = 'multipart/form-data'
+)
+
+body = list(
+   'file' = upload_file('output/audio-goodday.mp3'),
+   'model' = 'whisper-1',
+   'prompt' = 'eiusmod nulla',
+   'response_format' = 'json',
+   'temperature' = '0',
+   'language' = ''
+)
+
+res = VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/audio/transcriptions", 
+            body = body, 
+            add_headers(headers_multipart),
+            encode = 'multipart')
+
+cat(content(res, 'text', encoding = "UTF-8"))
+```
+
+### Claude 模型
+
+ChatAnywhere 提供了一个 `claude-3-5-sonnet-20240620` 模型。
+
+
+```{r}
+body = '{
+   "model": "claude-3-5-sonnet-20240620",
+   "messages": [
+      {
+         "role": "system",
+         "content": "You are a helpful assistant."
+      },
+      {
+         "role": "user",
+         "content": "Temperature这个单词中含有几个字母e？"
+      }
+   ],
+   "temperature": 2
+}';
+
+res <- VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/chat/completions", 
+            body = body, 
+            add_headers(headers))
+
+content(res, 'text', encoding = "UTF-8") |> 
+  fromJSON() |> 
+  str()
+```
+
+
+### 语音翻译模型
+
+将音频翻译成英文。
+
+
+```{r}
+body = list(
+   'file' = upload_file('output/audio-goodday.mp3'),
+   'model' = 'whisper-1',
+   'prompt' = '',
+   'response_format' = 'json',
+   'temperature' = '0'
+)
+
+res <- VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/audio/translations", 
+            body = body, 
+            add_headers(headers_multipart), 
+            encode = 'multipart')
+
+cat(content(res, 'text', encoding = "UTF-8"))
+```
+
+
+## 阿里云百炼
+
+阿里云的大模型服务平台百炼是一站式的大模型开发及应用构建平台。不论是开发者还是业务人员，都能深入参与大模型应用的设计和构建。您可以通过简单的界面操作，在 5 分钟内开发出一款大模型应用，或在几小时内训练出一个专属模型，从而将更多精力专注于应用创新。
+
+```{python}
+from pprint import pprint
+```
+
+
+### 百炼模型
+
+百炼提供了丰富多样的模型选择，它集成了通义系列大模型和第三方大模型，涵盖文本、图像、音视频等不同模态。
+
+参见：<https://help.aliyun.com/zh/model-studio/getting-started/models?>
+
+
+### 调用百炼模型
+
+您可以使用 OpenAI Python SDK、DashScope SDK 或 HTTP 接口调用通义千问模型。
+
+#### 使用 DashScope SDK
+
+使用 DashScope SDK 时，会自动读取环境变量中的 API_KEY 并创建对象。
+
+```{python}
+#| cache: true
+#| results: asis
+
+# Refer to the document for workspace information: https://help.aliyun.com/document_detail/2746874.html    
+        
+from http import HTTPStatus
+import dashscope
+
+messages = [{'role': 'user', 'content': '你是谁'}]
+response = dashscope.Generation.call("qwen-turbo",
+                            messages=messages,
+                            result_format='message',  # set the result to be "message"  format.
+                            stream=False, # set streaming output
+                            )
+
+pprint(response.output.choices[0].message.content, width = 72)
+```
+
+#### 使用 OpenAI SDK
+
+```{python}
+#| cache: true
+
+from openai import OpenAI
+import os
+
+# 创建 client
+client = OpenAI(
+    api_key=os.getenv("DASHSCOPE_API_KEY"), # 如果您没有配置环境变量，请在此处用您的API Key进行替换
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",  # 填写DashScope服务的base_url
+)
+
+# 生成对话
+completion = client.chat.completions.create(
+    model="qwen-turbo",
+    messages=[
+        {'role': 'system', 'content': 'You are a helpful assistant.'},
+        {'role': 'user', 'content': '你是谁？'}],
+    temperature=0.8,
+    top_p=0.8
+    )
+
+print(completion.choices[0].message.content)
+```
+
+### 视觉推理
+
+Qwen-VL(`qwen-vl-plus`/`qwen-vl-max`) 模型现有几大特点：
+
+- 大幅增强了图片中文字处理能力，能够成为生产力小帮手，提取、整理、总结文字信息不在话下。
+- 增加可处理分辨率范围，各分辨率和长宽比的图都能处理，大图和长图能看清。
+- 增强视觉推理和决策能力，适于搭建视觉Agent，让大模型Agent的想象力进一步扩展。
+- 升级看图做题能力，拍一拍习题图发给Qwen-VL，大模型能帮用户一步步解题。
+
+![](https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg)
+
+```{python}
+#| cache: true
+from http import HTTPStatus
+import dashscope
+
+
+def simple_multimodal_conversation_call():
+    """Simple single round multimodal conversation call.
+    """
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"image": "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg"},
+                {"text": "这是什么?"}
+            ]
+        }
+    ]
+    response = dashscope.MultiModalConversation.call(model='qwen-vl-plus',
+                                                     messages=messages)
+    # The response status_code is HTTPStatus.OK indicate success,
+    # otherwise indicate request is failed, you can get error code
+    # and message from code and message.
+    if response.status_code == HTTPStatus.OK:
+        return(response)
+    else:
+        print(response.code)  # The error code.
+        print(response.message)  # The error message.
+
+
+response = simple_multimodal_conversation_call()
+content = response.output.choices[0]['message']['content'][0]['text']
+pprint(content, width = 72)
+```
+
+### 文生图
+
+通义万相-文本生成图像是基于自研的Composer组合生成框架的AI绘画创作大模型，能够根据用户输入的文字内容，生成符合语义描述的多样化风格的图像。通过知识重组与可变维度扩散模型，加速收敛并提升最终生成图片的效果，布局自然、细节丰富、画面细腻、结果逼真。AI深度理解中英文文本语义，让文字秒变精致AI画作。
+
+当前模型支持的风格包括但不限于：
+
+- 水彩、油画、中国画、素描、扁平插画、二次元、3D卡通。
+- 支持中英文双语输入。
+- 支持客户自定义咒语书/修饰词，可生成不同风格、不同主题、不同派别的图片，满足个性创意的AI图片生成需求。
+- 支持输入参考图片进行参考内容或者参考风格迁移，支持更丰富的风格、主题和派别，AI作画质量更加高保真。
+
+```{python}
+#| cache: true
+#| eval: false
+from http import HTTPStatus
+from urllib.parse import urlparse, unquote
+from pathlib import PurePosixPath
+import requests
+from dashscope import ImageSynthesis
+
+def simple_call(prompt = 'Mouse rides elephant', out_dir = "output"):
+    rsp = ImageSynthesis.call(model=ImageSynthesis.Models.wanx_v1,
+                              prompt=prompt,
+                              n=1,
+                              size='1024*1024')
+    if rsp.status_code == HTTPStatus.OK:
+        print(rsp.output)
+        print(rsp.usage)
+        # save file to current directory
+        files = []
+        for result in rsp.output.results:
+            file_name = PurePosixPath(unquote(urlparse(result.url).path)).parts[-1]
+            file = './%s/%s' % (out_dir, file_name)
+            with open(file, 'wb+') as f:
+                f.write(requests.get(result.url).content)
+            files.append(file)
+        return(files)
+    else:
+        print('Failed, status_code: %s, code: %s, message: %s' %
+              (rsp.status_code, rsp.code, rsp.message))
+
+
+image_path = simple_call()
+```
+
+```{python}
+from PIL import Image
+import matplotlib.pyplot as plt
+
+# 读取所有图片文件
+image_path = "output/435e0b57-6884-4e32-9187-2ada667b0ecb-1.png"
+image = Image.open(image_path)
+
+plt.imshow(image)
+```
+
+### 语音识别
+
+SenseVoice 语音识别大模型专注于高精度多语言语音识别、情感辨识和音频事件检测，支持超过 50 种语言的识别，整体效果优于 Whisper 模型，中文与粤语识别准确率相对提升在 50% 以上。
+
+
+```{python}
+#| cache: true
+# For prerequisites running the following sample, visit https://help.aliyun.com/document_detail/611472.html
+
+import json
+from urllib import request
+from http import HTTPStatus
+
+import dashscope
+
+
+task_response = dashscope.audio.asr.Transcription.async_call(
+    model='sensevoice-v1',
+    file_urls=[
+        'https://dashscope.oss-cn-beijing.aliyuncs.com/samples/audio/sensevoice/rich_text_example_1.wav'],
+    language_hints=['en'],)
+
+transcription_response = dashscope.audio.asr.Transcription.wait(
+    task=task_response.output.task_id)
+
+if transcription_response.status_code == HTTPStatus.OK:
+    for transcription in transcription_response.output['results']:
+        url = transcription['transcription_url']
+        result = json.loads(request.urlopen(url).read().decode('utf8'))
+        pprint(json.dumps(result, indent=4, ensure_ascii=False))
+    print('transcription done!')
+else:
+    print('Error: ', transcription_response.output.message)
+```
+
+### 语音合成
+
+Sambert 语音合成 API 基于达摩院改良的自回归韵律模型，支持文本至语音的实时流式合成。
+
+
+```{python}
+#| cache: true
+import sys
+
+import dashscope
+from dashscope.audio.tts import SpeechSynthesizer
+
+result = SpeechSynthesizer.call(model='sambert-zhichu-v1',
+                                text='今天天气怎么样',
+                                sample_rate=48000)
+
+tts_output = "output/weather.wav"
+if result.get_audio_data() is not None:
+    with open(tts_output, 'wb') as f:
+        f.write(result.get_audio_data())
+    print('SUCCESS: get audio data: %dbytes in output.wav' %
+          (sys.getsizeof(result.get_audio_data())))
+else:
+    print('ERROR: response is %s' % (result.get_response()))
+```
+
+使用 IPython.display 模块的 Audio 类来显示音频文件。
+
+```{python}
+from IPython.display import Audio
+from IPython.core.display import HTML
+
+def html_tag_audio(file, file_type='wav'):
+    file_type = file_type.lower()
+    if file_type not in ['wav', 'mp3', 'ogg']:
+        raise ValueError("Invalid audio type. Supported types: 'wav', 'mp3', 'ogg'.")
+    
+    audio_tag = f'''
+    <audio controls>
+      <source src="{file}" type="audio/{file_type}">
+      Your browser does not support the audio element.
+    </audio>
+    '''
+    return HTML(audio_tag)
+
+# Example usage
+tts_output = "output/weather.wav"
+html_tag_audio(tts_output, file_type="wav")
+```
+
+### 文档解析
+
+`Qwen-Long` 是在通义千问针对超长上下文处理场景的大语言模型，支持中文、英文等不同语言输入，支持最长 1000 万 tokens(约 1500 万字或 1.5 万页文档)的超长上下文对话。配合同步上线的文档服务，可支持 word、pdf、markdown、epub、mobi 等多种文档格式的解析和对话。 
+
+#### 上传文档
+
+```{python}
+from pathlib import Path
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("DASHSCOPE_API_KEY"), # 如果您没有配置环境变量，请在此处用您的API Key进行替换
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",  # 填写DashScope服务的base_url
+)
+
+file_object = client.files.create(file=Path("example/Kraken2.pdf"), 
+                                  purpose="file-extract")
+
+print(f"文件上传成功，文件ID: {file_object.id}")
+```
+
+#### 查询文件
+
+查询、删除文件。
+
+```{python}
+# 查询文件元信息
+client.files.retrieve(file_object.id)
+
+# 查询文件列表
+client.files.list()
+```
+
+
+```{python}
+#| eval: false
+# 删除文件
+client.files.delete(file_object.id)
+```
+
+
+### 基于文档的对话
+
+**Qwen-Long** 支持长文本（文档）对话，文档内容需放在 `role` 为 `system` 的 `message` 中，有以下两种方式可将文档信息输入给模型：
+
+- 在提前上传文档获取文档 ID（`fileid`）后，可以直接提供 `fileid`。支持在对话中使用一个或多个 `fileid`。
+- 直接输入需要处理的文本格式的文档内容（file content）。
+
+```{python}
+#| results: asis
+from pprint import pprint
+
+# 获取文件内容
+# 新文档上传后需要等待模型解析，首轮响应时间可能较长
+completion = client.chat.completions.create(
+    model="qwen-long",
+    messages=[
+        {
+            'role': 'system',
+            'content': 'You are a helpful assistant.'
+        },
+        {
+            'role': 'system',
+            'content': f'fileid://{file_object.id}'
+        },
+        {
+            'role': 'user',
+            'content': '这篇文章讲了什么？'
+        }
+    ],
+    stream=False
+)
+
+
+pprint(completion.choices[0].message.model_dump(), width = 72)
+```
+
+#### 多个文档
+
+当有多个文档时，可以将多个 `fileid` 传递给 `content`。
+
+```python
+# 首次对话会等待文档解析完成，首轮响应时间可能较长
+completion = client.chat.completions.create(
+    model="qwen-long",
+    messages=[
+        {
+            'role': 'system',
+            'content': 'You are a helpful assistant.'
+        },
+        {
+            'role': 'system',
+            'content': f"fileid://{file_1.id},fileid://{file_2.id}"
+        },
+        {
+            'role': 'user',
+            'content': '这几篇文章讲了什么？'
+        }
+    ],
+    stream=False
+)
+```
+
+#### 追加文档
+
+使用下面的方法，可以在对话过程中追加文档。
+
+```{python}
+#| results: asis
+
+# data_1.pdf为原文档，data_2.pdf为追加文档
+file_1 = client.files.create(file=Path("example/gaoch-cv.md"),
+                             purpose="file-extract")
+
+# 初始化messages列表
+messages = [
+    {
+        'role': 'system',
+        'content': 'You are a helpful assistant.'
+    },
+    {
+        'role': 'system',
+        'content': f'fileid://{file_1.id}'
+    },
+    {
+        'role': 'user',
+        'content': '这篇文章讲了什么？'
+    },
+]
+# 第一轮响应
+completion = client.chat.completions.create(
+    model="qwen-long",
+    messages=messages,
+    stream=False
+)
+
+# 打印出第一轮响应
+print(f"第一轮响应：{completion.choices[0].message.model_dump()}")
+```
+
+将第一轮响应的内容添加到历史记录中。
+
+
+```{python}
+# 构造assistant_message
+assistant_message = {
+    "role": "assistant",
+    "content": completion.choices[0].message.content}
+
+# 将assistant_message添加到messages中
+messages.append(assistant_message)
+```
+
+上传一个新文档。
+
+
+```{python}
+#| results: asis
+
+# 获取追加文档的fileid
+file_2 = client.files.create(file=Path("example/syncom-group-library.md"), 
+                             purpose="file-extract")
+
+# 将追加文档的fileid添加到messages中
+system_message = {
+    'role': 'system',
+    'content': f'fileid://{file_2.id}'
+}
+messages.append(system_message)
+
+# 添加用户问题
+messages.append({
+    'role': 'user',
+    'content': '这两篇文章的内容有什么异同点？'
+})
+
+# 追加文档后的响应
+completion = client.chat.completions.create(
+    model="qwen-long",
+    messages=messages,
+    stream=False
+)
+
+print(f"追加文档后的响应：{completion.choices[0].message.model_dump()}")
+```
+
