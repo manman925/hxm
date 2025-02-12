@@ -40,6 +40,10 @@ mkdir -p $GENOME_DIR $READS_DIR $ALIGNMENTS_DIR
 echo ">chr1" > $GENOME_DIR/genome.fa
 cat /dev/urandom | LC_ALL=C tr -dc 'ATCG' | fold -w 100000 | head -n 1 >> $GENOME_DIR/genome.fa
 
+# 格式化FASTA文件，每行60个字符
+awk '/^>/ {print; next} {print $0}' $GENOME_DIR/genome.fa | fold -w 60 > $GENOME_DIR/genome_formatted.fa
+mv $GENOME_DIR/genome_formatted.fa $GENOME_DIR/genome.fa
+
 # 2. 使用函数生成GTF格式的基因注释文件（模仿细菌注释格式）
 generate_gtf() {
     local genome_size=$1
@@ -145,5 +149,8 @@ for bam_file in $ALIGNMENTS_DIR/*.bam; do
         $bam_file \
         $GENOME_DIR/annotation.gtf > counts/${sample_name}_counts.txt
 done
+
+## 使用featureCounts计算基因表达量
+featureCounts -a $GENOME_DIR/annotation.gtf -o counts/counts.txt $ALIGNMENTS_DIR/*.bam
 
 echo "数据生成完成！"

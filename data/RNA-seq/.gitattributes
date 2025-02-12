@@ -1,0 +1,5 @@
+*.bam filter=lfs diff=lfs merge=lfs -text
+*.bt1 filter=lfs diff=lfs merge=lfs -text
+*.bt2 filter=lfs diff=lfs merge=lfs -text
+*.fa filter=lfs diff=lfs merge=lfs -text
+*.sam filter=lfs diff=lfs merge=lfs -text
