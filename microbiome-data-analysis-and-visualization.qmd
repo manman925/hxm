@@ -1,1 +1,369 @@
 # 微生物组数据分析及可视化
+
+本章是一个完整的微生物组数据分析流程的代码实现，主要基于R语言完成。Python的部分工具也可以在特定步骤中使用（如功能预测和网络分析）。为了简化演示，我们将使用公开的16S rRNA测序数据集（如`mockrobiota`或`QIIME2`教程中的示例数据），并假设数据已经下载到本地。
+
+
+## 数据准备与预处理
+
+### 样品信息整理
+
+```{r}
+# 加载必要的包
+library(tidyverse)
+
+# 示例元数据文件（CSV格式）
+metadata <- read_tsv("data/MiSeq_SOP/mouse.time.design")  # 假设包含采样时间、地点、重复等信息
+head(metadata)
+```
+
+### 原始数据导入与质控
+
+```{r}
+# 安装并加载FastQC和Cutadapt
+# system("fastqc raw_data/*.fastq.gz -o fastqc_results/")  # 运行FastQC生成质量报告
+# system("cutadapt -a ADAPTER_SEQUENCE -o trimmed_data/sample.fastq raw_data/sample.fastq")  # 使用Cutadapt去除接头
+
+# R中读取FASTQ文件（可选）
+library(ShortRead)
+fastq_data <- readFastq("data/MiSeq_SOP/F3D0_S188_L001_R1_001.fastq.gz")
+summary(fastq_data)
+```
+
+
+
+
+### ASV构建
+
+#### 序列去噪与错误校正
+
+```{r}
+# 使用DADA2进行ASV构建
+library(dada2)
+
+# 设置路径
+path <- "data/MiSeq_SOP"
+fnFs <- sort(list.files(path, pattern = "_R1_001.fastq.gz"))
+fnRs <- sort(list.files(path, pattern = "_R2_001.fastq.gz"))
+sample.names <- sapply(strsplit(fnFs, "_"), `[`, 1)
+```
+
+
+```{r}
+# 查看正向读段的质量分布
+plotQualityProfile(file.path(path, fnFs[1:2]))  # 可视化前两个样本的正向读段质量分布
+```
+
+
+```{r}
+# 查看反向读段的质量分布
+plotQualityProfile(file.path(path, fnRs[1:2]))  # 可视化前两个样本的反向读段质量分布
+```
+
+
+```{r}
+# 质量过滤
+filt_path <- file.path(path, "filtered")
+if (!file.exists(filt_path)) dir.create(filt_path)
+fnFs.filt <- file.path(filt_path, paste0(sample.names, "_F_filt.fastq.gz"))
+fnRs.filt <- file.path(filt_path, paste0(sample.names, "_R_filt.fastq.gz"))
+
+# 设置文件名
+names(fnFs.filt) <- sample.names
+names(fnRs.filt) <- sample.names
+```
+
+
+```{r}
+# 过滤和修剪
+out <- filterAndTrim(file.path(path, fnFs), fnFs.filt,
+                     file.path(path, fnRs), fnRs.filt,
+                     truncLen = c(240, 160), maxN = 0, maxEE = c(2, 2), 
+                     truncQ = 2, rm.phix = TRUE)
+head(out)
+```
+
+
+```{r}
+# 学习错误模型
+errF <- learnErrors(fnFs.filt, multithread = TRUE)
+errR <- learnErrors(fnRs.filt, multithread = TRUE)
+
+# 可视化错误模型
+plotErrors(errF, nominalQ = TRUE)
+plotErrors(errR, nominalQ = TRUE)
+```
+
+
+```{r}
+# 使用DADA2进行序列去噪
+dadaFs <- dada(fnFs.filt, err = errF, multithread = TRUE)
+dadaRs <- dada(fnRs.filt, err = errR, multithread = TRUE)
+
+# 查看去噪结果
+head(dadaFs[[1]])
+head(dadaRs[[1]])
+```
+
+
+```{r}
+# 合并配对末端
+mergers <- mergePairs(dadaFs, fnFs.filt, dadaRs, fnRs.filt)
+# 查看合并结果
+head(mergers[[1]])
+```
+
+```{r}
+# 构建ASV表
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
+```
+
+```{r}
+# 查看序列长度分布
+table(nchar(getSequences(seqtab)))  |> barplot()
+```
+
+```{r}
+# 去除嵌合体
+seqtab.nochim <- removeBimeraDenovo(seqtab, method = "consensus", multithread = TRUE)
+
+# 计算嵌合体去除效率
+sum(seqtab.nochim)/sum(seqtab)
+```
+
+#### 序列数量统计
+
+```{r}
+# 计算每个步骤的序列数量
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+```
+
+
+### 分类学注释
+
+#### 使用SILVA数据库进行分类学注释
+
+```{r}
+# 下载SILVA数据库（如果尚未下载）
+# system("wget https://zenodo.org/records/14169026/files/silva_nr99_v138.2_toSpecies_trainset.fa.gz")
+
+silva_db = "/Users/gaoch/Projects/Silva/silva_nr99_v138.2_wSpecies_train_set.fa.gz"
+
+# 分类学注释
+taxa <- assignTaxonomy(seqtab.nochim, silva_db, multithread = TRUE)
+```
+
+```{r}
+# 查看分类学注释结果
+taxa.print <- taxa # Removing sequence rownames for display only
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+
+
+### 创建phyloseq对象
+
+```{r}
+library(phyloseq)
+
+samples.out <- rownames(seqtab.nochim)
+subject <- sapply(strsplit(samples.out, "D"), `[`, 1)
+gender <- substr(subject,1,1)
+subject <- substr(subject,2,999)
+day <- as.integer(sapply(strsplit(samples.out, "D"), `[`, 2))
+samdf <- data.frame(Subject=subject, Gender=gender, Day=day)
+samdf$When <- "Early"
+samdf$When[samdf$Day>100] <- "Late"
+rownames(samdf) <- samples.out
+```
+
+
+```{r}
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               sample_data(samdf), 
+               tax_table(taxa))
+ps <- prune_samples(sample_names(ps) != "Mock", ps) # Remove mock sample
+```
+
+
+```{r}
+# 添加序列名称
+dna <- Biostrings::DNAStringSet(taxa_names(ps))
+names(dna) <- taxa_names(ps)
+ps <- merge_phyloseq(ps, dna)
+taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
+ps
+```
+
+
+## 多样性分析
+
+### Alpha多样性分析
+
+```{r}
+plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="When")
+```
+
+### Beta多样性分析
+
+```{r}
+# 计算Bray-Curtis距离
+ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
+
+# 绘制NMDS图
+plot_ordination(ps.prop, ord.nmds.bray, color = "When", shape = "Gender") + 
+  geom_point(size = 3)
+```
+
+
+### 差异分析
+
+#### 差异丰度分析
+
+```{r}
+library(DESeq2)
+
+# 准备DESeq2输入数据
+dds <- phyloseq_to_deseq2(ps, ~ When)
+dds <- DESeq(dds)
+
+# 获取差异显著的ASV
+res <- results(dds, contrast = c("When", "Early", "Late"))
+sig_asvs <- res[which(res$padj < 0.05), ]
+head(sig_asvs)
+```
+
+```{r}
+# 绘制火山图
+ggplot(res, aes(x = log2FoldChange, y = -log10(padj))) +
+  geom_point(aes(color = padj < 0.05)) +
+  scale_color_manual(values = c("red", "grey"))
+```
+
+
+### 代谢功能预测
+
+#### 使用PICRUSt2进行功能预测
+
+```bash
+# 在命令行运行PICRUSt2
+picrust2_pipeline.py -s seqtab_nochim.fasta -i seqtab_nochim.biom -o picrust2_output --threads 4
+```
+
+#### 功能差异分析
+
+``` r
+# 加载KEGG通路预测结果
+kegg_pathways <- read.table("picrust2_output/path_abun.tsv", header = TRUE, row.names = 1)
+kegg_diff <- DESeq2::DESeqDataSetFromMatrix(countData = kegg_pathways, colData = metadata, design = ~ TimePoint)
+```
+
+### 共现网络分析
+
+在R中分析微生物数据时，构建共现网络（Co-occurrence Network）是一种常见的方法，用于探索不同微生物群落之间的相互关系。以下是详细的步骤和代码示例，帮助您从头到尾完成这一任务。
+
+
+#### 数据准备
+
+
+```{r}
+# 去除低丰度OTU（例如总丰度小于10的OTU）
+ps <- prune_taxa(taxa_sums(ps) > 30, ps)
+otu_table <- otu_table(ps) |> as.data.frame()
+
+# 检查是否有缺失值
+if (any(is.na(otu_table))) {
+  stop("OTU表中存在缺失值，请先处理缺失值！")
+}
+```
+
+
+#### 计算相关性矩阵
+
+共现网络通常基于微生物之间的相关性（如Spearman、Pearson或Kendall相关系数）。您可以使用 `cor()` 函数计算相关性矩阵。
+
+```{r}
+library(Hmisc)
+# 计算Spearman相关性矩阵
+cor_matrix <- rcorr(as.matrix(otu_table), type = "spearman")
+print(cor_matrix)
+```
+
+
+#### 筛选显著的相关性
+
+为了减少噪声，通常只保留显著的相关性（例如p值小于某个阈值）。可以使用 `Hmisc` 包中的 `rcorr()` 函数来计算相关性和p值。
+
+```{r}
+# 计算相关性和p值
+cor_test <- rcorr(as.matrix(otu_table), type = "spearman")
+cor_values <- cor_test$r  # 相关性矩阵
+p_values <- cor_test$P    # p值矩阵
+
+# 设置显著性阈值
+p_threshold <- 0.05
+significant_cor <- ifelse(p_values < p_threshold, cor_values, 0)
+print(significant_cor)
+```
+
+
+#### 构建邻接矩阵
+
+将显著的相关性转换为邻接矩阵（Adjacency Matrix），以便后续用于网络分析。可以设置一个相关性阈值（例如绝对值大于0.6）来进一步筛选强相关性。
+
+```{r}
+# 设置相关性阈值
+cor_threshold <- 0.8
+adj_matrix <- ifelse(abs(significant_cor) > cor_threshold, significant_cor, 0)
+diag(adj_matrix) <- 0  # 对角线设为0，避免自相关
+print(adj_matrix)
+```
+
+
+
+#### 可视化共现网络
+
+使用 `igraph` 或 `networkD3` 等包可以可视化共现网络。
+
+#### 使用 `igraph` 包
+
+```{r}
+# 加载igraph包
+library(igraph)
+
+# 将邻接矩阵转换为图对象
+graph <- graph_from_adjacency_matrix(adj_matrix, mode = "undirected", weighted = TRUE)
+
+# 绘制网络图
+plot(graph,
+     vertex.size = 10,
+     vertex.color = "lightblue",
+     vertex.label.color = "black",
+     edge.width = E(graph)$weight * 5,  # 边权重影响宽度
+     main = "Microbiome Co-occurrence Network")
+```
+
+
+### 进一步分析
+
+- **模块检测**：可以使用 `igraph` 中的社区检测算法（如Louvain方法）来识别网络中的模块。
+- **网络属性**：计算网络的拓扑属性（如节点度、聚类系数等）以深入了解微生物群落的结构。
+
+```{r}
+# 检测社区
+communities <- cluster_louvain(graph)
+membership <- membership(communities)
+print(membership)
+
+# 计算节点度
+degrees <- degree(graph)
+print(degrees)
+```
+
+以上代码提供了一个完整的微生物组数据分析流程框架，具体细节可以根据实际数据和研究需求调整。
