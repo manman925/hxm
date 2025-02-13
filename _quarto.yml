@@ -31,24 +31,36 @@ book:
         - python-vs-r.qmd
         - git-basic.qmd
         - literate-programming.qmd
-    - part: 数据分析
+    - part: 分组数据分析
       chapters:
         - grouped-data-analysis.qmd
         - grouped-data-analysis-in-action.qmd
+    - part: 转录组数据分析
+      chapters:
         - transcriptomics-data-analysis-and-visualization.qmd
         - transcriptomics-data-analysis-in-action.qmd
+    - part: 微生物组数据分析
+      chapters:
         - microbiome-data-analysis-and-visualization.qmd
-    - part: ai-api-call.qmd
+    - part: 大模型API调用
       chapters:
         - huggingface.qmd
         - chatanywhere.qmd
         - bailian.qmd
         - deepseek.qmd
-    - part: 人工智能
+    - part: 从零开始神经网络
       chapters:
         - neural-network-from-scratch.qmd
-        - pathogen-identification-with-raman-spectroscopy.qmd
+    - part: 机器学习
+      chapters:
         - machine-learning-algorithms-and-implementation.qmd
+    - part: 拉曼光谱识别病原菌
+      chapters:
+        - pathogen-identification-with-raman-spectroscopy.qmd
+        - bacteria-id-annotation.qmd
+        - pretrained-model.qmd
+    - part: 计算机视觉分析实验图片
+      chapters:
         - computer-vision-image-analysis.qmd
     - part: 开发协作
       chapters:
