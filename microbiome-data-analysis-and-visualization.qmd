@@ -36,6 +36,8 @@ summary(fastq_data)
 
 #### 序列去噪与错误校正
 
+在开始ASV构建之前，我们首先需要设置输入文件路径并读取数据。这里我们使用DADA2包来处理双端测序数据。
+
 ```{r}
 # 使用DADA2进行ASV构建
 library(dada2)
@@ -47,17 +49,23 @@ fnRs <- sort(list.files(path, pattern = "_R2_001.fastq.gz"))
 sample.names <- sapply(strsplit(fnFs, "_"), `[`, 1)
 ```
 
+接下来我们需要评估测序数据的质量。通过查看正向读段的质量分布图，我们可以确定合适的质量过滤参数。
 
 ```{r}
 # 查看正向读段的质量分布
 plotQualityProfile(file.path(path, fnFs[1:2]))  # 可视化前两个样本的正向读段质量分布
 ```
 
+从质量分布图中，我们可以看到碱基质量随着测序位置的变化趋势。通常在读段末端质量会下降，这有助于我们确定截断位置。
+
+同样，我们也需要查看反向读段的质量分布。
 
 ```{r}
 # 查看反向读段的质量分布
 plotQualityProfile(file.path(path, fnRs[1:2]))  # 可视化前两个样本的反向读段质量分布
 ```
+
+根据质量分布图，我们可以看到反向读段的质量通常低于正向读段，这是正常现象。这些信息将帮助我们在下一步设置适当的质量过滤参数。
 
 
 ```{r}
@@ -148,6 +156,8 @@ head(track)
 
 #### 使用SILVA数据库进行分类学注释
 
+在进行物种分类注释之前，我们需要准备SILVA参考数据库。这个数据库包含了已知细菌和古菌的16S rRNA基因序列及其分类信息。
+
 ```{r}
 # 下载SILVA数据库（如果尚未下载）
 # system("wget https://zenodo.org/records/14169026/files/silva_nr99_v138.2_toSpecies_trainset.fa.gz")
@@ -158,12 +168,16 @@ silva_db = "/Users/gaoch/Projects/Silva/silva_nr99_v138.2_wSpecies_train_set.fa.
 taxa <- assignTaxonomy(seqtab.nochim, silva_db, multithread = TRUE)
 ```
 
+注释完成后，我们可以查看注释结果。结果中包含了每个ASV的完整分类学信息，从门到种水平。
+
 ```{r}
 # 查看分类学注释结果
 taxa.print <- taxa # Removing sequence rownames for display only
 rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
+
+从输出结果可以看到，每个ASV都被赋予了一个完整的分类系统，包括门(Phylum)、纲(Class)、目(Order)、科(Family)、属(Genus)和种(Species)水平的分类信息。如果某一分类级别无法确定，则会显示为NA。
 
 
 ### 创建phyloseq对象

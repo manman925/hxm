@@ -1,520 +1,394 @@
 # Markdown 速查表
 
-原文：https://quarto.org/docs/authoring/markdown-basics.html
+## 概述
 
-Quarto 基于 Pandoc,使用其 markdown 变体作为底层文档语法。Pandoc markdown 是 John Gruber 的 [Markdown](https://daringfireball.net/projects/markdown/) 语法的扩展和略微修订版本。
+**Markdown** 由 [Daring Fireball](http://daringfireball.net/) 创建；原始指南在[这里](http://daringfireball.net/projects/markdown/syntax)。然而，其语法在不同的解析器或编辑器之间可能有所不同。**Typora** 使用 [GitHub 风格的 Markdown][GFM]。
 
-Markdown 是一种纯文本格式,旨在易于编写,更重要的是易于阅读:
+## 块级元素
 
-> Markdown 格式的文档应该可以原样发布为纯文本,而不会看起来像是用标签或格式说明进行了标记。-- [John Gruber](https://daringfireball.net/projects/markdown/syntax#philosophy)
+### 段落和换行
 
-本文档提供了最常用的 markdown 语法示例。有关更深入的文档,请参阅 [Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown) 的完整文档。
+段落是由一行或多行连续的文本组成。在 markdown 源代码中，段落之间需要用两个或更多空行分隔。在 Typora 中，只需要一个空行（按一次`Return`键）就可以创建新段落。
+
+按 `Shift` + `Return` 可以创建单行换行。大多数其他 markdown 解析器会忽略单行换行，因此为了让其他 markdown 解析器识别你的换行，你可以在行尾留下两个空格，或插入 `<br/>`。
+
+### 标题
+
+标题使用 1-6 个井号（`#`）字符在行首，对应 1-6 级标题。例如：
+
+``` markdown
+# 这是一级标题
+
+## 这是二级标题
+
+###### 这是六级标题
+```
+
+在 Typora 中，输入 '#' 后跟标题内容，按 `Return` 键即可创建标题。
+
+### 引用块
+
+Markdown 使用类似电子邮件的 > 字符进行块引用。显示如下：
+
+``` markdown
+> 这是包含两个段落的引用块。这是第一段。
+>
+> 这是第二段。Vestibulum enim wisi, viverra nec, fringilla in, laoreet vitae, risus.
 
 
-## 文本格式化
 
-+-----------------------------------------+-----------------------------------------+
-| Markdown Syntax                         | Output                                  |
-+=========================================+=========================================+
-| ``` markdown                            | *italics*, **bold**, ***bold italics*** |
-| *italics*, **bold**, ***bold italics*** |                                         |
-| ```                                     |                                         |
-+-----------------------------------------+-----------------------------------------+
-| ``` markdown                            | superscript^2^ / subscript~2~           |
-| superscript^2^ / subscript~2~           |                                         |
-| ```                                     |                                         |
-+-----------------------------------------+-----------------------------------------+
-| ``` markdown                            | ~~strikethrough~~                       |
-| ~~strikethrough~~                       |                                         |
-| ```                                     |                                         |
-+-----------------------------------------+-----------------------------------------+
-| ``` markdown                            | `verbatim code`                         |
-| `verbatim code`                         |                                         |
-| ```                                     |                                         |
-+-----------------------------------------+-----------------------------------------+
+> 这是另一个只有一段的引用块。使用三个空行来分隔两个引用块。
+```
 
-## 标题 {#headings}
+在 Typora 中，输入 '>' 后跟引用内容将生成引用块。Typora 会为你自动插入适当的 '>' 或换行。通过添加额外的 '>' 层级可以创建嵌套引用块（引用块中的引用块）。
 
-+-----------------+-----------------------------------+
-| Markdown Syntax | Output                            |
-+=================+===================================+
-| ``` markdown    | # Header 1 {.heading-output}      |
-| # Header 1      |                                   |
-| ```             |                                   |
-+-----------------+-----------------------------------+
-| ``` markdown    | ## Header 2 {.heading-output}     |
-| ## Header 2     |                                   |
-| ```             |                                   |
-+-----------------+-----------------------------------+
-| ``` markdown    | ### Header 3 {.heading-output}    |
-| ### Header 3    |                                   |
-| ```             |                                   |
-+-----------------+-----------------------------------+
-| ``` markdown    | #### Header 4 {.heading-output}   |
-| #### Header 4   |                                   |
-| ```             |                                   |
-+-----------------+-----------------------------------+
-| ``` markdown    | ##### Header 5 {.heading-output}  |
-| ##### Header 5  |                                   |
-| ```             |                                   |
-+-----------------+-----------------------------------+
-| ``` markdown    | ###### Header 6 {.heading-output} |
-| ###### Header 6 |                                   |
-| ```             |                                   |
-+-----------------+-----------------------------------+
+### 列表
 
-```{=html}
-<style type="text/css">
-.heading-output {
-  border-bottom: none;
-  margin-top: 0;
-  margin-bottom: 0;
+输入 `* 列表项目 1` 将创建无序列表 - `*` 符号可以替换为 `+` 或 `-`。
+
+输入 `1. 列表项目 1` 将创建有序列表 - 它们的 markdown 源代码如下：
+
+``` markdown
+## 无序列表
+*   红色
+*   绿色
+*   蓝色
+
+## 有序列表
+1.  红色
+2.  绿色
+3.  蓝色
+```
+
+### 任务列表
+
+任务列表是带有 [ ] 或 [x]（未完成或已完成）标记的列表项。例如：
+
+``` markdown
+- [ ] 一个任务列表项
+- [ ] 需要列表语法
+- [ ] 支持普通**格式化**，@提及，#1234 引用
+- [ ] 未完成
+- [x] 已完成
+```
+
+你可以通过点击项目前的复选框来改变完成/未完成状态。
+
+### （围栏式）代码块
+
+Typora 仅支持 GitHub 风格 Markdown 中的围栏式代码块。不支持原始 markdown 中的代码块。
+
+使用围栏很简单：输入 \`\`\` 并按 `return`。在 \`\`\` 后添加可选的语言标识符，我们将通过语法高亮显示它：
+
+````gfm
+这里是一个例子：
+
+```js
+function test() {
+  console.log("注意这个函数前面的空行？");
 }
-</style>
 ```
 
-## 链接和图片
-
-+--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
-| Markdown Syntax                                              | Output                                                                                                 |
-+==============================================================+========================================================================================================+
-| ``` markdown                                                 | <https://quarto.org>                                                                                   |
-| <https://quarto.org>                                         |                                                                                                        |
-| ```                                                          |                                                                                                        |
-+--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
-| ``` markdown                                                 | [Quarto](https://quarto.org)                                                                           |
-| [Quarto](https://quarto.org)                                 |                                                                                                        |
-| ```                                                          |                                                                                                        |
-+--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
-| ``` markdown                                                 | ![Caption](elephant.png){fig-alt="A line drawing of an elephant."}                                     |
-| ![Caption](elephant.png)                                     |                                                                                                        |
-| ```                                                          |                                                                                                        |
-+--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
-| ``` markdown                                                 | [![Caption](elephant.png)](https://quarto.org)                                                         |
-| [![Caption](elephant.png)](https://quarto.org)               |                                                                                                        |
-| ```                                                          |                                                                                                        |
-+--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
-| ``` markdown                                                 | [![Caption](elephant.png "An elephant"){fig-alt="A line drawing of an elephant."}](https://quarto.org) |
-| [![Caption](elephant.png "An elephant")](https://quarto.org) |                                                                                                        |
-| ```                                                          |                                                                                                        |
-+--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
-| ``` markdown                                                 | [![](elephant.png){fig-alt="A line drawing of an elephant."}](https://quarto.org)                      |
-| [![](elephant.png){fig-alt="Alt text"}](https://quarto.org)  |                                                                                                        |
-| ```                                                          |                                                                                                        |
-+--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
-
-## 列表
-
-+-----------------------------------+---------------------------------+
-| Markdown Syntax                   | Output                          |
-+===================================+=================================+
-| ``` markdown                      |                                 |
-| * unordered list                  | * unordered list                |
-|     + sub-item 1                  |     + sub-item 1                |
-|     + sub-item 2                  |     + sub-item 2                |
-|         - sub-sub-item 1          |         - sub-sub-item 1        |
-| ```                               |                                 |
-+-----------------------------------+---------------------------------+
-| ``` markdown                      |                                 |
-| *   item 2                        | -   item 2                      |
-|                                   |                                 |
-|     Continued (indent 4 spaces)   |     Continued (indent 4 spaces) |
-| ```                               |                                 |
-+-----------------------------------+---------------------------------+
-| ``` markdown                      |                                 |
-| 1. ordered list                   |  1. ordered list                |
-| 2. item 2                         |  2. item 2                      |
-|     i) sub-item 1                 |      i) sub-item 1              |
-|          A.  sub-sub-item 1       |           A.  sub-sub-item 1    |
-| ```                               |                                 |
-+-----------------------------------+---------------------------------+
-| ``` markdown                      |                                 |
-| - [ ] Task 1                      | - [ ] Task 1                    |
-| - [x] Task 2                      | - [x] Task 2                    |
-| ```                               |                                 |
-+-----------------------------------+---------------------------------+
-| ``` markdown                      |                                 |
-| (@)  A list whose numbering       |  (1) A list whose numbering     |
-|                                   |                                 |
-| continues after                   |  continues after                |
-|                                   |                                 |
-| (@)  an interruption              |  (2) an interruption            |
-| ```                               |                                 |
-+-----------------------------------+---------------------------------+
-| ``` markdown                      |                                 |
-| ::: {}                            | ::: {}                          |
-| 1. A list                         | 1. A list                       |
-| :::                               | :::                             |
-|                                   |                                 |
-| ::: {}                            | ::: {}                          |
-| 1. Followed by another list       | 1. Followed by another list     |
-| :::                               | :::                             |
-| ```                               |                                 |
-+-----------------------------------+---------------------------------+
-| ``` markdown                      |                                 |
-| term                              | term                            |
-| : definition                      | : definition                    |
-| ```                               |                                 |
-+-----------------------------------+---------------------------------+
-
-注意,与其他 Markdown 渲染器（特别是 Jupyter 和 GitHub）不同,Quarto 中的列表需要整个空白行才能正确渲染。否则,列表将不会以列表形式呈现,而是作为单行正常文本呈现。
-
-## 脚注
-
-Pandoc 支持使用以下语法对脚注进行编号和格式化:
-
-``` markdown
-Here is a footnote reference,[^1] and another.[^longnote]
-
-[^1]: Here is the footnote.
-
-[^longnote]: Here's one with multiple blocks.
-
-    Subsequent paragraphs are indented to show that they
-belong to the previous footnote.
-
-        { some.code }
-
-    The whole paragraph can be indented, or just the first
-    line.  In this way, multi-paragraph footnotes work like
-    multi-paragraph list items.
-
-This paragraph won't be part of the note, because it
-isn't indented.
-```
-
-The above syntax generates the following output:
-
-:::{.border .p-3}
-Here is a footnote reference,[^1] and another.[^2]
-
-This paragraph won't be part of the note, because it isn't indented.
-:::
-
-In addition, you can also write single paragraph footnotes inline using the following syntax:
-
-``` markdown
-Here is an inline note.^[Inlines notes are easier to write,
-since you don't have to pick an identifier and move down to
-type the note.]
-```
-
-This syntax generates the following output:
-
-::: {.border .p-3}
-Here is an inline note.[^3]
-:::
-
-::: {.callout-note}
-
-## 脚注标识符应唯一
-
-脚注标识符,例如 `^1` 中的 `1`,需要在整个文档中唯一。
-在 Quarto 书籍中,章节被组合成一个单一文档用于某些格式(包括 PDF、DOCX 和 EPUB),
-因此脚注标识符需要在整个文档中唯一。
-
-:::
-
-上述示例生成的脚注包含在页面底部的 [示例脚注](#example-footnotes) 部分。有关更多信息,请参阅 [Pandoc 脚注](https://pandoc.org/MANUAL.html#footnotes)。
-
-[^1]: 这里是一个脚注。
-
-[^2]: 这里有一个包含多个块的脚注。
-
-    后续段落缩进以显示它们属于前一个脚注。
-
-        { some.code }
-
-    整个段落可以缩进,或者只缩进第一行。这样,多段落脚注就像多段落列表项一样工作。
-
-[^3]: 内联注释更容易写,因为你不需要选择一个标识符并向下移动以输入注释。
-
-
-## 表格
-
-#### Markdown 语法
-
-``` markdown
-| Right | Left | Default | Center |
-|------:|:-----|---------|:------:|
-|   12  |  12  |    12   |    12  |
-|  123  |  123 |   123   |   123  |
-|    1  |    1 |     1   |     1  |
-```
-
-#### Output
-
-| Right | Left | Default | Center |
-|------:|:-----|---------|:------:|
-|    12 | 12   | 12      |   12   |
-|   123 | 123  | 123     |  123   |
-|     1 | 1    | 1       |   1    |
-
-
-## 源代码
-
-使用 ```` ``` ```` 分隔源代码块:
-
-```` markdown
-```
-code
+语法高亮：
+```ruby
+require 'redcarpet'
+markdown = Redcarpet.new("Hello World!")
+puts markdown.to_html
 ```
 ````
 
-添加语言以语法高亮代码块:
+### 数学公式块
 
-```` markdown
-```python
-1 + 1
-```
-````
+你可以使用 **MathJax** 渲染 *LaTeX* 数学表达式。
 
-Pandoc 支持超过 [140 种不同语言](https://github.com/jgm/skylighting/tree/master/skylighting-core/xml) 的语法高亮。如果你的语言不受支持，你可以使用 `default` 语言来获得类似的视觉效果：
+要添加数学表达式，输入 `$$` 并按 'Return' 键。这将触发一个接受 *Tex/LaTex* 源代码的输入字段。例如：
 
-```` markdown
-```default
-code
-```
-````
 
-等效于上述示例中使用的短格式,是一个更长的格式,使用语言作为类(即 `.python`)在括号中:
-
-```` markdown
-```{.python}
-1 + 1
-```
-````
-
-更长的格式允许你以类似 [Divs](#sec-divs-and-spans) 的方式向块添加属性。一些使用这种语法的特定功能是 [行号](/docs/output-formats/html-code.qmd#line-numbers) 和 [代码文件名](/docs/output-formats/html-code.qmd#code-filename)。以下是一个示例:
-
-```` markdown
-```{.python filename="run.py"}
-code
-```
-````
-
-如果你正在创建 HTML 输出,则有许多选项可用于代码块输出。有关更多详细信息,请参阅 [HTML 代码](/docs/output-formats/html-code.qmd) 文章。
-
-## 原始内容
-
-原始内容可以直接包含,而不使用 Quarto 解析它,使用 [Pandoc 的 raw 属性](https://pandoc.org/MANUAL.html#extension-raw_attribute)。一个原始块以 ` ```{=}` 开始,后跟一个格式并关闭 `}`,例如这里有一个原始 HTML 块:
-
-```` markdown
-```{=html}
-<iframe src="https://quarto.org/" width="500" height="400"></iframe>
-```
-````
-
-对于 PDF 输出,使用原始 LaTeX 块:
-
-```` markdown
-```{=latex}
-\renewcommand*{\labelitemi}{\textgreater}
-```
-````
-
-作为另一个示例,如果你正在使用 [Typst 格式](/docs/output-formats/typst.qmd) 你可以在原始块中包含 Typst 语法:
-
-```` markdown
-```{=typst} 
-#set text(fill: red)
-This text is red.
-```
-````
-
-你也可以包含原始内容内联:
-
-```markdown
- Here's some raw inline HTML: `<a>html</a>`{=html}
-```
-
-## Equations
-
-使用 `$` 分隔符用于内联数学,使用 `$$` 分隔符用于显示数学。例如:
-
-+---------------------------+-------------------------+
-| Markdown Syntax           | Output                  |
-+===========================+=========================+
-| ``` markdown              |                         |
-| inline math: $E = mc^{2}$ | inline math: $E=mc^{2}$ |
-| ```                       |                         |
-+---------------------------+-------------------------+
-| ``` markdown              |                         |
-| display math:             | display math:           |
-|                           |                         |
-| $$E = mc^{2}$$            | $$E = mc^{2}$$          |
-| ```                       |                         |
-+---------------------------+-------------------------+
-
-如果你想定义自定义 TeX 宏,请在 `$$` 分隔符中包含它们,并使用 `.hidden` 块包围。例如:
-
-``` tex
-::: {.hidden}
 $$
- \def\RR{{\bf R}}
- \def\bold#1{{\bf #1}}
+\mathbf{V}_1 \times \mathbf{V}_2 =  \begin{vmatrix}
+\mathbf{i} & \mathbf{j} & \mathbf{k} \\
+\frac{\partial X}{\partial u} &  \frac{\partial Y}{\partial u} & 0 \\
+\frac{\partial X}{\partial v} &  \frac{\partial Y}{\partial v} & 0 \\
+\end{vmatrix}
 $$
-:::
-```
-
-使用 [MathJax](https://docs.mathjax.org/) 处理的 HTML 数学(默认)你可以使用 `\def`, `\newcommand`, `\renewcommand`, `\newenvironment`, `\renewenvironment`, 和 `\let` 命令来创建你自己的宏和环境。
-
-## 图表
-
-Quarto 原生支持嵌入 [Mermaid](https://mermaid-js.github.io/mermaid/#/) 和 [Graphviz](https://graphviz.org/) 图表。这使你能够使用纯文本语法创建流程图、序列图、状态图、甘特图等。
-
-例如,这里我们嵌入一个使用 Mermaid 创建的流程图:
-
-```{mermaid}
-%%| echo: fenced
-flowchart LR
-  A[Hard edge] --> B(Round edge)
-  B --> C{Decision}
-  C --> D[Result one]
-  C --> E[Result two]
-```
 
 
-## 视频
-
-你可以使用 `{{{< video >}}}` [短代码](shortcodes.qmd) 在文档中包含视频。例如,这里我们嵌入一个 YouTube 视频:
-
-``` {.markdown shortcodes="false"}
-{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}
-```
-
-视频可以引用视频文件(例如 MPEG)或可以链接到在 YouTube、Vimeo 或 Brightcove 上发布的视频。有关更多信息,请参阅 [视频](videos.qmd) 文章。
-
-
-## Divs 和 Spans {#sec-divs-and-spans}
-
-你可以使用 Divs 和 Spans 向内容区域添加类、属性和其他标识符(你将在 [Callout Blocks](#sec-callout-blocks) 部分看到一个示例)。
-
-例如,这里我们使用一个 div (`:::`) 向内容区域添加 "border" 类:
+在 markdown 源文件中，数学公式块是由一对 '$$' 标记包围的 *LaTeX* 表达式：
 
 ``` markdown
-::: {.border}
-This content can be styled with a border
-:::
+$$
+\mathbf{V}_1 \times \mathbf{V}_2 =  \begin{vmatrix}
+\mathbf{i} & \mathbf{j} & \mathbf{k} \\
+\frac{\partial X}{\partial u} &  \frac{\partial Y}{\partial u} & 0 \\
+\frac{\partial X}{\partial v} &  \frac{\partial Y}{\partial v} & 0 \\
+\end{vmatrix}
+$$
 ```
 
-一旦渲染为 HTML,Quarto 将把 markdown 翻译为:
+你可以在[这里](https://support.typora.io/Math/)找到更多详情。
 
-``` html
-<div class="border">
-  <p>This content can be styled with a border</p>
-</div>
-```
+### 表格
 
-Divs 以包含至少三个连续冒号加上一些属性的围栏开始。属性可以可选地后跟另一个连续冒号字符串。Div 以另一行结束,该行包含至少三个连续冒号。Div 应该与前面的块和后面的块分开。Divs 也可以嵌套。例如:
+输入 `| 第一个表头  | 第二个表头 |` 并按 `return` 键。这将创建一个两列的表格。
+
+创建表格后，将焦点放在表格上会打开表格工具栏，你可以调整大小、对齐或删除表格。你还可以使用上下文菜单复制和添加/删除单个列/行。
+
+表格的完整语法如下所示，但不需要详细了解完整语法，因为 Typora 会自动生成表格的 markdown 源代码：
 
 ``` markdown
-::::: {#special .sidebar}
-
-::: {.warning}
-Here is a warning.
-:::
-
-More content.
-:::::
+| 第一个表头  | 第二个表头 |
+| ------------- | ------------- |
+| 内容单元格  | 内容单元格  |
+| 内容单元格  | 内容单元格  |
 ```
 
-一旦渲染为 HTML,Quarto 将把 markdown 翻译为:
+你还可以在表格中包含内联 Markdown，如链接、粗体、斜体或删除线。
 
-``` html
-<div id="special" class="sidebar">
-  <div class="warning">
-    <p>Here is a warning.</p>
-  </div>
-  <p>More content.</p>
-</div>
-```
-
-没有属性的围栏总是关闭围栏。与 fenced code blocks 不同,关闭围栏中的冒号数量不必与打开围栏中的冒号数量匹配。然而,使用不同长度的围栏有助于视觉清晰性,以区分嵌套的 div 与其父级。
-
-一个 inline 序列,如用于开始链接的序列,如果紧随其后的是属性,将被视为具有属性的 `Span`:
+最后，通过在表头行中包含冒号（`:`），你可以定义该列中的文本为左对齐、右对齐或居中对齐：
 
 ``` markdown
-[This is *some text*]{.class key="val"}
+| 左对齐  | 居中对齐  | 右对齐 |
+| :------------ |:---------------:| -----:|
+| 第3列是      | 一些很长的文字 | $1600 |
+| 第2列是      | 居中的        |   $12 |
+| 斑马条纹     | 很整洁        |    $1 |
 ```
 
-一旦渲染为 HTML,Quarto 将把 markdown 翻译为:
+最左边的冒号表示左对齐列；最右边的冒号表示右对齐列；两边都有冒号表示居中对齐列。
 
-``` html
-<span class="class" data-key="val">
-  This is <em>some text</em>
-</span>
-```
-
-通常,你将使用 CSS 和/或 [Filter](/docs/extensions/filters.qmd) 与 Divs 和 Spans 一起在渲染文档中提供样式或其他行为。
-
-### 属性顺序
-
-Pandoc 中的 divs 和 spans 可以具有任何组合的标识符、类和(可能许多)键值属性。为了被 Pandoc 识别,它们必须以特定顺序提供:标识符、类和然后键值属性。这些中的任何一个都可以省略,但必须遵循该顺序。例如,以下是有效的:
+### 脚注
 
 ``` markdown
-[This is good]{#id .class key1="val1" key2="val2"}
+你可以像这样创建脚注[^脚注]。
+
+[^脚注]: 这里是脚注的*文本*内容。
 ```
 
-然而,以下 *不会被 Pandoc 识别*:
+将产生：
+
+你可以像这样创建脚注[^脚注]。
+
+[^脚注]: 这里是脚注的*文本*内容。
+
+将鼠标悬停在"脚注"上标上可以查看脚注内容。
+
+### 水平分割线
+
+在空行上输入 `***` 或 `---` 并按 `return` 将绘制一条水平线。
+
+------
+
+### YAML Front Matter
+
+Typora 现在支持 [YAML Front Matter](http://jekyllrb.com/docs/frontmatter/)。在文章顶部输入 `---` 然后按 `Return` 键来引入元数据块。或者，你可以从 Typora 的顶部菜单插入元数据块。
+
+### 目录 (TOC)
+
+输入 `[toc]` 并按 `Return` 键。这将创建一个"目录"部分。TOC 从文档中提取所有标题，其内容会随着你向文档添加内容而自动更新。
+
+## 行内元素
+
+行内元素在输入后会立即被解析和渲染。将光标移动到这些行内元素中间会将它们展开为 markdown 源代码。以下是每个行内元素的语法说明。
+
+### 链接
+
+Markdown 支持两种链接样式：内联和引用。
+
+在这两种样式中，链接文本都用[方括号]括起来。
+
+要创建内联链接，在链接文本的右方括号后立即使用一组常规括号。在括号内，放入你想要链接指向的 URL，以及可选的用引号括起来的链接标题。例如：
 
 ``` markdown
-[This does *not* work!]{.class key="val" #id}
+这是[一个示例](http://example.com/ "标题")内联链接。
+
+[这个链接](http://example.net/)没有标题属性。
 ```
 
-该顺序限制适用于 divs 和 spans。有关更多详细信息,请参阅 Pandoc 的 [Divs 和 Spans](https://pandoc.org/MANUAL.html#divs-and-spans) 文档。
+将产生：
 
-## Callout Blocks
+这是[一个示例](http://example.com/ "标题")内联链接。(`<p>这是 <a href="http://example.com/" title="标题">`)
 
-#### Markdown 语法
+[这个链接](http://example.net/)没有标题属性。(`<p><a href="http://example.net/">这个链接</a> 没有`)
+
+#### 内部链接
+
+**你可以将 href 设置为标题**，这将创建一个书签，允许你点击后跳转到该部分。例如：
+
+Command(在 Windows 上：Ctrl) + 点击[这个链接](#块级元素)将跳转到"块级元素"标题。要查看如何编写，请按住 `⌘` 键移动光标或点击该链接以展开为 markdown 源代码。
+
+#### 引用链接
+
+引用式链接使用第二组方括号，在其中放置你选择的标签来标识该链接：
 
 ``` markdown
-:::{.callout-note}
-注意有五种类型的标注，包括：
-`note`、`tip`、`warning`、`caution` 和 `important`。
-:::
+这是[一个示例][id]引用式链接。
+
+然后，在文档的任何地方，你可以像这样定义你的链接标签：
+
+[id]: http://example.com/  "可选标题"
 ```
 
-#### 输出
+在 Typora 中，它们将被渲染为：
 
-::: callout-note
-注意有五种类型的标注，包括 `note`、`tip`、`warning`、`caution` 和 `important`。
-:::
+这是[一个示例][id]引用式链接。
 
-有关更多信息,请参阅 [Callout Blocks](callouts.qmd) 文章。
+[id]: http://example.com/	"可选标题"
 
-## 其他块
+隐式链接名称快捷方式允许你省略链接的名称，这种情况下链接文本本身将用作名称。只需使用一组空的方括号 — 例如，要将单词"Google"链接到 google.com 网站，你只需写：
 
-+--------------------------+--------------------------+
-| Markdown 语法            | 输出                     |
-+==========================+==========================+
-| ``` markdown             | > 引用块                 |
-| > Blockquote             |                          |
-| ```                      |                          |
-+--------------------------+--------------------------+
-| ``` markdown             | ::: 类名                 |
-| ::: {.classname}         | Div                      |
-| Div                      | :::                      |
-| :::                      |                          |
-| ```                      |                          |
-+--------------------------+--------------------------+
-| ``` markdown             | | 行块                   |
-| | Line Block             | |    空格和换行          |
-| |   Spaces and newlines  | |    被保留              |
-| |   are preserved        |                          |
-| ```                      |                          |
-+--------------------------+--------------------------+
+``` markdown
+[Google][]
+然后定义链接：
 
-## 特殊字符
+[Google]: http://google.com/
+```
 
-+-----------------+---------------+
-| Markdown 语法   | 输出          |
-+=================+===============+
-| ``` markdown    | 短横线: --    |
-| endash: --      |               |
-| ```             |               |
-+-----------------+---------------+
-| ``` markdown    | 长横线: ---   |
-| emdash: ---     |               |
-| ```             |               |
-+-----------------+---------------+
+在 Typora 中，点击链接将展开它以进行编辑，command+点击将在网络浏览器中打开超链接。
+
+### URL
+
+Typora 允许你插入 URL 作为链接，用 `<`尖括号`>` 括起来。
+
+`<i@typora.io>` 变成 <i@typora.io>。
+
+Typora 还会自动链接标准 URL。例如：www.google.com。
+
+### 图片
+
+图片的语法与链接类似，但需要在链接开始前添加一个 `!` 字符。插入图片的语法如下：
+
+``` markdown
+![替代文本](/path/to/img.jpg)
+
+![替代文本](/path/to/img.jpg "可选标题")
+```
+
+你可以使用拖放来从图片文件或网络浏览器插入图片。通过点击图片，你可以修改 markdown 源代码。如果使用拖放添加的图片与当前编辑的文档在同一目录或子目录中，将使用相对路径。
+
+如果你使用 markdown 来构建网站，你可以在 YAML Front Matter 中使用 `typora-root-url` 属性为本地计算机上的图片预览指定 URL 前缀。例如，在 YAML Front Matter 中输入 `typora-root-url:/User/Abner/Website/typora.io/`，然后 `![alt](/blog/img/test.png)` 将在 Typora 中被视为 `![alt](file:///User/Abner/Website/typora.io/blog/img/test.png)`。
+
+你可以在[这里](https://support.typora.io/Images/)找到更多详情。
+
+### 强调
+
+Markdown 将星号（`*`）和下划线（`_`）视为强调的标记。用一个 `*` 或 `_` 包围的文本将被包装在 HTML `<em>` 标签中。例如：
+
+``` markdown
+*单个星号*
+
+_单个下划线_
+```
+
+输出：
+
+*单个星号*
+
+_单个下划线_
+
+GFM 会忽略单词中的下划线，这在代码和名称中很常见，比如：
+
+> wow_great_stuff
+>
+> do_this_and_do_that_and_another_thing.
+
+要在原本会被用作强调分隔符的位置产生字面意义上的星号或下划线，你可以用反斜杠转义：
+
+``` markdown
+\*这段文字被字面意义上的星号包围\*
+```
+
+Typora 推荐使用 `*` 符号。
+
+### 加粗
+
+双重的 `*` 或 `_` 会导致其包含的内容被包装在 HTML `<strong>` 标签中，例如：
+
+``` markdown
+**双星号**
+
+__双下划线__
+```
+
+输出：
+
+**双星号**
+
+__双下划线__
+
+Typora 推荐使用 `**` 符号。
+
+### 代码
+
+要标示一个行内代码段，用反引号（`）包围它。与预格式化的代码块不同，代码段表示正常段落中的代码。例如：
+
+``` markdown
+使用 `printf()` 函数。
+```
+
+将产生：
+
+使用 `printf()` 函数。
+
+### 删除线
+
+GFM 添加了创建删除线文本的语法，这在标准 Markdown 中是缺失的。
+
+`~~wrong text~~` 变成 ~~wrong text~~
+
+### 下划线
+
+下划线通过原始 HTML 实现。
+
+`<u>underline</u>` 变成 <u>underline</u>。
+
+### 表情符号 :smile:
+
+使用语法 `:smile:` 输入表情符号。
+
+用户可以通过按 `ESC` 键触发表情符号的自动完成建议，或在偏好设置面板中启用后自动触发它。此外，通过菜单栏中的 `编辑` -> `表情符号与符号`（macOS）也支持直接输入 UTF-8 表情符号字符。
+
+### 行内数学公式
+
+要使用此功能，请先在 `偏好设置` 面板 -> `Markdown` 标签中启用它。然后，使用 `$` 包围 TeX 命令。例如：`$\lim_{x \to \infty} \exp(-x) = 0$` 将被渲染为 LaTeX 命令。
+
+要触发行内数学公式的预览：输入 "$"，然后按 `ESC` 键，再输入 TeX 命令。
+
+你可以在[这里](https://support.typora.io/Math/)找到更多详情。
+
+### 下标
+
+要使用此功能，请先在 `偏好设置` 面板 -> `Markdown` 标签中启用它。然后，使用 `~` 包围下标内容。例如：`H~2~O`，`X~long\ text~`。
+
+### 上标
+
+要使用此功能，请先在 `偏好设置` 面板 -> `Markdown` 标签中启用它。然后，使用 `^` 包围上标内容。例如：`X^2^`。
+
+### 高亮
+
+要使用此功能，请先在 `偏好设置` 面板 -> `Markdown` 标签中启用它。然后，使用 `==` 包围高亮内容。例如：`==高亮==`。
+
+## HTML
+
+你可以使用 HTML 来设置纯 Markdown 不支持的内容样式。例如，使用 `<span style="color:red">这段文字是红色的</span>` 来添加红色文字。
+
+### 嵌入内容
+
+一些网站提供基于 iframe 的嵌入代码，你也可以将其粘贴到 Typora 中。例如：
+
+```Markdown
+<iframe height='265' scrolling='no' title='Fancy Animated SVG Menu' src='http://codepen.io/jeangontijo/embed/OxVywj/?height=265&theme-id=0&default-tab=css,result&embed-version=2' frameborder='no' allowtransparency='true' allowfullscreen='true' style='width: 100%;'></iframe>
+```
+
+### 视频
+
+你可以使用 HTML 的 `<video>` 标签来嵌入视频。例如：
+
+```Markdown
+<video src="xxx.mp4" />
+```
+
+### 其他 HTML 支持
+
+你可以在[这里](https://support.typora.io/HTML/)找到更多详情。
+
+[GFM]: https://help.github.com/articles/github-flavored-markdown/

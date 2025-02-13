@@ -6,6 +6,7 @@ execute:
 
 book:
   title: "Data Driven Reproducible Study"
+  subtitle: "数据驱动的可重复性研究"
   author: "高春辉"
   date: now
   cover-image: cover.png
@@ -79,7 +80,7 @@ format:
               <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   pdf:
     documentclass: scrreprt
-    paper-size: a4
+    papersize: a4
     mermaid-format: png
     extract-media: images
     fig-width: 7
