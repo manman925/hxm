@@ -306,7 +306,7 @@ if (any(is.na(otu_table))) {
 library(Hmisc)
 # 计算Spearman相关性矩阵
 cor_matrix <- rcorr(as.matrix(otu_table), type = "spearman")
-print(cor_matrix)
+str(cor_matrix)
 ```
 
 
@@ -323,7 +323,7 @@ p_values <- cor_test$P    # p值矩阵
 # 设置显著性阈值
 p_threshold <- 0.05
 significant_cor <- ifelse(p_values < p_threshold, cor_values, 0)
-print(significant_cor)
+str(significant_cor)
 ```
 
 
@@ -336,7 +336,7 @@ print(significant_cor)
 cor_threshold <- 0.8
 adj_matrix <- ifelse(abs(significant_cor) > cor_threshold, significant_cor, 0)
 diag(adj_matrix) <- 0  # 对角线设为0，避免自相关
-print(adj_matrix)
+str(adj_matrix)
 ```
 
 
