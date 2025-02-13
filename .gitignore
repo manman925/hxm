@@ -81,3 +81,6 @@ yarn.lock
 /.quarto/
 
 logs/
+
+
+/data/MiSeq_SOP/filtered/
