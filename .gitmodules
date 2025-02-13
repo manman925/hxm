@@ -4,3 +4,6 @@
 [submodule "deg"]
 	path = deg
 	url = ./deg
+[submodule "bacteria-ID"]
+	path = bacteria-ID
+	url = ./bacteria-ID
