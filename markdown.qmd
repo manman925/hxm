@@ -1,0 +1,520 @@
+# Markdown 速查表
+
+原文：https://quarto.org/docs/authoring/markdown-basics.html
+
+Quarto 基于 Pandoc,使用其 markdown 变体作为底层文档语法。Pandoc markdown 是 John Gruber 的 [Markdown](https://daringfireball.net/projects/markdown/) 语法的扩展和略微修订版本。
+
+Markdown 是一种纯文本格式,旨在易于编写,更重要的是易于阅读:
+
+> Markdown 格式的文档应该可以原样发布为纯文本,而不会看起来像是用标签或格式说明进行了标记。-- [John Gruber](https://daringfireball.net/projects/markdown/syntax#philosophy)
+
+本文档提供了最常用的 markdown 语法示例。有关更深入的文档,请参阅 [Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown) 的完整文档。
+
+
+## 文本格式化
+
++-----------------------------------------+-----------------------------------------+
+| Markdown Syntax                         | Output                                  |
++=========================================+=========================================+
+| ``` markdown                            | *italics*, **bold**, ***bold italics*** |
+| *italics*, **bold**, ***bold italics*** |                                         |
+| ```                                     |                                         |
++-----------------------------------------+-----------------------------------------+
+| ``` markdown                            | superscript^2^ / subscript~2~           |
+| superscript^2^ / subscript~2~           |                                         |
+| ```                                     |                                         |
++-----------------------------------------+-----------------------------------------+
+| ``` markdown                            | ~~strikethrough~~                       |
+| ~~strikethrough~~                       |                                         |
+| ```                                     |                                         |
++-----------------------------------------+-----------------------------------------+
+| ``` markdown                            | `verbatim code`                         |
+| `verbatim code`                         |                                         |
+| ```                                     |                                         |
++-----------------------------------------+-----------------------------------------+
+
+## 标题 {#headings}
+
++-----------------+-----------------------------------+
+| Markdown Syntax | Output                            |
++=================+===================================+
+| ``` markdown    | # Header 1 {.heading-output}      |
+| # Header 1      |                                   |
+| ```             |                                   |
++-----------------+-----------------------------------+
+| ``` markdown    | ## Header 2 {.heading-output}     |
+| ## Header 2     |                                   |
+| ```             |                                   |
++-----------------+-----------------------------------+
+| ``` markdown    | ### Header 3 {.heading-output}    |
+| ### Header 3    |                                   |
+| ```             |                                   |
++-----------------+-----------------------------------+
+| ``` markdown    | #### Header 4 {.heading-output}   |
+| #### Header 4   |                                   |
+| ```             |                                   |
++-----------------+-----------------------------------+
+| ``` markdown    | ##### Header 5 {.heading-output}  |
+| ##### Header 5  |                                   |
+| ```             |                                   |
++-----------------+-----------------------------------+
+| ``` markdown    | ###### Header 6 {.heading-output} |
+| ###### Header 6 |                                   |
+| ```             |                                   |
++-----------------+-----------------------------------+
+
+```{=html}
+<style type="text/css">
+.heading-output {
+  border-bottom: none;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+</style>
+```
+
+## 链接和图片
+
++--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| Markdown Syntax                                              | Output                                                                                                 |
++==============================================================+========================================================================================================+
+| ``` markdown                                                 | <https://quarto.org>                                                                                   |
+| <https://quarto.org>                                         |                                                                                                        |
+| ```                                                          |                                                                                                        |
++--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| ``` markdown                                                 | [Quarto](https://quarto.org)                                                                           |
+| [Quarto](https://quarto.org)                                 |                                                                                                        |
+| ```                                                          |                                                                                                        |
++--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| ``` markdown                                                 | ![Caption](elephant.png){fig-alt="A line drawing of an elephant."}                                     |
+| ![Caption](elephant.png)                                     |                                                                                                        |
+| ```                                                          |                                                                                                        |
++--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| ``` markdown                                                 | [![Caption](elephant.png)](https://quarto.org)                                                         |
+| [![Caption](elephant.png)](https://quarto.org)               |                                                                                                        |
+| ```                                                          |                                                                                                        |
++--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| ``` markdown                                                 | [![Caption](elephant.png "An elephant"){fig-alt="A line drawing of an elephant."}](https://quarto.org) |
+| [![Caption](elephant.png "An elephant")](https://quarto.org) |                                                                                                        |
+| ```                                                          |                                                                                                        |
++--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| ``` markdown                                                 | [![](elephant.png){fig-alt="A line drawing of an elephant."}](https://quarto.org)                      |
+| [![](elephant.png){fig-alt="Alt text"}](https://quarto.org)  |                                                                                                        |
+| ```                                                          |                                                                                                        |
++--------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+
+## 列表
+
++-----------------------------------+---------------------------------+
+| Markdown Syntax                   | Output                          |
++===================================+=================================+
+| ``` markdown                      |                                 |
+| * unordered list                  | * unordered list                |
+|     + sub-item 1                  |     + sub-item 1                |
+|     + sub-item 2                  |     + sub-item 2                |
+|         - sub-sub-item 1          |         - sub-sub-item 1        |
+| ```                               |                                 |
++-----------------------------------+---------------------------------+
+| ``` markdown                      |                                 |
+| *   item 2                        | -   item 2                      |
+|                                   |                                 |
+|     Continued (indent 4 spaces)   |     Continued (indent 4 spaces) |
+| ```                               |                                 |
++-----------------------------------+---------------------------------+
+| ``` markdown                      |                                 |
+| 1. ordered list                   |  1. ordered list                |
+| 2. item 2                         |  2. item 2                      |
+|     i) sub-item 1                 |      i) sub-item 1              |
+|          A.  sub-sub-item 1       |           A.  sub-sub-item 1    |
+| ```                               |                                 |
++-----------------------------------+---------------------------------+
+| ``` markdown                      |                                 |
+| - [ ] Task 1                      | - [ ] Task 1                    |
+| - [x] Task 2                      | - [x] Task 2                    |
+| ```                               |                                 |
++-----------------------------------+---------------------------------+
+| ``` markdown                      |                                 |
+| (@)  A list whose numbering       |  (1) A list whose numbering     |
+|                                   |                                 |
+| continues after                   |  continues after                |
+|                                   |                                 |
+| (@)  an interruption              |  (2) an interruption            |
+| ```                               |                                 |
++-----------------------------------+---------------------------------+
+| ``` markdown                      |                                 |
+| ::: {}                            | ::: {}                          |
+| 1. A list                         | 1. A list                       |
+| :::                               | :::                             |
+|                                   |                                 |
+| ::: {}                            | ::: {}                          |
+| 1. Followed by another list       | 1. Followed by another list     |
+| :::                               | :::                             |
+| ```                               |                                 |
++-----------------------------------+---------------------------------+
+| ``` markdown                      |                                 |
+| term                              | term                            |
+| : definition                      | : definition                    |
+| ```                               |                                 |
++-----------------------------------+---------------------------------+
+
+注意,与其他 Markdown 渲染器（特别是 Jupyter 和 GitHub）不同,Quarto 中的列表需要整个空白行才能正确渲染。否则,列表将不会以列表形式呈现,而是作为单行正常文本呈现。
+
+## 脚注
+
+Pandoc 支持使用以下语法对脚注进行编号和格式化:
+
+``` markdown
+Here is a footnote reference,[^1] and another.[^longnote]
+
+[^1]: Here is the footnote.
+
+[^longnote]: Here's one with multiple blocks.
+
+    Subsequent paragraphs are indented to show that they
+belong to the previous footnote.
+
+        { some.code }
+
+    The whole paragraph can be indented, or just the first
+    line.  In this way, multi-paragraph footnotes work like
+    multi-paragraph list items.
+
+This paragraph won't be part of the note, because it
+isn't indented.
+```
+
+The above syntax generates the following output:
+
+:::{.border .p-3}
+Here is a footnote reference,[^1] and another.[^2]
+
+This paragraph won't be part of the note, because it isn't indented.
+:::
+
+In addition, you can also write single paragraph footnotes inline using the following syntax:
+
+``` markdown
+Here is an inline note.^[Inlines notes are easier to write,
+since you don't have to pick an identifier and move down to
+type the note.]
+```
+
+This syntax generates the following output:
+
+::: {.border .p-3}
+Here is an inline note.[^3]
+:::
+
+::: {.callout-note}
+
+## 脚注标识符应唯一
+
+脚注标识符,例如 `^1` 中的 `1`,需要在整个文档中唯一。
+在 Quarto 书籍中,章节被组合成一个单一文档用于某些格式(包括 PDF、DOCX 和 EPUB),
+因此脚注标识符需要在整个文档中唯一。
+
+:::
+
+上述示例生成的脚注包含在页面底部的 [示例脚注](#example-footnotes) 部分。有关更多信息,请参阅 [Pandoc 脚注](https://pandoc.org/MANUAL.html#footnotes)。
+
+[^1]: 这里是一个脚注。
+
+[^2]: 这里有一个包含多个块的脚注。
+
+    后续段落缩进以显示它们属于前一个脚注。
+
+        { some.code }
+
+    整个段落可以缩进,或者只缩进第一行。这样,多段落脚注就像多段落列表项一样工作。
+
+[^3]: 内联注释更容易写,因为你不需要选择一个标识符并向下移动以输入注释。
+
+
+## 表格
+
+#### Markdown 语法
+
+``` markdown
+| Right | Left | Default | Center |
+|------:|:-----|---------|:------:|
+|   12  |  12  |    12   |    12  |
+|  123  |  123 |   123   |   123  |
+|    1  |    1 |     1   |     1  |
+```
+
+#### Output
+
+| Right | Left | Default | Center |
+|------:|:-----|---------|:------:|
+|    12 | 12   | 12      |   12   |
+|   123 | 123  | 123     |  123   |
+|     1 | 1    | 1       |   1    |
+
+
+## 源代码
+
+使用 ```` ``` ```` 分隔源代码块:
+
+```` markdown
+```
+code
+```
+````
+
+添加语言以语法高亮代码块:
+
+```` markdown
+```python
+1 + 1
+```
+````
+
+Pandoc 支持超过 [140 种不同语言](https://github.com/jgm/skylighting/tree/master/skylighting-core/xml) 的语法高亮。如果你的语言不受支持，你可以使用 `default` 语言来获得类似的视觉效果：
+
+```` markdown
+```default
+code
+```
+````
+
+等效于上述示例中使用的短格式,是一个更长的格式,使用语言作为类(即 `.python`)在括号中:
+
+```` markdown
+```{.python}
+1 + 1
+```
+````
+
+更长的格式允许你以类似 [Divs](#sec-divs-and-spans) 的方式向块添加属性。一些使用这种语法的特定功能是 [行号](/docs/output-formats/html-code.qmd#line-numbers) 和 [代码文件名](/docs/output-formats/html-code.qmd#code-filename)。以下是一个示例:
+
+```` markdown
+```{.python filename="run.py"}
+code
+```
+````
+
+如果你正在创建 HTML 输出,则有许多选项可用于代码块输出。有关更多详细信息,请参阅 [HTML 代码](/docs/output-formats/html-code.qmd) 文章。
+
+## 原始内容
+
+原始内容可以直接包含,而不使用 Quarto 解析它,使用 [Pandoc 的 raw 属性](https://pandoc.org/MANUAL.html#extension-raw_attribute)。一个原始块以 ` ```{=}` 开始,后跟一个格式并关闭 `}`,例如这里有一个原始 HTML 块:
+
+```` markdown
+```{=html}
+<iframe src="https://quarto.org/" width="500" height="400"></iframe>
+```
+````
+
+对于 PDF 输出,使用原始 LaTeX 块:
+
+```` markdown
+```{=latex}
+\renewcommand*{\labelitemi}{\textgreater}
+```
+````
+
+作为另一个示例,如果你正在使用 [Typst 格式](/docs/output-formats/typst.qmd) 你可以在原始块中包含 Typst 语法:
+
+```` markdown
+```{=typst} 
+#set text(fill: red)
+This text is red.
+```
+````
+
+你也可以包含原始内容内联:
+
+```markdown
+ Here's some raw inline HTML: `<a>html</a>`{=html}
+```
+
+## Equations
+
+使用 `$` 分隔符用于内联数学,使用 `$$` 分隔符用于显示数学。例如:
+
++---------------------------+-------------------------+
+| Markdown Syntax           | Output                  |
++===========================+=========================+
+| ``` markdown              |                         |
+| inline math: $E = mc^{2}$ | inline math: $E=mc^{2}$ |
+| ```                       |                         |
++---------------------------+-------------------------+
+| ``` markdown              |                         |
+| display math:             | display math:           |
+|                           |                         |
+| $$E = mc^{2}$$            | $$E = mc^{2}$$          |
+| ```                       |                         |
++---------------------------+-------------------------+
+
+如果你想定义自定义 TeX 宏,请在 `$$` 分隔符中包含它们,并使用 `.hidden` 块包围。例如:
+
+``` tex
+::: {.hidden}
+$$
+ \def\RR{{\bf R}}
+ \def\bold#1{{\bf #1}}
+$$
+:::
+```
+
+使用 [MathJax](https://docs.mathjax.org/) 处理的 HTML 数学(默认)你可以使用 `\def`, `\newcommand`, `\renewcommand`, `\newenvironment`, `\renewenvironment`, 和 `\let` 命令来创建你自己的宏和环境。
+
+## 图表
+
+Quarto 原生支持嵌入 [Mermaid](https://mermaid-js.github.io/mermaid/#/) 和 [Graphviz](https://graphviz.org/) 图表。这使你能够使用纯文本语法创建流程图、序列图、状态图、甘特图等。
+
+例如,这里我们嵌入一个使用 Mermaid 创建的流程图:
+
+```{mermaid}
+%%| echo: fenced
+flowchart LR
+  A[Hard edge] --> B(Round edge)
+  B --> C{Decision}
+  C --> D[Result one]
+  C --> E[Result two]
+```
+
+
+## 视频
+
+你可以使用 `{{{< video >}}}` [短代码](shortcodes.qmd) 在文档中包含视频。例如,这里我们嵌入一个 YouTube 视频:
+
+``` {.markdown shortcodes="false"}
+{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}
+```
+
+视频可以引用视频文件(例如 MPEG)或可以链接到在 YouTube、Vimeo 或 Brightcove 上发布的视频。有关更多信息,请参阅 [视频](videos.qmd) 文章。
+
+
+## Divs 和 Spans {#sec-divs-and-spans}
+
+你可以使用 Divs 和 Spans 向内容区域添加类、属性和其他标识符(你将在 [Callout Blocks](#sec-callout-blocks) 部分看到一个示例)。
+
+例如,这里我们使用一个 div (`:::`) 向内容区域添加 "border" 类:
+
+``` markdown
+::: {.border}
+This content can be styled with a border
+:::
+```
+
+一旦渲染为 HTML,Quarto 将把 markdown 翻译为:
+
+``` html
+<div class="border">
+  <p>This content can be styled with a border</p>
+</div>
+```
+
+Divs 以包含至少三个连续冒号加上一些属性的围栏开始。属性可以可选地后跟另一个连续冒号字符串。Div 以另一行结束,该行包含至少三个连续冒号。Div 应该与前面的块和后面的块分开。Divs 也可以嵌套。例如:
+
+``` markdown
+::::: {#special .sidebar}
+
+::: {.warning}
+Here is a warning.
+:::
+
+More content.
+:::::
+```
+
+一旦渲染为 HTML,Quarto 将把 markdown 翻译为:
+
+``` html
+<div id="special" class="sidebar">
+  <div class="warning">
+    <p>Here is a warning.</p>
+  </div>
+  <p>More content.</p>
+</div>
+```
+
+没有属性的围栏总是关闭围栏。与 fenced code blocks 不同,关闭围栏中的冒号数量不必与打开围栏中的冒号数量匹配。然而,使用不同长度的围栏有助于视觉清晰性,以区分嵌套的 div 与其父级。
+
+一个 inline 序列,如用于开始链接的序列,如果紧随其后的是属性,将被视为具有属性的 `Span`:
+
+``` markdown
+[This is *some text*]{.class key="val"}
+```
+
+一旦渲染为 HTML,Quarto 将把 markdown 翻译为:
+
+``` html
+<span class="class" data-key="val">
+  This is <em>some text</em>
+</span>
+```
+
+通常,你将使用 CSS 和/或 [Filter](/docs/extensions/filters.qmd) 与 Divs 和 Spans 一起在渲染文档中提供样式或其他行为。
+
+### 属性顺序
+
+Pandoc 中的 divs 和 spans 可以具有任何组合的标识符、类和(可能许多)键值属性。为了被 Pandoc 识别,它们必须以特定顺序提供:标识符、类和然后键值属性。这些中的任何一个都可以省略,但必须遵循该顺序。例如,以下是有效的:
+
+``` markdown
+[This is good]{#id .class key1="val1" key2="val2"}
+```
+
+然而,以下 *不会被 Pandoc 识别*:
+
+``` markdown
+[This does *not* work!]{.class key="val" #id}
+```
+
+该顺序限制适用于 divs 和 spans。有关更多详细信息,请参阅 Pandoc 的 [Divs 和 Spans](https://pandoc.org/MANUAL.html#divs-and-spans) 文档。
+
+## Callout Blocks
+
+#### Markdown 语法
+
+``` markdown
+:::{.callout-note}
+注意有五种类型的标注，包括：
+`note`、`tip`、`warning`、`caution` 和 `important`。
+:::
+```
+
+#### 输出
+
+::: callout-note
+注意有五种类型的标注，包括 `note`、`tip`、`warning`、`caution` 和 `important`。
+:::
+
+有关更多信息,请参阅 [Callout Blocks](callouts.qmd) 文章。
+
+## 其他块
+
++--------------------------+--------------------------+
+| Markdown 语法            | 输出                     |
++==========================+==========================+
+| ``` markdown             | > 引用块                 |
+| > Blockquote             |                          |
+| ```                      |                          |
++--------------------------+--------------------------+
+| ``` markdown             | ::: 类名                 |
+| ::: {.classname}         | Div                      |
+| Div                      | :::                      |
+| :::                      |                          |
+| ```                      |                          |
++--------------------------+--------------------------+
+| ``` markdown             | | 行块                   |
+| | Line Block             | |    空格和换行          |
+| |   Spaces and newlines  | |    被保留              |
+| |   are preserved        |                          |
+| ```                      |                          |
++--------------------------+--------------------------+
+
+## 特殊字符
+
++-----------------+---------------+
+| Markdown 语法   | 输出          |
++=================+===============+
+| ``` markdown    | 短横线: --    |
+| endash: --      |               |
+| ```             |               |
++-----------------+---------------+
+| ``` markdown    | 长横线: ---   |
+| emdash: ---     |               |
+| ```             |               |
++-----------------+---------------+

@@ -100,8 +100,8 @@ dadaFs <- dada(fnFs.filt, err = errF, multithread = TRUE)
 dadaRs <- dada(fnRs.filt, err = errR, multithread = TRUE)
 
 # 查看去噪结果
-head(dadaFs[[1]])
-head(dadaRs[[1]])
+#head(dadaFs[[1]])
+#head(dadaRs[[1]])
 ```
 
 

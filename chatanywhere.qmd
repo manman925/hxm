@@ -1,0 +1,348 @@
+
+# ChatAnyWhere 服务
+
+ChatAnyWhere 主要提供 OpenAI 大模型接入服务（也包括少量非 OpenAI 的模型）。
+
+基本信息如下：
+
+-   服务器地址：<https://api.chatanywhere.tech>
+-   API KEY 购买与续费：<https://peiqishop.me>
+-   API KEY 余量查询：<https://api.chatanywhere.org>
+
+## 模型列表
+
+ChatAnyWhere 提供的模型名字可能会与 OpenAI 不同。例如 `*-ca` 模型会有更优惠的价格。为了配置调用参数时写对模型名称，需要查询提供的模型列表。
+
+```{r}
+library(httr)
+library(glue)
+
+# 读取 CHATANYWHERE_API_KEY 环境变量
+OPENAI_API_KEY = Sys.getenv("CHATANYWHERE_API_KEY")
+
+headers = c(
+   'Authorization' = glue('Bearer {OPENAI_API_KEY}'),
+   'User-Agent' = 'Apifox/1.0.0 (https://apifox.com)',
+   'Content-Type' = 'application/json'
+)
+
+# 使用 GET 方法获取
+res <- VERB("GET", 
+            url = "https://api.chatanywhere.tech/v1/models", 
+            add_headers(headers))
+```
+
+将 JSON 输出为表格。
+
+
+```{r}
+library(jsonlite)
+library(tidyverse)
+library(gt)
+
+models = jsonlite::fromJSON(content(res, as = "text", encoding = "UTF-8"))$data
+
+models |> 
+  mutate(created = as_datetime(created) |> as_date()) |> 
+  gt(groupname_col = "owned_by")
+```
+
+下面依次介绍这些模型的用法。
+
+## 对话模型
+
+以 `gpt-*` 开头的都是文本对话模型。调用 OpenAI 的模型时，通常需要配置以下一些关键参数来控制模型的行为和生成结果的方式。
+
+1.  **Prompt（提示）**
+    -   模型的输入文本，通常称为“提示”。
+    -   可以是简单的文本，或者带有一些问题或任务描述，告诉模型生成哪类内容。
+2.  **Max Tokens（最大令牌数）**
+    -   指定生成的文本中最多包含多少个令牌（tokens）。一个令牌大约对应一个英文单词或标点符号。
+    -   该参数可以控制生成的响应长度，但包括输入和输出在内的令牌总数不能超过模型的上下文长度限制。
+3.  **Temperature（温度）**
+    -   控制生成文本的随机性。范围是 `0` 到 `2`：
+        -   `temperature=0` 时，输出更加确定和保守，偏向生成常见的或“最可能”的答案。
+        -   较高的 `temperature` 值（如 `0.7`）会让生成的内容更加随机和多样化。
+4.  **n（生成次数）**
+    -   控制生成多少个不同的响应。
+    -   `n=1` 只生成一个响应；`n=2` 会生成多个响应，适合比较或选择最合适的内容。
+
+调用 OpenAI 模型时，通常需要设置 **模型名称、提示、最大令牌数、温度、top-p、生成次数** 等参数，视任务需求还可以调整 **出现惩罚、频率惩罚、停止序列** 等其他配置，以控制生成的内容质量和行为。
+
+下面这个例子，展示了 ChatGPT 数不清楚“temperature”这个单词里面有几个字母“e”。
+
+```{r}
+body = '{
+   "model": "gpt-4o-mini",
+   "messages": [
+      {
+         "role": "system",
+         "content": "You are a helpful assistant."
+      },
+      {
+         "role": "user",
+         "content": "Temperature这个单词中含有几个字母e？"
+      }
+   ],
+   "temperature": 2
+}';
+
+res <- VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/chat/completions", 
+            body = body, 
+            add_headers(headers))
+
+content(res, 'text', encoding = "UTF-8") |> 
+  fromJSON() |> 
+  str()
+```
+
+## 使用 OpenAI API
+
+```{python}
+from openai import OpenAI
+import os
+
+# 创建 client
+client = OpenAI(
+    api_key=os.getenv("CHATANYWHERE_API_KEY"), # 如果您没有配置环境变量，请在此处用您的API Key进行替换
+    base_url="https://api.chatanywhere.tech",  # 填写 openAI 服务的 base_url
+)
+
+# 生成对话
+completion = client.chat.completions.create(
+    model="gpt-4o-ca",
+    messages=[
+        {'role': 'system', 'content': 'You are a helpful assistant.'},
+        {'role': 'user', 'content': '你是谁'}],
+    temperature=0.8,
+    top_p=0.8
+    )
+
+print(completion.choices[0].message.content)
+```
+
+
+## 词嵌入模型
+
+所有三个词嵌入模型都是基于 Transformer 架构，这使得它们在处理自然语言时具有良好的性能。下表比较了 `text-embedding-ada-002`、`text-embedding-3-small` 和 `text-embedding-3-large` 这三个词嵌入模型的特点：
+
+| **模型名称**             | **参数量** | **嵌入维度** | **性能**           | **适用场景**                             | **优点**                             | **缺点**                           |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| `text-embedding-ada-002` | 中等       | 1536         | 高效，性能优秀     | 通用文本嵌入，适用于广泛的 NLP 任务      | 高精度嵌入，适合各种语义匹配任务     | 相比小型模型，计算资源需求较高     |
+| `text-embedding-3-small` | 小         | 512          | 较快，资源效率高   | 资源受限的应用场景，低计算成本的嵌入生成 | 计算效率高，适合实时或资源有限的场景 | 嵌入维度较低，可能影响语义表达能力 |
+| `text-embedding-3-large` | 大         | 2048         | 更高性能，精度极高 | 高端应用场景，如高精度语义搜索和推荐系统 | 嵌入维度更高，能够捕捉复杂语义关系   | 资源消耗大，适合计算资源充足的场景 |
+
+```{r}
+body = '{
+   "model": "text-embedding-ada-002",
+   "input": "The food was delicious and the waiter..."
+}';
+
+res = VERB("POST", 
+           url = "https://api.chatanywhere.tech/v1/embeddings", 
+           body = body, 
+           add_headers(headers))
+
+content = content(res, 'text', encoding = "UTF-8")
+
+embedding = fromJSON(content)
+str(embedding)
+```
+
+## 文生图模型
+
+`dall-e-2` 和 `dall-e-3` 是文生图模型。
+
+DALL-E 2 支持以下三种图像尺寸：
+
+1.  **256x256**
+2.  **512x512**
+3.  **1024x1024**
+
+DALL-E 3 支持以下图像尺寸：
+
+1.  **1024x1024**: 正方形图像，适合大多数使用场景，是默认推荐的尺寸。
+2.  **1792x1024**: 宽屏图像，适合需要更宽视野的场景或横向布局的设计。
+3.  **1024x1792**: 纵向图像，适合需要更高视野的场景或纵向布局的设计。
+
+你可以根据具体需求选择合适的图像尺寸进行生成。
+
+```{r}
+url = "https://api.chatanywhere.tech/v1/images/generations"
+
+body = '{
+   "prompt": "A colorful sunset over the snow mountains",
+   "n": 1,
+   "model":  "dall-e-2",
+   "size": "256x256"
+}';
+
+response = VERB("POST", url, body = body, add_headers(headers))
+
+content = content(response, "text", encoding = "UTF-8")
+print(content)
+```
+
+获取图片。
+
+```{r}
+#| results: asis
+
+# 获取生成的图像 URL
+image_url = fromJSON(content)[["data"]][["url"]]
+
+# 下载图片
+response <- GET(image_url)
+
+# 检查请求是否成功
+if (status_code(response) == 200) {
+  # 将图片保存到磁盘
+  writeBin(content(response, "raw"), "output/sunset.png")
+  cat("图片已成功保存到 `output/sunset.png`。")
+} else {
+  cat("下载图片失败，状态码：", status_code(response), "\n")
+}
+```
+
+
+```{r}
+#| echo: false
+knitr::include_graphics("output/sunset.png")
+```
+
+
+## 识图功能（不支持）
+
+使用多模态模型，可以识别图片中的信息。
+
+```{r}
+# 设置请求体
+body = list(
+  model = "gpt-4o-ca",
+  file = upload_file("output/sunset.png"),  # 文件路径
+  prompt = "这是什么?",  # 提示
+  encode = "multipart"
+  )
+
+res = VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/chat/completions", 
+            body = body, 
+            add_headers(headers))
+
+cat(content(res, 'text', encoding = "UTF-8"))
+```
+
+
+
+## 文字转语音模型
+
+将一段文字转变为语音，支持中英文混合。
+
+```{r}
+body = '{
+   "model": "tts-1",
+   "input": "今天天气不错。It is a nice day today.",
+   "voice": "alloy"
+}';
+
+res <- VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/audio/speech", 
+            body = body, 
+            add_headers(headers))
+
+# 检查请求是否成功
+if (status_code(res) == 200) {
+  # 将响应保存为音频文件（假设返回的是二进制音频数据）
+  audio_file <- "output/audio-goodday.mp3"  # 你可以更改文件名和扩展名
+  writeBin(content(res, "raw"), audio_file)
+  message("Audio saved successfully as: ", audio_file)
+} else {
+  message("Request failed with status: ", status_code(res))
+}
+```
+
+
+## 语音识别模型
+
+`whisper-1` 是 OpenAI 开发的一个强大的语音识别模型。它主要用于将语音转换为文本（也称为语音转文字，Speech-to-Text，简称 STT）。该模型能够处理多种语言的语音输入，并能够识别不同的口音和语音风格，非常适用于各种音频转录任务。
+
+```{r}
+headers_multipart = c(
+   'Authorization' = glue('Bearer {OPENAI_API_KEY}'),
+   'User-Agent' = 'Apifox/1.0.0 (https://apifox.com)',
+   'Content-Type' = 'multipart/form-data'
+)
+
+body = list(
+   'file' = upload_file('output/audio-goodday.mp3'),
+   'model' = 'whisper-1',
+   'prompt' = 'eiusmod nulla',
+   'response_format' = 'json',
+   'temperature' = '0',
+   'language' = ''
+)
+
+res = VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/audio/transcriptions", 
+            body = body, 
+            add_headers(headers_multipart),
+            encode = 'multipart')
+
+cat(content(res, 'text', encoding = "UTF-8"))
+```
+
+## Claude 模型
+
+ChatAnywhere 提供了一个 `claude-3-5-sonnet-20240620` 模型。
+
+
+```{r}
+body = '{
+   "model": "claude-3-5-sonnet-20240620",
+   "messages": [
+      {
+         "role": "system",
+         "content": "You are a helpful assistant."
+      },
+      {
+         "role": "user",
+         "content": "Temperature这个单词中含有几个字母e？"
+      }
+   ],
+   "temperature": 2
+}';
+
+res <- VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/chat/completions", 
+            body = body, 
+            add_headers(headers))
+
+content(res, 'text', encoding = "UTF-8") |> 
+  fromJSON() |> 
+  str()
+```
+
+
+## 语音翻译模型
+
+将音频翻译成英文。
+
+
+```{r}
+body = list(
+   'file' = upload_file('output/audio-goodday.mp3'),
+   'model' = 'whisper-1',
+   'prompt' = '',
+   'response_format' = 'json',
+   'temperature' = '0'
+)
+
+res <- VERB("POST", 
+            url = "https://api.chatanywhere.tech/v1/audio/translations", 
+            body = body, 
+            add_headers(headers_multipart), 
+            encode = 'multipart')
+
+cat(content(res, 'text', encoding = "UTF-8"))
+```

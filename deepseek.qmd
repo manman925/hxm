@@ -1,0 +1,97 @@
+# DeepSeek R1 模型
+
+::: {.callout-tip}
+DeepSeek 全系列模型均已在百炼平台上线，您可以前往百炼平台查看模型调用方法。
+:::
+
+2025年春节期间，DeepSeek R1 模型震撼问世。其以极低成本实现了与 OpenAI o1 相近的性能，一时风头无两。下面是一些关键的信息。
+
+## 模型性能
+
+根据 **DeepSeek-R1** 论文，DeepSeek-R1 进行了多个基准测试，主要涵盖 **数学、编程、常识问答、推理能力** 等方面。以下是具体的基准测试类别和对应的数据集：  
+
+### **1. 数学（Math）**
+- **AIME 2024**（American Invitational Mathematics Examination）  
+- **MATH-500**（数学解题能力测试）  
+- **CNMO 2024**（中国数学奥林匹克）  
+
+### **2. 编程（Coding）**
+- **LiveCodeBench**（编程任务，通过 Chain-of-Thought 方式进行评估）  
+- **Codeforces**（代码竞赛平台，评估模型在算法竞赛中的 Elo rating 和百分位排名）  
+- **SWE-bench Verified**（软件工程任务，评估问题解决能力）  
+- **Aider-Polyglot**（多语言代码生成）  
+
+### **3. 知识与常识问答（General Knowledge & Reasoning）**
+- **MMLU**（Massive Multitask Language Understanding，多学科知识测评）  
+- **MMLU-Redux**（MMLU 的加强版，使用 ZeroEval 框架评估）  
+- **MMLU-Pro**（MMLU 进阶版，考察更复杂的推理能力）  
+- **GPQA Diamond**（Graduate-level Google-Proof Q&A，评估复杂推理能力）  
+- **SimpleQA**（基础事实问答）  
+- **C-SimpleQA**（中文事实问答）  
+
+### **4. 自然语言处理与生成任务（NLP & Generation Tasks）**
+- **DROP**（Discrepancy-based Reading Comprehension，阅读理解）  
+- **FRAMES**（长文本依赖的问答）  
+- **IF-Eval**（Instruction Following Evaluation，测试指令跟随能力）  
+- **AlpacaEval 2.0**（长度受控的评估，用 GPT-4-Turbo 作为评判）  
+- **ArenaHard**（基于 GPT-4-Turbo 1106 的对比评测）  
+
+### **5. 中文任务（Chinese NLP Tasks）**
+- **CLUEWSC**（中文 Winograd Schema Challenge）  
+- **C-Eval**（中文大规模学科知识评测）  
+
+这些测试覆盖了数学、编程、推理、常识问答、长文本理解以及中文理解等多个领域，并与 OpenAI-o1-1217、Claude 3.5 Sonnet、GPT-4o 进行了对比。
+
+## 模型训练
+
+DeepSeek R1 的训练过程包括以下几个关键阶段：
+
+1. **DeepSeek-R1-Zero：基于强化学习（RL）的训练**
+   - 直接对基模型（DeepSeek-V3-Base）进行大规模强化学习（RL），而不依赖监督微调（SFT）。
+   - 采用 **Group Relative Policy Optimization (GRPO)** 算法来优化策略模型，以减少计算成本。
+   - 通过基于规则的奖励系统进行训练，包括：
+     - **准确性奖励**（判断答案是否正确，如数学计算或编程测试）。
+     - **格式奖励**（确保推理过程遵循特定格式，如 `<think> reasoning </think>`）。
+   - 经过 RL 训练后，DeepSeek-R1-Zero 在推理基准测试中表现优异，但存在**可读性差、语言混杂**等问题。
+
+2. **DeepSeek-R1：引入冷启动数据的多阶段训练**
+   - **冷启动数据（Cold Start Data）**：收集大量长链式思维（CoT）数据，对 DeepSeek-V3-Base 进行微调，提供初始推理能力。
+   - **推理强化学习（RL）**：
+     - 在预训练基础上应用 RL，进一步提升推理能力。
+     - 引入 **语言一致性奖励**，减少混合语言问题，提高可读性。
+   - **拒绝采样与监督微调（SFT）**：
+     - 使用 RL 训练后的模型生成数据，通过拒绝采样（Rejection Sampling）筛选高质量推理数据（约 60 万条）。
+     - 结合 DeepSeek-V3 在写作、问答等领域的数据进行 SFT。
+   - **全场景 RL 调优**：
+     - 进行二次 RL 训练，以进一步增强推理能力，并优化用户友好性。
+
+3. **蒸馏（Distillation）**
+   - 使用 DeepSeek-R1 生成的 80 万条数据，对小模型（如 Qwen 和 Llama 系列）进行蒸馏。
+   - 结果表明，直接从 DeepSeek-R1 蒸馏出的模型性能优于对小模型直接应用 RL。
+
+总结来说，DeepSeek R1 通过**强化学习（RL）+冷启动数据（CoT 预训练）+拒绝采样+监督微调+二次 RL**的方式训练得到，从而在推理能力上达到了与 OpenAI-o1-1217 相当的水平，同时通过蒸馏技术将推理能力迁移到小模型上。
+
+## CoT
+
+DeepSeek-R1 训练过程中使用的 **长链式思维（CoT）数据** 主要来自两个阶段：  
+
+1. **冷启动数据（Cold Start Data）**  
+   - **数据量**：数千条（用于初始化模型的推理能力）  
+   - **收集方式**：
+     - **少样本提示（Few-shot Prompting）**：使用已有的长 CoT 示例引导模型生成新数据。  
+     - **直接提示（Direct Prompting）**：要求模型生成带有反思和验证的详细回答。  
+     - **从 DeepSeek-R1-Zero 生成**：筛选格式可读的输出作为数据。  
+     - **人工后处理（Human Post-processing）**：人工审查并优化数据质量。  
+
+2. **拒绝采样（Rejection Sampling）+ 监督微调（SFT）数据**  
+   - **数据量**：  
+     - **推理相关数据**：约 **60 万条**（主要来自 RL 训练后的模型输出）  
+     - **非推理数据**（写作、问答等）：约 **20 万条**  
+     - **总计约 80 万条训练样本**  
+   - **收集方式**：
+     - **模型自生成（Self-generation）**：从 RL 训练后的模型采样多个答案，并筛选正确的回答。  
+     - **基于规则的评估（Rule-based Evaluation）**：如数学问题使用确定性答案，代码问题使用编译器测试。  
+     - **生成式奖励模型（Generative Reward Model）**：部分数据通过 DeepSeek-V3 进行判断。  
+     - **格式筛选**：去除语言混杂、段落过长、代码格式混乱的 CoT 数据。  
+
+这些数据用于对 DeepSeek-V3-Base 进行 SFT，并进一步强化学习，最终得到 DeepSeek-R1。

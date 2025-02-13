@@ -62,6 +62,7 @@ site_libs/
 *.docx
 _freeze/
 *_cache/
+output/
 
 # 安全相关
 *.pem

@@ -1,4 +1,4 @@
-# Quarto 常用文档元素 {#technical-writing-with-quarto}
+# Quarto 速查表
 
 ## 使用 Bootstrap 样式类
 
