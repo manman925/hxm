@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       # 检出代码仓库
@@ -24,7 +24,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.10  # 根据需要调整 Python 版本
-          activate-environment: ata-driven-reproducible-study  # Conda 环境名称
+          activate-environment: data-driven-reproducible-study  # Conda 环境名称
           environment-file: environment.yml  # 如果有环境文件，请指定路径
 
       # 安装 R 和 renv
