@@ -63,7 +63,7 @@ cnn.to(device)
 ```{python}
 from torchviz import make_dot
 
-y = cnn(torch.randn(4, 1, 1000))  # 随机生成一个输入来通过模型
+y = cnn(torch.randn(4, 1, 1000).to(device))  # 随机生成一个输入来通过模型
 make_dot(y, params=dict(cnn.named_parameters()))
 ```
 
@@ -165,11 +165,19 @@ for name, module in cnn.named_modules():
 现在我们使用训练好的模型进行预测，并报告每个菌株的准确率。这个数字应该接近图2中报告的82.2%，但由于在微调过程中对微调数据集进行了随机采样，所以不会完全相同。
 
 ```{python}
+#| include: false
+# 设置工作目录
+import os
+os.chdir('..')
+```
+
+
+```{python}
 import numpy as np
 
 # 载入数据
-X = np.load('./data/X_test.npy')
-y = np.load('./data/y_test.npy')
+X = np.load('./data/raman/X_test.npy')
+y = np.load('./data/raman/y_test.npy')
 
 # 打印数据形状
 print(X.shape, y.shape)
@@ -205,6 +213,14 @@ print('Accuracy: {:0.1f}%'.format(100*acc))
 
 ### 读取菌株名称
 
+
+```{python}
+#| include: false
+# 设置工作目录
+import os
+os.chdir('./bacteria-ID')
+```
+
 `config.py` 文件中定义了菌株名称，现在把这些定义读取出来，重新绘制混淆矩阵。
 
 ```{python}
@@ -228,6 +244,8 @@ print(strains)
 
 ```{python}
 from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # 计算混淆矩阵
 conf_matrix = confusion_matrix(y, y_hat, labels=order)
@@ -312,7 +330,7 @@ print_last_five_modules(cnn)
 
 ```{python}
 # 生成一个输入数据
-test = torch.randn(1, 1, 1000)
+test = torch.randn(1, 1, 1000).to(device)
 
 # 打印输出
 print(cnn(test).shape)
