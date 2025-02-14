@@ -1,9 +1,9 @@
 [submodule "ratio"]
 	path = ratio
-	url = ./ratio
+	url = https://github.com/gaospecial/ratio.git
 [submodule "deg"]
 	path = deg
-	url = ./deg
+	url = https://github.com/gaospecial/community-convergence.git
 [submodule "bacteria-ID"]
 	path = bacteria-ID
-	url = ./bacteria-ID
+	url = https://github.com/csho33/bacteria-ID.git
