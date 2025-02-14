@@ -38,11 +38,10 @@ jobs:
       - name: Restore R dependencies with renv
         run: Rscript -e "renv::restore()"
 
-      # 安装 Quarto CLI
+      # 安装 Quarto CLI（适用于 macOS）
       - name: Install Quarto CLI
         run: |
-          curl -LO https://github.com/quarto-dev/quarto-cli/releases/latest/download/quarto-linux-amd64.deb
-          sudo dpkg -i quarto-linux-amd64.deb
+          brew install quarto-cli
 
       # 构建 Quarto Book
       - name: Build Quarto Book
