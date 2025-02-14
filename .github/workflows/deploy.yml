@@ -20,7 +20,7 @@ jobs:
 
       # 设置 Conda 环境
       - name: Set up Conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           miniconda-version: "latest"  # 显式指定 Miniconda 版本
