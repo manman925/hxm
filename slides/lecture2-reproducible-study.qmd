@@ -82,6 +82,8 @@ id,name,age
 ]
 ```
 
+---
+
 #### XML 格式示例
 
 ```xml
@@ -92,6 +94,14 @@ id,name,age
     <age>20</age>
   </person>
 </data>
+```
+
+#### YAML 格式示例
+
+```yaml
+id: 1
+name: 张三
+age: 20
 ```
 
 ---

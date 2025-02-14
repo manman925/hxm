@@ -40,10 +40,13 @@ jobs:
         run: Rscript -e "renv::restore()"
 
       # 安装 Quarto CLI（适用于 macOS）
-      - name: Install Quarto CLI
-        run: |
-          brew install quarto-cli
-
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          tiny-tex: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       # 构建 Quarto Book
       - name: Build Quarto Book
         run: quarto render
