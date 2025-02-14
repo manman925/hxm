@@ -93,6 +93,7 @@ format:
   pdf:
     documentclass: scrreprt
     papersize: a4
+    margin: 1.5cm
     mermaid-format: png
     extract-media: images
     fig-width: 7
