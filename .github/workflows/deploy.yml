@@ -23,6 +23,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
+          auto-activate-base: true
           miniconda-version: "latest"  # 显式指定 Miniconda 版本
           python-version: 3.10.16         # 根据需要调整 Python 版本
           activate-environment: data-driven-reproducible-study  # Conda 环境名称
