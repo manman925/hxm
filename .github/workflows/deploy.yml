@@ -31,6 +31,7 @@ jobs:
       - name: Set CONDA_DEFAULT_ENV
         run: |
           echo "CONDA_DEFAULT_ENV=data-driven-reproducible-study" >> $GITHUB_ENV
+          conda activate data-driven-reproducible-study
 
       # 安装 R 和 renv
       - name: Set up R
