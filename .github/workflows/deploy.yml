@@ -54,8 +54,6 @@ jobs:
       # 构建 Quarto Book
       - name: Build Quarto Book
         run: quarto render
-        with:
-          activate-environment: data-driven-reproducible-study
         env:
           CONDA_DEFAULT_ENV: data-driven-reproducible-study
 

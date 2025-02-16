@@ -231,13 +231,13 @@ BiocManager::install("DESeq2") # 安装 Bioconductor 包
 
 ---
 
-## 文档与代码的可重复
+## 数据与分析的可重复
 
 - 数据
   - 原始数据
   - 数据预处理
   - 数据的保存
-- 代码
+- 分析（代码）
   - 代码的编写和注释
   - 代码的保存和迭代
   - 编写代码的文档
@@ -343,10 +343,6 @@ plot(cars$speed, cars$dist, main="cars", xlab="speed", ylab="dist")
   - 代码的功能
   - 代码的输入和输出
   - 代码的实现细节
-
-
-
-
 
 
 ## 结语
