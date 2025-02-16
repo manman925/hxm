@@ -32,7 +32,9 @@ jobs:
       - name: Set CONDA_DEFAULT_ENV
         run: |
           echo "CONDA_DEFAULT_ENV=data-driven-reproducible-study" >> $GITHUB_ENV
-          echo "QUARTO_PYTHON=$(which python)" >> $GITHUB_ENV
+          echo "QUARTO_PYTHON=$CONDA/envs/data-driven-reproducible-study/bin/python" >> $GITHUB_ENV
+          conda info
+          conda list
 
       # 安装 R 和 renv
       - name: Set up R
@@ -49,14 +51,13 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
-          tiny-tex: true
+          tinytex: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 构建 Quarto Book
       - name: Build Quarto Book
         run: |
-          conda activate data-driven-reproducible-study
           quarto render
 
 
