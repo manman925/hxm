@@ -27,6 +27,8 @@ jobs:
           python-version: 3.10.16         # 根据需要调整 Python 版本
           activate-environment: data-driven-reproducible-study  # Conda 环境名称
           environment-file: environment.yml  # 如果有环境文件，请指定路径
+
+      - name: Set CONDA_DEFAULT_ENV
         run: |
           echo "CONDA_DEFAULT_ENV=data-driven-reproducible-study" >> $GITHUB_ENV
 
