@@ -2,6 +2,11 @@
 
 Python 和 R 在数据科学方面的应用都非常广泛。
 
+```{r}
+#| include: false
+library(reticulate)
+```
+
 ## 核心功能对比
 
 ### 数据处理

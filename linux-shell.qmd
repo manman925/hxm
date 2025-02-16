@@ -489,7 +489,6 @@ command > output.txt 2>&1
 
 这会将标准输出和标准错误都写入 `output.txt` 中，方便后续分析和问题定位。
 
----
 
 ## 命令组合与 Shell 脚本
 
