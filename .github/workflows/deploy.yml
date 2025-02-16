@@ -57,14 +57,14 @@ jobs:
 
       # 构建 Quarto Book
       - name: Build Quarto Book
-        run: |
-          quarto render
+        uses: quarto-dev/quarto-actions/render@v2
+        with: 
+          to: html
 
 
       # 部署到 gh-pages 分支
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Publish to GitHub Pages
+        uses: quarto-dev/quarto-actions/deploy@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _book  # Quarto 默认输出目录为 _book
-          commit_message: "Deploy Quarto Book to gh-pages"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          target: gh-pages
