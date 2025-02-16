@@ -27,6 +27,8 @@ jobs:
           python-version: 3.10.16         # 根据需要调整 Python 版本
           activate-environment: data-driven-reproducible-study  # Conda 环境名称
           environment-file: environment.yml  # 如果有环境文件，请指定路径
+        run: |
+          echo "CONDA_DEFAULT_ENV=data-driven-reproducible-study" >> $GITHUB_ENV
 
       # 安装 R 和 renv
       - name: Set up R
@@ -46,7 +48,7 @@ jobs:
           tiny-tex: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       # 构建 Quarto Book
       - name: Build Quarto Book
         run: quarto render
