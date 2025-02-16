@@ -212,7 +212,8 @@ except ZeroDivisionError as e:  # 捕获除零错误，将异常信息存入变�
 
 ## Python 在数据科学领域的应用
 
-Python 在数据科学中有着广泛的应用，主要依赖于如下几个库：  
+Python 在数据科学中有着广泛的应用，主要依赖于如下几个库：
+  
 - **NumPy**：高效的数值计算  
 - **Pandas**：数据处理与分析  
 - **Matplotlib**：数据可视化  
