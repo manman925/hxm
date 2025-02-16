@@ -61,6 +61,189 @@ bibliography:
 
 ---
 
+## 构建跨平台可重复性研究环境
+
+- **硬件与软件环境标准化**
+- **文档与代码管理**
+- **开放数据与代码共享**
+
+---
+
+### CPU/GPU 架构
+
+- CPU 架构
+  - x86(Intel, AMD):复杂指令集（CISC），擅长通用计算。
+  - ARM(Apple, Qualcomm, Huawei):精简指令集（RISC），功耗低、能效高。
+- GPU 架构
+  - NVIDIA(CUDA)：专为并行计算优化，广泛用于 AI 和科学计算。
+  - Apple(MPS)：与 Apple Silicon 紧密集成，优化功耗与图形性能。
+  - AMD RDNA/CDNA：RDNA 侧重于游戏图形，CDNA 适用于高性能计算和数据中心。
+
+---
+
+### 软件环境
+
+- 操作系统
+  - Linux：Ubuntu 22.04/24.04, CentOS 8/9, Debian 12/13
+  - Windows：Windows 10/11
+  - macOS：macOS 11/12/13
+- 编程语言
+  - Python：Python 3.10/3.11/3.12
+  - R：R 4.3.1/4.4.1/Latest
+- 深度学习框架
+  - PyTorch：PyTorch 2.1.0/2.2.0/Latest
+  - TensorFlow：TensorFlow 2.10.0/2.11.0/Latest
+
+---
+
+### 环境变量
+
+- 系统环境变量
+  - `PATH`：系统路径，用于指定可执行文件的路径
+  - `LD_LIBRARY_PATH`：动态链接库路径，用于指定动态链接库的路径
+  - `PYTHONPATH`：Python 路径，用于指定 Python 路径
+- 用户环境变量
+  - `CONDA_DEFAULT_ENV`：启用的默认 conda 环境名称
+  - `CONDA_PREFIX`：指定 conda 软件的路径
+  - `R_LIBS_USER`：用户 R 包的路径
+
+---
+
+### 包管理
+
+- 系统软件
+  - Ubuntu：`apt`
+  - macOS：`brew`
+  - Windows：`choco`
+
+```bash
+# 在 Ubuntu 上使用 apt 安装软件
+sudo apt install -y python3-pip
+```
+
+```bash
+# 在 macOS 上使用 brew 安装软件
+brew install python3-pip
+```
+
+```bash
+# 在 Windows 上使用 choco 安装软件
+choco install python3-pip
+```
+
+---
+
+### Python 包依赖管理
+
+::: {.columns}
+
+::: {.column width="50%"} 
+
+- Python 包依赖管理工具
+  - Conda(miniconda, mamba, Anaconda)
+  - pip
+
+
+:::
+
+::: {.column width="50%"}
+
+- 软件源
+  - conda-forge: 科学计算
+  - bioconda: 生物信息学
+  - pytorch: 深度学习
+
+:::
+
+:::
+
+```bash
+# 使用 conda 安装 Python 软件
+conda install -c conda-forge python=3.10
+```
+
+```bash
+# 使用 pip 安装 Python 软件
+pip install python=3.10
+```
+
+```bash
+# 使用 conda 安装 PyTorch 源中包含的软件
+conda install -c pytorch torchvision
+```
+
+
+---
+
+### R 包管理
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+- R 包依赖管理
+  - `renv`：R 包依赖管理
+  - 
+  - `pak`：R 包安装
+
+:::
+
+::: {.column width="50%"}
+
+- 软件源
+  - CRAN: 最大的 R 包仓库
+  - Bioconductor: 生物信息学专有
+
+:::
+
+:::
+
+```R
+install.packages("renv") # 安装 renv
+renv::restore() # 恢复 renv 环境
+```
+
+```R
+install.packages(c("pak", "BiocManager")) # 安装 CRAN 包
+pak::pak("tidyverse") # 使用 pak 安装 R 包
+BiocManager::install("DESeq2") # 安装 Bioconductor 包
+```
+
+---
+
+### 软件源镜像
+
+- 使用软件源镜像可以加速访问速度
+- 常用的软件源镜像：
+  - 清华大学：`https://mirrors.tuna.tsinghua.edu.cn`
+  - 中国科学技术大学：`https://mirrors.ustc.edu.cn`
+  - 华中科技大学：`https://mirrors.hust.edu.cn`
+  - 上海交通大学：`https://mirrors.sjtug.sjtu.edu.cn`
+
+---
+
+### 中国科技大学开源软件镜像
+
+<section>
+  <iframe src="https://mirrors.ustc.edu.cn/" width="100%" height="600px"></iframe>
+</section>
+
+
+---
+
+## 文档与代码的可重复
+
+- 数据
+  - 原始数据
+  - 数据预处理
+  - 数据的保存
+- 代码
+  - 代码的编写和注释
+  - 代码的保存和迭代
+  - 编写代码的文档
+
+---
+
 ### 数据格式统一
 
 #### CSV 格式示例
@@ -93,6 +276,11 @@ id,name,age
     <name>张三</name>
     <age>20</age>
   </person>
+  <person>
+    <id>2</id>
+    <name>李四</name>
+    <age>21</age>
+  </person>  
 </data>
 ```
 
@@ -148,13 +336,18 @@ plot(cars$speed, cars$dist, main="cars", xlab="speed", ylab="dist")
 
 ---
 
-## 构建跨平台可重复性研究环境
+### 代码的注释
 
-- **硬件与软件环境标准化**
-- **文档与代码管理**
-- **开放数据与代码共享**
+- 代码的注释应该清晰、完整、易于理解
+- 代码的注释应该包括：
+  - 代码的功能
+  - 代码的输入和输出
+  - 代码的实现细节
 
----
+
+
+
+
 
 ## 结语
 
