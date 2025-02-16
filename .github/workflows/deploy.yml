@@ -64,7 +64,7 @@ jobs:
 
       # 部署到 gh-pages 分支
       - name: Publish to GitHub Pages
-        uses: quarto-dev/quarto-actions/deploy@v2
+        uses: quarto-dev/quarto-actions/publish@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           target: gh-pages
