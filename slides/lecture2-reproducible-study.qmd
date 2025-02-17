@@ -667,7 +667,9 @@ ls -l /nonexistent 1>output.txt 2>error.txt
 
 ```bash
 # 克隆课程仓库
-git clone https://github.com/D2RS-2025spring.git
+git clone https://github.com/D2RS-2025spring/data-driven-reproducible-study
+# 或者
+git clone https://gitee.com/gaospecial/data-driven-reproducible-study
 
 # 创建 conda 环境
 conda create -n data-driven-reproducible-study -f environment.yml
@@ -685,8 +687,8 @@ renv::restore()
 
 ## 课程讲义在线阅读
 
-- 我的个人网站：[https://d2rs.bio-spring.top](https://d2rs.bio-spring.top)
-- GitHub Pages：[https://d2rs-2025spring.github.io](https://d2rs-2025spring.github.io)
+- [阿里云](https://d2rs.bio-spring.top)
+- [GitHub Pages](https://d2rs-2025spring.github.io/data-driven-reproducible-study/)
 
 ---
 
