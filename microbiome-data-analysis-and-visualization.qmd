@@ -162,7 +162,7 @@ head(track)
 # 下载SILVA数据库（如果尚未下载）
 # system("wget https://zenodo.org/records/14169026/files/silva_nr99_v138.2_toSpecies_trainset.fa.gz")
 
-silva_db = "/Users/gaoch/Projects/Silva/silva_nr99_v138.2_wSpecies_train_set.fa.gz"
+silva_db = "./data/silva_v138.2/silva_nr99_v138.2_wSpecies_train_set.fa.gz"
 
 # 分类学注释
 taxa <- assignTaxonomy(seqtab.nochim, silva_db, multithread = TRUE)
