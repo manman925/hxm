@@ -365,7 +365,7 @@ ck1 <- compareCluster(
   data = deg1,                  # 数据源
   fun = "enrichKEGG",           # 使用 enrichKEGG 方法
   organism = "eco",             # 物种：E. coli
-  use_internal_data = FALSE      # 使用内置的 KEGG 数据
+  use_internal_data = FALSE      # TRUE 时使用内置的 KEGG 数据
 )
 
 # 对 *P. putida* 进行 KEGG 富集分析
@@ -374,7 +374,7 @@ ck2 <- compareCluster(
   data = deg2,
   fun = "enrichKEGG",
   organism = "ppu",             # 物种：P. putida
-  use_internal_data = FALSE
+  use_internal_data = FALSE # TRUE 时使用内置的 KEGG 数据
 )
 ```
 
