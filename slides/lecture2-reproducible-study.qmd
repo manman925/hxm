@@ -443,7 +443,7 @@ df = pd.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"]})
 
 ---
 
-## 实战练习
+## 多加实战练习
 
 - 处理 CSV 数据
 - 生成可视化图表
@@ -568,7 +568,7 @@ ls -l /nonexistent 1>output.txt 2>error.txt
 - 分布式：每个用户都有一个完整的仓库
 - 版本控制系统：记录文件的变化
 
-## Git 的基本概念
+## Git 的基本概念 {.smaller}
 
 ::: {.columns}
 
@@ -577,11 +577,14 @@ ls -l /nonexistent 1>output.txt 2>error.txt
 **基本概念**
 
 - 仓库（repository）：存储文件的地方
-  - 本地仓库：`/Users/yourname/project/repo`
+  - 本地仓库：`~/project/repo`
   - 远程仓库：`origin`、`upstream`
-- 提交（commit）：保存文件的变化
-- 推送（push）：将本地仓库的提交推送到远程仓库
-- 拉取（pull）：将远程仓库的提交拉取到本地仓库
+- 提交（commit）：
+  - 保存文件的变化
+- 推送（push）：
+  - 将本地仓库的提交推送到远程仓库
+- 拉取（pull）：
+  - 将远程仓库的提交拉取到本地仓库
 
 :::
 
@@ -590,7 +593,8 @@ ls -l /nonexistent 1>output.txt 2>error.txt
 **分支（branch）**
 
 - 隔离开发
-- 合并（merge）：合并分支
+- 合并（merge）：
+  - 合并分支
 
 **标签（tag）**
 
@@ -609,21 +613,10 @@ ls -l /nonexistent 1>output.txt 2>error.txt
 - 需要标准化实验、数据和分析方法
 - 共同推动开放、透明的科学生态
 
---- 
-
-## 课堂自主学习
-
-**请参考课程讲义自主学习**
-
-- Linux 命令行
-- R 语言入门
-- Python 入门
-- Git 入门
-- ggplot2 入门
 
 ---
 
-## 获取课程资源 {.smaller}
+## 获取课程资源 {.smaller .scrollable}
 
 课程仓库：[https://github.com/D2RS-2025spring](https://github.com/D2RS-2025spring)
 
@@ -633,16 +626,16 @@ ls -l /nonexistent 1>output.txt 2>error.txt
 
 **重要目录**
 
-- `slides`: 课程讲义
+- `slides`: 课程 PPT
 - `paper`: 课上要讲的论文（项目来源）
 - 开源的数据和分析代码
   - `ratio`：分组数据统计分析
   - `deg`：转录组学数据分析
   - `bacteria-ID`：拉曼光谱+深度学习鉴定细菌
-- `example`：示例数据（讲义中用到的数据）
-- `data`：大型的数据集（项目分析中用到的数据）
-- `output`：运行讲义过程中生成的文件
-- `_book`：编译课程讲义后的输出目录
+- `example`：示例数据（讲义用）
+- `data`：大型的数据集（讲义用）
+- `output`：运行讲义的过程文件
+- `_book`：编译后的课程讲义
 
 :::
 
@@ -669,7 +662,7 @@ ls -l /nonexistent 1>output.txt 2>error.txt
 
 - 安装 Git
 - 安装 R 和 Python
-- 安装 conda
+- 安装 Conda（Python）
 - 安装 RStudio 或 VSCode
 
 ```bash
@@ -680,7 +673,7 @@ git clone https://github.com/D2RS-2025spring.git
 conda create -n data-driven-reproducible-study -f environment.yml
 ```
 
-```{r}
+```r
 # 安装 renv
 install.packages("renv")
 
@@ -692,3 +685,25 @@ renv::restore()
 
 ## 课程讲义在线阅读
 
+- 我的个人网站：[https://d2rs.bio-spring.top](https://d2rs.bio-spring.top)
+- GitHub Pages：[https://d2rs-2025spring.github.io](https://d2rs-2025spring.github.io)
+
+---
+
+## 课堂练习及课后作业
+
+- 配置一个可重复性的研究环境
+
+<iframe src="https://d2rs.bio-spring.top/setup-a-reproducible-environment.html" width="100%" height="600px"></iframe>
+
+--- 
+
+## 自主学习
+
+**请参考课程讲义自主学习**
+
+- Linux 命令行: [Linux 命令行入门](https://d2rs.bio-spring.top/linux-shell.html)
+- R 语言入门: [R 语言入门](https://d2rs.bio-spring.top/r-basic.html)
+- Python 入门: [Python 入门](https://d2rs.bio-spring.top/python-basic.html)
+- Git 入门: [Git 入门](https://d2rs.bio-spring.top/git-basic.html)
+- ggplot2 入门: [ggplot2 入门](https://d2rs.bio-spring.top/ggplot2-cheatsheet.html)
