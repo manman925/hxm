@@ -70,6 +70,57 @@
 - **环境变量管理**：合理设置 PATH 等关键环境变量，明确各软件包和依赖库的位置，为自动化流程和脚本执行提供支持。  
 - **终端工具优化**：使用 zsh、oh-my-zsh 等工具提升命令行操作效率，并记录相关配置，确保环境一致性。
 
+:::{.callout-tip}
+**如何查看环境变量？**
+
+- macOS 和 Linux（包括 Ubuntu）
+
+    终端命令：
+
+    - `printenv` 或 `env`：列出所有环境变量。
+    - `echo $VAR_NAME`：查看某个环境变量（如 `echo $PATH`）。
+    - `export`：显示当前 shell 会话的所有导出环境变量。
+
+    配置文件：
+
+    - `~/.bashrc`、`~/.bash_profile`（Bash）
+    - `~/.zshrc`（Zsh）
+    - `/etc/environment`（全局环境变量）
+
+- Windows
+
+    命令提示符（CMD）：
+
+    - `set`：列出所有环境变量。
+    - `echo %VAR_NAME%`：查看某个环境变量（如 `echo %PATH%`）。
+
+    PowerShell：
+
+    - `Get-ChildItem Env:` 或 `gci Env:`：列出所有环境变量。
+    - `$env:VAR_NAME`：查看某个环境变量（如 `$env:PATH`）。
+
+    GUI（图形界面）：
+
+    1. **Windows 10/11**：
+    - 右键“此电脑” → 选择“属性” → “高级系统设置” → “环境变量”。
+    2. **Windows 7**：
+    - 右键“计算机” → 选择“属性” → “高级系统设置” → “环境变量”。
+
+- R 中查看环境变量
+
+    - `Sys.getenv()`：列出所有环境变量。
+    - `Sys.getenv("VAR_NAME")`：查看某个环境变量（如 `Sys.getenv("PATH")`）。
+    - `Sys.setenv(VAR_NAME = "value")`：设置环境变量（仅当前会话有效）。
+
+- Python 中查看环境变量
+
+  - `import os`
+  - `os.environ`：查看所有环境变量（字典类型）。
+  - `os.getenv("VAR_NAME")`：获取某个环境变量（如 `os.getenv("PATH")`）。
+  - `os.environ["VAR_NAME"] = "value"`：设置环境变量（仅当前会话有效）。
+
+:::
+
 ### 编程语言选择
 
 明确所使用的编程语言（如 Python 或 R），分析各自的优势及适用场景。并记录语言的版本信息，防止因版本差异导致的不兼容问题。

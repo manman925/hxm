@@ -163,22 +163,22 @@ plt.figure(figsize=(10, 6))
 
 # 绘制训练集图像
 plt.title("MNIST Dataset Examples")
-for i in range(21):
-    plt.subplot(4, 7, i+1)
-    plt.axis("off")
-    img = train_dataset[i][0].squeeze()
-    label = train_dataset[i][1]
-    plt.imshow(img, cmap="gray")
-    plt.text(18, 26, f"{label}", fontsize=10, color="red")
+for i in range(21): # 绘制 21 张训练集图像
+    plt.subplot(4, 7, i+1) # 绘制第 i+1 张图像
+    plt.axis("off") # 不显示坐标轴
+    img = train_dataset[i][0].squeeze() # 获取第 i 张图像
+    label = train_dataset[i][1] # 获取第 i 张图像的标签
+    plt.imshow(img, cmap="gray") # 绘制第 i 张图像
+    plt.text(18, 26, f"{label}", fontsize=10, color="red") # 在图像右下角标出红色标签
 
 # 绘制测试集图像
-for i in range(7):
-    plt.subplot(4, 7, i+22)
-    plt.axis("off")
-    img = test_dataset[i][0].squeeze()
-    label = test_dataset[i][1]
-    plt.imshow(img, cmap="gray")
-    plt.text(20, 25, f"{label}", fontsize=10, color="green")
+for i in range(7): # 绘制 7 张测试集图像
+    plt.subplot(4, 7, i+22) # 绘制第 i+22 张图像
+    plt.axis("off") # 不显示坐标轴
+    img = test_dataset[i][0].squeeze() # 获取第 i 张图像
+    label = test_dataset[i][1] # 获取第 i 张图像的标签
+    plt.imshow(img, cmap="gray") # 绘制第 i 张图像
+    plt.text(20, 25, f"{label}", fontsize=10, color="green") # 在图像右下角标出绿色标签
 
 plt.tight_layout()
 plt.show()
@@ -188,57 +188,6 @@ plt.show()
 
 LeNet 是最早用于手写数字识别的卷积神经网络之一，其结构包括卷积层、池化层和全连接层。下面我们将从零开始搭建 LeNet 模型。
 
-### 数据加载与预处理
-
-下面的代码将下载 MNIST 数据集，并对数据进行预处理。每行代码均有详细注释，便于理解。
-
-```{python}
-# 导入必要的库
-import torch                # PyTorch 主库
-import torch.nn as nn       # 构建神经网络相关模块
-import torch.optim as optim # 定义优化器，更新网络参数
-from torchvision import datasets, transforms  # 用于加载和预处理数据集
-
-transform = transforms.Compose([
-    transforms.ToTensor(),                       
-    transforms.Normalize((0.1307,), (0.3081,))
-])
-
-# 下载 MNIST 训练数据集，并应用上述预处理
-train_dataset = datasets.MNIST(
-    root='./data',      # 数据保存路径
-    train=True,         # 指定下载训练集
-    download=True,      # 如果数据不存在则下载
-    transform=transform # 应用预处理
-)
-
-# 下载 MNIST 测试数据集
-test_dataset = datasets.MNIST(
-    root='./data',
-    train=False,        # 指定下载测试集
-    download=True,
-    transform=transform
-)
-
-# 利用 DataLoader 将数据分批加载，便于模型训练
-train_loader = torch.utils.data.DataLoader(
-    dataset=train_dataset,
-    batch_size=64,      # 每批次加载 64 张图像
-    shuffle=True        # 打乱顺序，提高训练效果
-)
-
-test_loader = torch.utils.data.DataLoader(
-    dataset=test_dataset,
-    batch_size=1000,    # 每批次加载 1000 张图像，测试时不需要太小批次
-    shuffle=False       # 测试集不打乱
-)
-```
-
-**代码说明：**  
-此代码块完成了数据集的下载与预处理工作。利用 `transforms` 对图像数据进行归一化，然后通过 `DataLoader` 将数据分批加载，为后续的模型训练提供数据支持。
-
-
-
 ### 构建 LeNet 模型
 
 下面代码定义了 LeNet 模型，其中包含两个卷积层、两个池化层和三个全连接层。每一步均附有详细注释。
@@ -247,6 +196,7 @@ test_loader = torch.utils.data.DataLoader(
 # 定义 LeNet 神经网络模型类，继承自 nn.Module
 class LeNet(nn.Module):
     def __init__(self):
+        # 初始化父类 nn.Module
         super(LeNet, self).__init__()
         # 第一个卷积层：
         # 输入通道：1（灰度图像），输出通道：6，卷积核大小：5x5
@@ -291,6 +241,7 @@ class LeNet(nn.Module):
 ```
 
 **代码说明：**  
+
 本部分代码定义了 LeNet 模型。通过两个卷积层和池化层逐步提取图像特征，再通过全连接层进行分类。注意，由于 MNIST 图像尺寸为 28×28，经过两次卷积和池化后，特征图尺寸正好为 4×4（通道数为 16），因此全连接层的输入特征数为 `16*4*4`。
 
 ### LeNet 模型结构图
@@ -358,6 +309,8 @@ print(model)
 
 ### 定义训练函数
 
+训练函数中，模型对每个批次数据进行前向传播，计算损失后进行反向传播，并使用优化器更新权重。每隔一定批次输出当前损失，方便观察训练进度。
+
 ```{python}
 # 定义训练函数，用于在训练集上训练模型
 def train(model, device, train_loader, optimizer, criterion, epoch):
@@ -386,9 +339,76 @@ def train(model, device, train_loader, optimizer, criterion, epoch):
     return train_loss, accuracy
 ```
 
-**代码说明：**  
-训练函数中，模型对每个批次数据进行前向传播，计算损失后进行反向传播，并使用优化器更新权重。每隔一定批次输出当前损失，方便观察训练进度。
+**函数原理分析**
 
+LeNet训练函数的核心流程可分为前向传播、损失计算、反向传播、参数更新四个阶段。以下是代码各环节与CNN训练原理的对应关系：
+
+- 前向传播阶段
+
+  - `model(data)` 执行卷积神经网络的前向计算
+  - LeNet结构依次执行：卷积→池化→卷积→池化→全连接→全连接
+  - 卷积层通过滤波器提取空间特征，池化层降低特征图维度，全连接层完成分类
+
+- 损失计算阶段
+
+  - `criterion(output, target)` 使用交叉熵损失函数
+  - 该损失函数适用于多分类任务，衡量预测概率分布与真实标签的差异
+  - 损失值反映当前参数下模型的预测误差程度
+
+- 反向传播阶段
+
+  - `loss.backward()` 自动计算梯度
+  - 通过链式法则逐层计算卷积核参数和全连接层权重的梯度
+  - 梯度值表征各参数对最终损失的贡献程度
+
+- 参数优化阶段
+
+  - `optimizer.step()` 根据梯度更新参数
+  - 典型优化器如SGD的更新公式：$w_{t+1} = w_t - \eta \nabla L(w_t)$
+  - 学习率$\eta$控制参数更新步长，需合理设置避免震荡或收敛过慢
+
+**关键实现细节**
+
+-梯度管理
+
+  - `optimizer.zero_grad()` 在每次迭代前清零梯度，防止梯度累积
+  - PyTorch默认会累加梯度，手动清零确保每次更新基于当前批次数据
+
+- 设备迁移
+
+  - `data.to(device)` 将数据转移到GPU/CPU
+  - 利用GPU并行计算加速卷积运算，这对大规模数据训练至关重要
+
+- 训练监控
+
+  - 每5000批次输出进度信息，帮助监控训练过程
+  - 累计损失计算需乘以`data.size(0)`，因PyTorch损失默认返回批次平均值
+  - 准确率计算通过比较预测最大值索引与真实标签实现
+
+**LeNet训练特点**
+
+- 特征学习机制
+
+  - 通过交替的卷积和池化操作，网络自动学习层次化特征
+  - 浅层卷积捕捉边缘等低级特征，深层卷积提取复杂模式
+
+- 参数优化策略
+
+  - 卷积核参数通过梯度下降自动优化
+  - 权重初始化通常采用Xavier或He方法，保证训练稳定性
+
+- 泛化能力提升
+
+  - 池化操作增强平移不变性
+  - 后续改进版本可加入Dropout层防止过拟合
+
+- 训练效果评估
+
+  - 最终返回epoch平均损失和准确率
+  - 这些指标用于跟踪模型在训练集上的学习进度
+  - 需配合验证集评估真实泛化能力
+
+该训练函数实现了标准监督学习流程，通过多次epoch迭代不断优化网络参数，使模型逐步提升特征提取和分类能力。实际应用中还需配合验证集监控、学习率调整等策略以获得最佳效果。
 
 ### 定义测试函数
 
@@ -553,21 +573,8 @@ plt.show()
 
 在主函数中，我们首先检测计算设备，然后实例化模型、定义优化器和损失函数，并依次调用训练和测试函数。每个 epoch 结束后，终端会输出当前的训练状态和测试结果。
 
-    
 
-## 总结
-
-本项目详细介绍了：
-
-- **神经网络基础知识**：从基本结构、训练过程到卷积操作的优势，帮助你了解神经网络的工作原理。  
-- **数据集**：通过 MNIST 数据集的介绍，了解了手写数字识别问题的背景。  
-- **环境配置**：如何利用 Conda 创建环境，并安装 PyTorch、torchvision 等必备工具。  
-- **完整代码实现**：从数据加载、模型构建到训练和评估，每一步均有详细注释，确保即使是初学者也能理解和上手。
-
-通过本项目的学习，你不仅能掌握如何用 PyTorch 实现一个简单的 LeNet 神经网络，还能理解神经网络训练的基本原理及卷积操作在图像处理中的优势。希望本章内容能激发你对人工智能和深度学习的兴趣，并为进一步探索打下坚实基础！
-
-
-## 详解训练过程
+## 详解神经元的训练过程
 
 下面以一个最简单的神经网络——只有一个神经元的单层模型——为例，展示训练过程中神经元参数（权重和偏置）是如何一步步确定下来的。这个例子帮助理解神经网络的基本训练流程，包括**前向传播**、**损失计算**、**反向传播**（梯度计算）和**参数更新**。
 
@@ -776,3 +783,173 @@ $$
 无论网络有多复杂，核心思想都是：**通过不断前向计算输出、衡量输出与目标之间的误差，再通过反向传播调整参数，从而使得网络能够更好地拟合数据。**
 
 通过上述极简示例，我们可以直观地看到神经网络训练过程中参数是如何一步步从初始值调整到能够较好地“解释”训练数据的。这就是神经网络训练中参数确定的基本机制。
+
+## 详解卷积滤波器的训练过程
+
+神经网络中的滤波器（Filter）本质上是一个可学习的参数矩阵，其作用类似于图像处理中的特征检测器。下面通过具体示例说明其工作原理：
+
+
+### 滤波器基本结构
+
+典型尺寸为3x3或5x5的二维矩阵，例如：
+
+```
+水平边缘检测滤波器：
+[[-1, -1, -1],
+ [ 0,  0,  0],
+ [ 1,  1,  1]]
+```
+
+该滤波器会对水平方向灰度变化剧烈的区域产生强响应
+
+
+### 工作原理示例
+
+假设输入为7x7的字母"X"图像：
+
+```
+0 0 0 1 0 0 0
+0 0 1 0 1 0 0
+0 1 0 0 0 1 0
+1 0 0 0 0 0 1
+0 1 0 0 0 1 0
+0 0 1 0 1 0 0
+0 0 0 1 0 0 0
+```
+
+应用3x3滤波器进行卷积运算：
+
+1. 在图像左上角3x3区域：
+
+```
+0 0 0
+0 0 1
+0 1 0
+```
+
+与滤波器逐元素相乘后求和： 
+
+`(0*-1)+(0*-1)+(0*-1) + (0*0)+(0*0)+(1*0) + (0*1)+(1*1)+(0*1) = 1`
+
+1. 滑动到中心区域：
+
+```
+0 0 0
+0 0 0
+0 0 0
+```
+
+计算结果为`0`（无特征响应）
+
+最终输出特征图将突出显示原始图像中的水平边缘。
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import convolve2d
+
+# 原始矩阵
+matrix = test_dataset[0][0].squeeze()
+
+# 3x3 卷积核
+kernel = np.array([[-1, -1, -1],
+                    [ 0,  0,  0],
+                    [ 1,  1,  1]])
+
+# 进行卷积运算
+convolved = convolve2d(matrix, kernel, mode='valid')
+
+# 计算子图尺寸比例
+original_shape = matrix.shape
+convolved_shape = convolved.shape
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+
+# 计算比例因子，使卷积后的小图与原图比例协调
+scale_factor = original_shape[0] / convolved_shape[0]
+
+# 调整原始矩阵子图
+axes[0].imshow(matrix, cmap='gray', interpolation='nearest', aspect=1)
+axes[0].set_title("Original Matrix")
+axes[0].axis("off")
+
+# 调整卷积后矩阵子图，缩放至与原图比例协调
+axes[1].imshow(convolved, cmap='gray', interpolation='nearest', aspect=1/scale_factor)
+axes[1].set_title("Convolved Matrix")
+axes[1].axis("off")
+
+plt.show()
+
+```
+
+
+### 可视化理解
+
+实际训练后的滤波器示例（MNIST数据集）：
+
+```
+层1滤波器1：  
+[[ 0.21,  0.34, -0.12],  
+ [ 0.18,  0.29, -0.25],  
+ [-0.15, -0.22,  0.31]]  
+
+层1滤波器2：  
+[[-0.33,  0.19,  0.27],  
+ [ 0.12, -0.28,  0.14],  
+ [ 0.25,  0.17, -0.31]]
+```
+
+输出训练好的模型中卷积核的参数：
+
+```{python}
+conv1_weights = model.conv1.weight.data
+print(conv1_weights)
+```
+
+这些数值组合在实际运算中会产生类似边缘检测、角点检测的效果。
+
+```{python}
+from scipy.signal import convolve2d
+from torch.nn import MaxPool2d
+
+# 最大池化层
+maxpool = MaxPool2d(kernel_size=2, stride=2)
+
+plt.figure(figsize=(4, 10))
+
+for kernel_idx, kernel in enumerate(conv1_weights):
+    # 进行卷积
+    convolved_image = convolve2d(matrix, kernel.squeeze().cpu().detach().numpy(), mode='valid')
+    pooled_image = maxpool(torch.tensor(convolved_image).unsqueeze(0)).squeeze(0).cpu().detach().numpy()
+
+    plt.subplot(len(conv1_weights), 3, kernel_idx*3+1)
+    plt.imshow(matrix, cmap='gray', interpolation='nearest')
+    plt.title("Original")
+    plt.axis("off")
+
+    plt.subplot(len(conv1_weights), 3, kernel_idx*3+2)
+    plt.imshow(convolved_image, cmap='gray', interpolation='nearest')
+    plt.title(f"Convolved ({kernel_idx + 1})")
+    plt.axis("off")
+
+    plt.subplot(len(conv1_weights), 3, kernel_idx*3+3)
+    plt.imshow(pooled_image, cmap='gray', interpolation='nearest')
+    plt.title(f"Pooled ({kernel_idx + 1})")
+    plt.axis("off")
+
+plt.show()
+```
+
+
+通过这种局部感受野的滑动计算，CNN能够逐层提取从简单到复杂的空间特征，最终形成对输入数据的层次化理解。
+
+## 总结
+
+本项目详细介绍了：
+
+- **神经网络基础知识**：从基本结构、训练过程到卷积操作的优势，帮助你了解神经网络的工作原理。  
+- **数据集**：通过 MNIST 数据集的介绍，了解了手写数字识别问题的背景。  
+- **环境配置**：如何利用 Conda 创建环境，并安装 PyTorch、torchvision 等必备工具。  
+- **完整代码实现**：从数据加载、模型构建到训练和评估，每一步均有详细注释，确保即使是初学者也能理解和上手。
+
+通过本项目的学习，你不仅能掌握如何用 PyTorch 实现一个简单的 LeNet 神经网络，还能理解神经网络训练的基本原理及卷积操作在图像处理中的优势。希望本章内容能激发你对人工智能和深度学习的兴趣，并为进一步探索打下坚实基础！

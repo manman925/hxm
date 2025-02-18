@@ -1,7 +1,5 @@
 # Hugging Face
 
-[HuggingFace 10分钟快速入门（一），利用Transformers，Pipeline探索AI](https://www.bilibili.com/video/BV1vN41127ob/?share_source=copy_web&vd_source=d345aeeaedba2347709dc8ca7b1b5cb1)
-
 Hugging Face 是一个专注于人工智能（AI）和机器学习（ML）的平台，特别以自然语言处理（NLP）工具和模型而闻名。它提供了一个丰富的开源生态系统，供研究人员、开发者和数据科学家使用。其中，最著名的工具之一是 **Transformers** 库，这个库包含了多种预训练的模型（如BERT、GPT、T5等），这些模型可以用于各种 任务，如文本生成、翻译、问答、情感分析等。
 
 Hugging Face 还提供了 **Hub**，一个模型托管平台，用户可以在上面分享和下载各种预训练的AI模型。此外，它还支持自定义训练模型和通过API进行推理。Hugging Face 的平台和社区非常活跃，是当前AI和NLP领域的重要资源之一。
@@ -476,13 +474,22 @@ results = image_processor.post_process_object_detection(
     target_sizes=target_sizes, 
     threshold=0.9)[0]
 
+# 绘制结果
+fig, ax = plt.subplots(1, figsize=(10, 6))
+ax.imshow(image)  # image 需要是检测的原始图像
+
 for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
     box = [round(i, 2) for i in box.tolist()]
-    print(
-            f"Detected {model.config.id2label[label.item()]} with confidence "
-            f"{round(score.item(), 3)} at location {box}"
-    )
+    x, y, w, h = box
+    rect = patches.Rectangle((x, y), w - x, h - y, linewidth=2, edgecolor='r', facecolor='none')
+    ax.add_patch(rect)
+    ax.text(x, y - 5, f"{model.config.id2label[label.item()]}: {round(score.item(), 3)}",
+            fontsize=12, color='white', bbox=dict(facecolor='red', alpha=0.5))
+
+plt.axis("off")
+plt.show()
 ```
+
 
 
 ## YOLOv8
@@ -564,3 +571,15 @@ print("Pooler output:", pooler_output.shape)
 2. **`pooler_output`**：通常是二维张量，形状为 `[batch_size, hidden_size]`，用于表示整个序列的特征。
 
 `BaseModelOutputWithPooling` 是一个结构化的返回对象，帮助你从模型中提取有用的特征表示，特别是当需要处理序列数据时。
+
+
+## 总结
+
+Hugging Face 是世界上最大的**开源 AI 社区**，提供了大量的预训练模型和数据集，支持多种 AI 任务，如自然语言处理、计算机视觉、语音识别等。
+
+
+## 参考资料
+
+- [Hugging Face 官网](https://huggingface.co/)
+- [Hugging Face 文档](https://huggingface.co/docs)
+- [HuggingFace 10分钟快速入门（一），利用Transformers，Pipeline探索AI](https://www.bilibili.com/video/BV1vN41127ob/?share_source=copy_web&vd_source=d345aeeaedba2347709dc8ca7b1b5cb1)

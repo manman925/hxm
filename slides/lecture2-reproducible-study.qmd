@@ -709,3 +709,14 @@ renv::restore()
 - Python 入门: [Python 入门](https://d2rs.bio-spring.top/python-basic.html)
 - Git 入门: [Git 入门](https://d2rs.bio-spring.top/git-basic.html)
 - ggplot2 入门: [ggplot2 入门](https://d2rs.bio-spring.top/ggplot2-cheatsheet.html)
+
+---
+
+## 课后作业
+
+配置一个可重复性的研究环境
+
+- 弄清自己电脑的硬件架构
+- 安装课程需要的软件
+- 学习课程讲义-”[基础知识](https://d2rs.bio-spring.top/linux-shell.html)“部分的内容
+

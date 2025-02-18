@@ -99,9 +99,12 @@ content(res, 'text', encoding = "UTF-8") |>
 
 ## 使用 OpenAI API
 
+OpenAI 的原生 API 使用 Python 语言，以下是使用 Python 的示例代码。
+
 ```{python}
 from openai import OpenAI
 import os
+from IPython.display import Markdown
 
 # 创建 client
 client = OpenAI(
@@ -119,19 +122,39 @@ completion = client.chat.completions.create(
     top_p=0.8
     )
 
-print(completion.choices[0].message.content)
+Markdown(completion.choices[0].message.content)
 ```
 
+在 R 中，`ellmer` 包主要用于构建和管理 LLM 交互，你可以使用 `ellmer` 达到类似的效果。以下是等效的 R 代码：
+
+```{r}
+library(ellmer)
+
+# 创建客户端
+client <- chat_openai(
+  api_key = Sys.getenv("CHATANYWHERE_API_KEY"), # 也可以直接填入 API Key
+  system_prompt = "You are a helpful assistant.",
+  base_url = "https://api.chatanywhere.tech",
+  model = "gpt-4o-ca"
+)
+
+# 生成对话
+client$chat("你是谁")
+```
+
+这段代码使用 `ellmer` 包的 `OpenAIClient` 进行 API 调用，`chat_completions_create()` 生成对话，与 Python 代码的逻辑基本一致。
 
 ## 词嵌入模型
 
 所有三个词嵌入模型都是基于 Transformer 架构，这使得它们在处理自然语言时具有良好的性能。下表比较了 `text-embedding-ada-002`、`text-embedding-3-small` 和 `text-embedding-3-large` 这三个词嵌入模型的特点：
 
-| **模型名称**             | **参数量** | **嵌入维度** | **性能**           | **适用场景**                             | **优点**                             | **缺点**                           |
+| **模型名称** | **参数量** | **嵌入维度** | **性能**     | **适用场景**    | **优点**    | **缺点**    |
 |-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 | `text-embedding-ada-002` | 中等       | 1536         | 高效，性能优秀     | 通用文本嵌入，适用于广泛的 NLP 任务      | 高精度嵌入，适合各种语义匹配任务     | 相比小型模型，计算资源需求较高     |
 | `text-embedding-3-small` | 小         | 512          | 较快，资源效率高   | 资源受限的应用场景，低计算成本的嵌入生成 | 计算效率高，适合实时或资源有限的场景 | 嵌入维度较低，可能影响语义表达能力 |
 | `text-embedding-3-large` | 大         | 2048         | 更高性能，精度极高 | 高端应用场景，如高精度语义搜索和推荐系统 | 嵌入维度更高，能够捕捉复杂语义关系   | 资源消耗大，适合计算资源充足的场景 |
+
+用 R 语言调用词嵌入模型。
 
 ```{r}
 body = '{
@@ -148,6 +171,51 @@ content = content(res, 'text', encoding = "UTF-8")
 
 embedding = fromJSON(content)
 str(embedding)
+```
+
+
+等效的 Python 代码如下：  
+
+```{python}
+import requests
+import json
+import os
+
+# API 端点和密钥
+url = "https://api.chatanywhere.tech/v1/embeddings"
+headers = {
+    "Authorization": f"Bearer {os.getenv('CHATANYWHERE_API_KEY')}",
+    "Content-Type": "application/json"
+}
+
+# 请求体
+data = {
+    "model": "text-embedding-ada-002",
+    "input": "The food was delicious and the waiter..."
+}
+
+# 发送请求
+response = requests.post(url, headers=headers, json=data)
+
+# 解析响应
+embedding = response.json()
+print(len(embedding["data"][0]["embedding"]))
+```
+
+这个 Python 版本使用 `requests` 发送 `POST` 请求，并解析返回的 JSON，效果和你的 R 代码相同。
+
+可以使用 openai 模块，代码会更简洁：
+
+```{python}
+from openai import OpenAI
+from pprint import pprint
+import os
+
+client = OpenAI(api_key=os.getenv("CHATANYWHERE_API_KEY"), base_url="https://api.chatanywhere.tech")
+
+response = client.embeddings.create(model="text-embedding-ada-002", input="The food was delicious and the waiter...")
+
+pprint(response.dict(), depth=3)  # 以字典格式输出
 ```
 
 ## 文生图模型
@@ -263,6 +331,10 @@ if (status_code(res) == 200) {
 ```
 
 
+<audio controls>
+  <source src="output/audio-goodday.mp3" type="audio/mpeg">
+</audio>
+
 ## 语音识别模型
 
 `whisper-1` 是 OpenAI 开发的一个强大的语音识别模型。它主要用于将语音转换为文本（也称为语音转文字，Speech-to-Text，简称 STT）。该模型能够处理多种语言的语音输入，并能够识别不同的口音和语音风格，非常适用于各种音频转录任务。
@@ -346,3 +418,21 @@ res <- VERB("POST",
 
 cat(content(res, 'text', encoding = "UTF-8"))
 ```
+
+
+## 总结
+
+因为特殊原因，在国内不能直接访问到包括 OpenAI、Claude 等在内的大模型服务。
+
+ChatAnyWhere 提供了一个替代方案，可以让你在国内访问这些大模型服务。
+
+## 参考文献
+
+-   [ChatAnyWhere API 文档](https://chatanywhere.apifox.cn/)
+
+
+
+
+
+
+

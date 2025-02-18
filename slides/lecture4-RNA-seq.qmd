@@ -5,6 +5,7 @@ format:
   revealjs: 
     theme: white
     echo: true
+    message: true
     slide-number: true
     chalkboard: 
       buttons: false
@@ -347,3 +348,566 @@ dotplot(gse)
   - 合成微生物群落工程优化  
 
 ------------------------------------------------------------------------
+
+# 项目实战
+
+## 关键步骤
+
+本实例演示如何使用 R 进行 RNA-seq 数据分析，从 HT-seq 计数数据开始，经过数据预处理、DESeq2 差异表达分析，再到多种数据可视化（PCA、DEG 数量统计、Venn 图、KEGG 富集、GSEA 分析）。
+
+- 从 counts 文件开始，进行差异表达分析
+- 使用 `DESeq2` 进行差异表达分析
+- 使用 `ClusterProfiler` 进行功能富集分析
+- 使用 `ggplot2` 等进行可视化
+
+------------------------------------------------------------------------
+
+## 识别差异表达基因 (DEGs) {.smaller .scrollable}
+
+### 读取 HT-seq 计数数据
+
+```{r}
+# 读取 HT-seq 计数数据
+ht_counts <- readRDS("../deg/data/ht_counts.rds")
+head(ht_counts)
+```
+
+------------------------------------------------------------------------
+
+### 数据预处理
+
+首先加载必要的 R 包：
+
+```{r}
+# 加载必要的 R 包
+library(DESeq2) # 用于差异表达分析
+library(dplyr) # 用于数据处理
+library(tidyr) # 用于数据转换
+library(tibble) # 用于数据处理
+
+# 设置绘图默认主题
+theme_set(theme_bw())
+```
+
+------------------------------------------------------------------------
+
+### 数据预处理
+
+构建一个函数对数据按物种筛选、转换为计数矩阵和样本信息：
+
+```{r}
+myDESeqMatrix <- function(ht_counts, org = NULL) {
+  if (!is.null(org)) {
+    ht_counts <- ht_counts %>%
+      filter(organism == org) %>%
+      filter(ratio0 != ifelse(org == "EC", "none", "all"))
+  }
+  
+  count_data <- ht_counts %>%
+    dplyr::select(gene, count, sample_id) %>%
+    group_by(sample_id) %>%
+    spread(sample_id, count) %>%
+    as.data.frame() %>%
+    column_to_rownames(var = "gene")
+  
+  col_data <- ht_counts %>%
+    dplyr::select(sample_id, ratio0, time, group) %>%
+    arrange(sample_id) %>%
+    distinct()
+  
+  return(list("count_data" = count_data, "col_data" = col_data))
+}
+
+# 分别处理 E. coli 和 P. putida 的数据
+mat.EC <- myDESeqMatrix(ht_counts, org = "EC")
+mat.PP <- myDESeqMatrix(ht_counts, org = "PP")
+```
+
+------------------------------------------------------------------------
+
+### 构建 DESeq 数据集
+
+使用 `DESeqDataSetFromMatrix` 构建适合 DESeq2 分析的数据集：
+
+```{r}
+# 构建 E. coli 数据集
+dds.EC <- DESeqDataSetFromMatrix(
+  countData = mat.EC$count_data,
+  colData   = mat.EC$col_data,
+  design    = ~ group
+)
+
+# 构建 P. putida 数据集
+dds.PP <- DESeqDataSetFromMatrix(
+  countData = mat.PP$count_data,
+  colData   = mat.PP$col_data,
+  design    = ~ group
+)
+```
+
+------------------------------------------------------------------------
+
+### 差异表达分析
+
+运行 DESeq2 的标准化与统计测试：
+
+```{r}
+#| message: true
+dds.EC <- DESeq(dds.EC)
+```
+
+```{r}
+dds.PP <- DESeq(dds.PP)
+```
+
+------------------------------------------------------------------------
+
+### 提取差异表达基因结果
+
+定义函数 `myDEG_Results` 提取各比较组的 DEGs，并定义比较组：
+
+```{r}
+myDEG_Results <- function(dds = NULL, comparison = NULL, 
+                          lfcThreshold = 1, p.adjusted = 0.05,
+                          filtered = TRUE) {
+  require(tibble, quietly = TRUE)
+  require(dplyr, quietly = TRUE)
+  results <- lapply(comparison, function(x){
+    results(dds, contrast = c("group", x),
+            lfcThreshold = lfcThreshold,
+            alpha = p.adjusted)
+  })
+  names(results) <- sapply(comparison, function(x) paste(x, collapse = "_vs_"))
+  for (i in seq_along(results)){
+    results[[i]] %<>%
+      as.data.frame() %>%
+      rownames_to_column(var = "gene") %>%
+      as_tibble() %>%
+      mutate(comparison = names(results[i])) 
+  }
+  if (!filtered) return(results)
+  for (i in seq_along(results)){
+    results[[i]] %<>%
+      filter(padj < p.adjusted) %>%
+      dplyr::select(gene, log2FoldChange, padj, comparison) %>%
+      mutate(expression = as.character(ifelse(log2FoldChange > 0, "up", "dn")))
+  }
+  return(results)
+}
+```
+
+------------------------------------------------------------------------
+
+### 获取基因表达差异结果
+
+```{r}
+# 定义比较组（示例）
+comparisons.EC <- list(
+  c("less_0h", "all_0h"), c("equal_0h", "all_0h"), c("more_0h", "all_0h"),
+  c("less_4h", "all_4h"), c("equal_4h", "all_4h"), c("more_4h", "all_4h"),
+  c("less_8h", "all_8h"), c("equal_8h", "all_8h"), c("more_8h", "all_8h"),
+  c("less_24h", "all_24h"), c("equal_24h", "all_24h"), c("more_24h", "all_24h")
+)
+comparisons.PP <- list(
+  c("less_0h", "none_0h"), c("equal_0h", "none_0h"), c("more_0h", "none_0h"),
+  c("less_4h", "none_4h"), c("equal_4h", "none_4h"), c("more_4h", "none_4h"),
+  c("less_8h", "none_8h"), c("equal_8h", "none_8h"), c("more_8h", "none_8h"),
+  c("less_24h", "none_24h"), c("equal_24h", "none_24h"), c("more_24h", "none_24h")
+)
+
+
+# 运行差异表达分析
+DEG_results.EC <- myDEG_Results(dds = dds.EC, comparison = comparisons.EC)
+DEG_results.PP <- myDEG_Results(dds = dds.PP, comparison = comparisons.PP)
+
+# 提取所有基因表达信息（用于后续 GSEA 分析）：
+gene_expression.EC <- myDEG_Results(dds.EC, comparison = comparisons.EC, filtered = FALSE)
+gene_expression.PP <- myDEG_Results(dds.PP, comparison = comparisons.PP, filtered = FALSE)
+```
+
+------------------------------------------------------------------------
+
+## 数据可视化 {.smaller .scrollable}
+
+接下来展示 RNA-seq 分析中几种关键的可视化步骤。
+
+------------------------------------------------------------------------
+
+### PCA 分析
+
+使用 PCA 探索样本间的整体表达模式变化。
+
+```{r}
+library(cowplot) # 用于拼合多个图形
+library(ggplot2) # 用于绘制图形
+library(RColorBrewer)
+
+myPlotPCA <- function(object, intgroup = c("time", "ratio0"), show.label = FALSE) {
+  require(dplyr)
+  require(DESeq2)
+  require(vegan)
+  
+  pca <- rda(t(assay(object)))
+  percent_var <- pca$CA$eig / pca$tot.chi
+  
+  intgroup_df <- as.data.frame(colData(object)[, intgroup, drop = FALSE]) %>%
+    tibble::rownames_to_column(var = "sample_id")
+  
+  df <- scores(pca)$sites %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column(var = "sample_id") %>%
+    left_join(intgroup_df, by = "sample_id") %>%
+    mutate(time = factor(time, levels = sort(unique(as.numeric(time)))))
+  
+  ggplot(df, aes(PC1, PC2, color = ratio0)) +
+    geom_point(size = 2) +
+    xlab(paste0("PC1: ", round(percent_var[1] * 100), "% variance")) +
+    ylab(paste0("PC2: ", round(percent_var[2] * 100), "% variance")) +
+    facet_wrap(~ time, ncol = 4) +
+    scale_color_manual(values = brewer.pal(5, "Dark2")) +
+    theme(legend.position = "none")
+}
+```
+
+------------------------------------------------------------------------
+
+### 绘制 PCA 图
+
+```{r}
+vsd.EC <- vst(dds.EC)
+vsd.PP <- vst(dds.PP)
+
+list_of_vsd <- list(vsd.EC, vsd.PP)
+list_of_PCA_plot <- lapply(list_of_vsd, myPlotPCA)
+plot_grid(plotlist = list_of_PCA_plot, labels = "auto", ncol = 1)
+```
+
+------------------------------------------------------------------------
+
+### 差异表达基因数量统计
+
+统计每个时间点和条件下上调/下调的 DEG 数量：
+
+```{r}
+library(stringr)
+
+deg_count <- function(data) {
+  # 使用更高效的内存处理方式
+  purrr::map_dfr(names(data), ~ {
+    # 提前提取ratio和time
+    parts <- strsplit(.x, "_")[[1]]
+    time <- as.numeric(str_extract(parts[2], "[0-9]+"))
+    
+    # 直接计算目标值，避免生成完整table
+    x <- data[[.x]]
+    data.frame(
+      ratio = parts[1],
+      time = time,
+      dn = sum(x$expression == "dn", na.rm = TRUE),
+      up = sum(x$expression == "up", na.rm = TRUE)
+    )
+  }) %>%
+    # 转换长格式
+    pivot_longer(
+      cols = c(dn, up),
+      names_to = "type",
+      values_to = "count"
+    ) %>%
+    # 类型转换
+    mutate(
+      count = ifelse(type == "dn", -count, count),
+      ratio = factor(
+        ratio,
+        levels = c("less", "equal", "more"),
+        labels = c("1:1000", "1:1", "1000:1")
+      ),
+      type = factor(
+        type,
+        levels = c("up", "dn"),
+        labels = c("Up", "Down")
+      )
+    ) %>%
+    # 使用更高效的分组补全方式
+    group_by(ratio) %>%
+    complete(
+      time = full_seq(time, 1),
+      type,
+      fill = list(count = 0)
+    ) %>%
+    ungroup()
+}
+```
+
+------------------------------------------------------------------------
+
+### 绘制差异表达基因数量统计图
+
+```{r}
+deg_count_EC <- deg_count(DEG_results.EC)
+deg_count_PP <- deg_count(DEG_results.PP)
+
+deg_count_plots <- lapply(seq_along(list(deg_count_EC, deg_count_PP)), function(i) {
+  x <- list(deg_count_EC, deg_count_PP)[[i]]
+  ggplot(x, aes(x = time, y = count, color = type)) +
+    geom_point() +
+    geom_line(linewidth = 1) +
+    scale_y_continuous(labels = function(x) abs(x)) +
+    facet_wrap(~ ratio) +
+    labs(x = "Time (h)", y = "Number of DEGs", color = "Gene expression:") +
+    theme(legend.position = "right")
+})
+```
+
+------------------------------------------------------------------------
+
+### 绘制差异表达基因数量统计图
+
+```{r}
+plot_grid(plotlist = deg_count_plots, labels = "auto", ncol = 1)
+```
+
+------------------------------------------------------------------------
+
+### Venn 图展示特异性差异基因
+
+使用 Venn 图展示不同时间点 DEG 的重叠情况：
+
+```{r}
+library(ggVennDiagram) # 用于绘制 Venn 图
+library(ggtext) # 用于文本和标题的格式化
+
+deg_Venn_plot_EC <- lapply(seq_along(c("1:1000", "1:1", "1000:1")), function(i) {
+  gene_list <- lapply(DEG_results.EC[(i * 4 - 3):(i * 4)], function(x) x$gene)
+  ggVennDiagram(gene_list, label = "count", 
+                category.names = c("0h", "4h", "8h", "24h")) +
+    scale_fill_gradient(low = "white", high = "red", limits = c(0, 310)) +
+    labs(title = paste0(c("1:1000", "1:1", "1000:1")[[i]], " - *E. coli*")) +
+    theme(legend.position = "none", plot.title = element_markdown())
+})
+
+deg_Venn_plot_PP <- lapply(seq_along(c("1:1000", "1:1", "1000:1")), function(i) {
+  gene_list <- lapply(DEG_results.PP[(i * 4 - 3):(i * 4)], function(x) x$gene)
+  ggVennDiagram(gene_list, label = "count", 
+                category.names = c("0h", "4h", "8h", "24h")) +
+    scale_fill_gradient(low = "white", high = "red", limits = c(0, 310)) +
+    labs(title = paste0(c("1:1000", "1:1", "1000:1")[[i]], " - *P. putida*")) +
+    theme(legend.position = "none", plot.title = element_markdown())
+})
+```
+
+------------------------------------------------------------------------
+
+### 绘制 Venn 图
+
+```{r}
+plot_grid(plotlist = c(deg_Venn_plot_EC, deg_Venn_plot_PP), labels = "auto")
+```
+
+------------------------------------------------------------------------
+
+### KEGG 富集分析结果可视化
+
+首先整理 DEG 数据，再使用 `compareCluster` 进行 KEGG 富集分析：
+
+```{r}
+# 整理数据
+deg1 <- bind_rows(DEG_results.EC) %>% 
+  mutate(comparison = gsub("_vs_.*", "", comparison),
+         ratio = gsub("_.*", "", comparison),
+         time = gsub(".*_", "", comparison))
+deg2 <- bind_rows(DEG_results.PP) %>% 
+  mutate(comparison = gsub("_vs_.*", "", comparison),
+         ratio = gsub("_.*", "", comparison),
+         time = gsub(".*_", "", comparison))
+
+# 如未安装 KEGG.db 则安装
+if (!requireNamespace("KEGG.db", quietly = TRUE)) {
+  install.packages("deg/KEGG.db_1.0.tar.gz")
+}
+library(KEGG.db)
+```
+
+------------------------------------------------------------------------
+
+### 执行富集分析
+
+针对差异表达基因，进行富集分析：
+
+```{r}
+library(clusterProfiler) # 用于富集分析
+
+ck1 <- compareCluster(
+  gene ~ ratio + time,
+  data = deg1,
+  fun = "enrichKEGG",
+  organism = "eco",
+  use_internal_data = FALSE
+)
+
+ck2 <- compareCluster(
+  gene ~ ratio + time,
+  data = deg2,
+  fun = "enrichKEGG",
+  organism = "ppu",
+  use_internal_data = FALSE
+)
+```
+
+------------------------------------------------------------------------
+
+### 绘制富集分析结果图
+
+```{r}
+ck_plot <- function(ck) {
+  df <- data.frame(ck) %>%
+    mutate(
+      ratio = factor(ratio, levels = c("less", "equal", "more"),
+                     labels = c("1:1000", "1:1", "1000:1")),
+      time = factor(time, levels = c("0h", "4h", "8h", "24h"))
+    )
+
+  # 绘制富集分析结果图
+  ggplot(df, aes(time, Description, size = Count, color = p.adjust)) +
+    geom_point() +
+    facet_grid(~ ratio, scales = "free_y") +
+    labs(y = "KEGG pathway")
+}
+```
+
+------------------------------------------------------------------------
+
+### 绘制富集分析结果图
+
+```{r}
+#| fig-asp: 1
+p1 <- ck_plot(ck1)
+p2 <- ck_plot(ck2)
+plot_grid(p1, p2, rel_heights = c(1, 0.3), ncol = 1, labels = "auto", align = "v")
+```
+
+------------------------------------------------------------------------
+
+### GSEA 结果可视化
+
+#### 提取基因列表并运行 GSEA 分析
+
+```{r}
+# 显示预计算的基因表达数据（示例）
+gene_expression.EC[[1]]
+
+# 定义提取基因列表的函数
+get_genelist <- function(x) {
+  if (nrow(x) < 1) return(NULL)
+  geneList <- x$log2FoldChange
+  names(geneList) <- x$gene
+  sort(geneList, decreasing = TRUE)
+}
+```
+
+------------------------------------------------------------------------
+
+### 运行 GSEA 分析
+
+```{r}
+set.seed(1234)
+# 运行 GSEA 分析
+gseKEGG_results.EC <- lapply(gene_expression.EC, function(x) {
+  geneList <- get_genelist(x)
+  tryCatch(
+    gseKEGG(
+      geneList,
+      organism = "eco",
+      eps = 1e-20,
+      pvalueCutoff = 1,
+      use_internal_data = FALSE
+    ),
+    error = function(e) NULL
+  )
+})
+
+gseKEGG_results.PP <- lapply(gene_expression.PP, function(x) {
+  geneList <- get_genelist(x)
+  tryCatch(
+    gseKEGG(
+      geneList,
+      organism = "ppu",
+      eps = 1e-20,
+      pvalueCutoff = 1,
+      use_internal_data = FALSE
+    ),
+    error = function(e) NULL
+  )
+})
+```
+
+------------------------------------------------------------------------
+
+#### 整理并可视化 GSEA 结果
+
+```{r}
+gse_result <- function(result) {
+  name <- names(result)
+  l <- lapply(seq_along(result), function(i) {
+    data.frame(result[[i]]) %>% mutate(comparison = name[[i]])
+  })
+  bind_rows(l) %>%
+    mutate(comparison = gsub("_vs_.*", "", comparison),
+         ratio = gsub("_.*", "", comparison),
+         time = gsub(".*_", "", comparison)) %>%
+    mutate(
+      ratio = factor(ratio, levels = c("less", "equal", "more"),
+                     labels = c("1:1000", "1:1", "1000:1")),
+      time = factor(time, levels = c("0h", "4h", "8h", "24h")),
+      type = ifelse(p.adjust > 0.05, "unchanged",
+                    ifelse(enrichmentScore > 0, "activated", "suppressed")),
+      enrichScore = abs(enrichmentScore)
+    )
+}
+```
+
+------------------------------------------------------------------------
+
+### 整理并可视化 GSEA 结果
+
+```{r}
+df1 <- gse_result(gseKEGG_results.EC) %>% filter(type %in% c("activated", "suppressed"))
+df2 <- gse_result(gseKEGG_results.PP) %>% filter(type %in% c("activated", "suppressed"))
+
+df1  |> as_tibble()
+```
+
+------------------------------------------------------------------------
+
+### 绘制 GSEA 结果图
+
+```{r}
+gse_dotplot <- function(df) {
+  ggplot(df, aes(time, Description, size = enrichScore, color = type)) +
+    geom_point() +
+    facet_grid(~ ratio, scales = "free_y") +
+    labs(y = "KEGG pathway") +
+    scale_size(limits = c(0.2, 1.0))
+}
+
+gsea_plot_EC <- gse_dotplot(df1)
+gsea_plot_PP <- gse_dotplot(df2)
+```
+
+------------------------------------------------------------------------
+
+### 绘制 GSEA 结果图
+
+```{r}
+#| fig-asp: 1
+plot_grid(gsea_plot_EC, gsea_plot_PP, align = "v", ncol = 1, labels = "auto", rel_heights = c(1.5, 1))
+```
+
+------------------------------------------------------------------------
+
+## 总结
+
+- 从 HT-seq 数据出发，经过数据预处理与 DESeq2 差异分析，
+- 提取 DEG 及全基因表达谱，
+- 使用 PCA、DEG 数量统计、Venn 图、KEGG 富集和 GSEA 多角度展现分析结果。
+
+通过此流程可以全面了解 RNA-seq 数据分析的主要步骤。
