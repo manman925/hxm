@@ -1,7 +1,7 @@
 
 # ChatAnyWhere 服务
 
-ChatAnyWhere 主要提供 OpenAI 大模型接入服务（也包括少量非 OpenAI 的模型）。
+ChatAnyWhere 主要提供 OpenAI、Claude、Gemini 等国外闭源大模型接入服务。
 
 基本信息如下：
 
@@ -38,13 +38,13 @@ res <- VERB("GET",
 ```{r}
 library(jsonlite)
 library(tidyverse)
-library(gt)
 
 models = jsonlite::fromJSON(content(res, as = "text", encoding = "UTF-8"))$data
 
 models |> 
+  arrange(desc(owned_by), id) |> 
   mutate(created = as_datetime(created) |> as_date()) |> 
-  gt(groupname_col = "owned_by")
+  kableExtra::kable()
 ```
 
 下面依次介绍这些模型的用法。
@@ -242,14 +242,14 @@ url = "https://api.chatanywhere.tech/v1/images/generations"
 body = '{
    "prompt": "A colorful sunset over the snow mountains",
    "n": 1,
-   "model":  "dall-e-2",
-   "size": "256x256"
+   "model":  "dall-e-3",
+   "size": "1792x1024"
 }';
 
 response = VERB("POST", url, body = body, add_headers(headers))
 
 content = content(response, "text", encoding = "UTF-8")
-print(content)
+content |> fromJSON()
 ```
 
 获取图片。
@@ -298,7 +298,7 @@ res = VERB("POST",
             body = body, 
             add_headers(headers))
 
-cat(content(res, 'text', encoding = "UTF-8"))
+content(res, 'text', encoding = "UTF-8") |> fromJSON()
 ```
 
 
@@ -398,7 +398,7 @@ content(res, 'text', encoding = "UTF-8") |>
 
 ## 语音翻译模型
 
-将音频翻译成英文。
+将音频翻译成文字（从例子可以看出该模型支持中英文混合音频）。
 
 
 ```{r}

@@ -335,24 +335,13 @@ translation('This is a introduction to Huggingface.')
 
 ## 两种调用模型的方式
 
-查找 GPU 设备。
+这里以一个图片对象识别任务为例，展示使用图片数据调用模型执行对象检测任务的两种方式。两种方式都使用 DETR 模型。
 
-```{python}
-import torch
-from pprint import pprint
+DEtection TRansformer（DETR）模型，通过端到端训练在 COCO 2017 对象检测数据集上进行训练（包含 118K 张标注图像）。
 
-# select the device for computation
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-elif torch.backends.mps.is_available():
-    device = torch.device("mps")
-else:
-    device = torch.device("cpu")
+DETR 模型是一种具有卷积骨干的编码器-解码器变换器。在解码器输出之上添加了两个头部，以执行对象检测：一个线性层用于类别标签，一个多层感知器（MLP）用于边界框。该模型使用所谓的对象查询来检测图像中的对象。每个对象查询都在寻找图像中的特定对象。对于 COCO，设置的对象查询数量为 100。
 
-print(f"using device: {device}")
-```
-
-图片数据。
+模型使用“二部匹配损失”进行训练：将预测的 `N=100` 个对象查询中的每个类别的预测框与 ground truth 注释进行比较，填充到相同的长度 `N`（如果一张图片只包含 4 个对象，那么 96 个注释将只是“无对象”作为类别，“无框”作为框）。匈牙利匹配算法用于在每个 `N` 查询和每个 `N` 注释之间创建最优的一对一映射。接下来，使用标准交叉熵（对于类别）以及 L1 和通用 IoU 损失的线性组合（对于框）来优化模型参数。
 
 ```{python}
 import io
@@ -370,8 +359,10 @@ image = Image.open(requests.get(url, stream=True).raw)
 # Use a pipeline as a high-level helper
 from transformers import pipeline
 
+# 加载对象检测流程
 object_detector = pipeline("object-detection", model="facebook/detr-resnet-50", device=device)
 
+# 执行对象检测
 detection_results = object_detector(image)
 pprint(detection_results)
 ```
@@ -380,21 +371,32 @@ pprint(detection_results)
 ### 直接使用模型
 
 ```{python}
-# Load model directly
+# 加载图片处理器和模型构建器
 from transformers import AutoImageProcessor, AutoModelForObjectDetection
 
+# 加载图片处理器
 image_processor = AutoImageProcessor.from_pretrained("facebook/detr-resnet-50", device=device)
+
+# 加载模型
 model = AutoModelForObjectDetection.from_pretrained("facebook/detr-resnet-50")
+
+# 准备图片
+inputs = image_processor(images=image, return_tensors="pt")
+
+# 执行前向传播
+outputs = model(**inputs)
+
+# 转换输出（边界框和类别得分）到 COCO API
+# 只保留得分大于 0.9 的检测结果
+target_sizes = torch.tensor([image.size[::-1]])
+results = image_processor.post_process_object_detection(
+    outputs, 
+    target_sizes=target_sizes, 
+    threshold=0.9)[0]
 ```
 
 
-## 对象检测
-
-DEtection TRansformer（DETR）模型，通过端到端训练在 COCO 2017 对象检测数据集上进行训练（包含 118K 张标注图像）。
-
-DETR 模型是一种具有卷积骨干的编码器-解码器变换器。在解码器输出之上添加了两个头部，以执行对象检测：一个线性层用于类别标签，一个多层感知器（MLP）用于边界框。该模型使用所谓的对象查询来检测图像中的对象。每个对象查询都在寻找图像中的特定对象。对于 COCO，设置的对象查询数量为 100。
-
-模型使用“二部匹配损失”进行训练：将预测的 N=100 个对象查询中的每个类别的预测框与 ground truth 注释进行比较，填充到相同的长度 N（如果一张图片只包含 4 个对象，那么 96 个注释将只是“无对象”作为类别，“无框”作为框）。匈牙利匹配算法用于在每个 N 查询和每个 N 注释之间创建最优的一对一映射。接下来，使用标准交叉熵（对于类别）以及 L1 和通用 IoU 损失的线性组合（对于框）来优化模型参数。
+### 结果比较
 
 下面是使用第一种调用方式调用 DETR 模型时结果的处理示例。
 
@@ -459,21 +461,6 @@ plt.show()
 下面是对第二种调用方式结果处理的方法。
 
 ```{python}
-#| cache: true
-# prepare image for the model
-inputs = image_processor(images=image, return_tensors="pt")
-
-# forward pass
-outputs = model(**inputs)
-
-# convert outputs (bounding boxes and class logits) to COCO API
-# let's only keep detections with score > 0.9
-target_sizes = torch.tensor([image.size[::-1]])
-results = image_processor.post_process_object_detection(
-    outputs, 
-    target_sizes=target_sizes, 
-    threshold=0.9)[0]
-
 # 绘制结果
 fig, ax = plt.subplots(1, figsize=(10, 6))
 ax.imshow(image)  # image 需要是检测的原始图像
@@ -491,6 +478,7 @@ plt.show()
 ```
 
 
+两种调用方式的结果是一致的。
 
 ## YOLOv8
 

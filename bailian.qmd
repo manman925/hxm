@@ -4,11 +4,6 @@
 
 阿里云的大模型服务平台百炼是一站式的大模型开发及应用构建平台。不论是开发者还是业务人员，都能深入参与大模型应用的设计和构建。您可以通过简单的界面操作，在 5 分钟内开发出一款大模型应用，或在几小时内训练出一个专属模型，从而将更多精力专注于应用创新。
 
-```{python}
-from pprint import pprint
-```
-
-
 ## 百炼模型
 
 百炼提供了丰富多样的模型选择，它集成了通义系列大模型和第三方大模型，涵盖文本、图像、音视频等不同模态。
@@ -19,6 +14,37 @@ from pprint import pprint
 ## 调用百炼模型
 
 您可以使用 OpenAI Python SDK、DashScope SDK 或 HTTP 接口调用通义千问模型。
+
+### 使用 OpenAI SDK
+
+下面使用 OpenAI SDK 调用百炼平台的通义千问 Max 模型。通义千问 Max 模型是通义千问系列模型中性能最强的模型，支持中文、英文等不同语言输入。2025年2月，三方基准测试平台LMArena[^about-lmarena]的大语言模型盲测榜单（“ChatBot Arena LLM”）最新排名显示，“Qwen2.5-Max”以1332分排总榜第7名，超过了深度求索的“DeepSeek-V3”以及OpenAI的“o1-mini”。而在数学和编程方面，“Qwen2.5-Max”则排名第1，在Hard prompts方面排名第2。
+
+[^about-lmarena]: “ChatBot Arena LLM”榜单由美国加州大学伯利克分校天空计算实验室与LMArena联合开发，通过用户盲测的方式，覆盖了对话、代码、图文生成、网页开发等多维度能力评估，最终基于260万票结果反映出197个模型在真实体验下的排名情况，也是业内公认的权威榜单。
+
+```{python}
+#| cache: true
+from openai import OpenAI
+import os
+from IPython.display import Markdown
+
+# 创建 client
+client = OpenAI(
+    api_key=os.getenv("DASHSCOPE_API_KEY"), # 如果您没有配置环境变量，请在此处用您的API Key进行替换
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",  # 填写DashScope服务的base_url
+)
+
+# 生成对话
+completion = client.chat.completions.create(
+    model="qwen-max",
+    messages=[
+        {'role': 'system', 'content': 'You are a helpful assistant.'},
+        {'role': 'user', 'content': '你跟ChatGPT和DeepSeek相比，谁更强？'}],
+    temperature=0.8,
+    top_p=0.8
+    )
+
+Markdown(completion.choices[0].message.content)
+```
 
 ### 使用 DashScope SDK
 
@@ -33,42 +59,16 @@ from pprint import pprint
 from http import HTTPStatus
 import dashscope
 
-messages = [{'role': 'user', 'content': '你是谁'}]
+messages = [{'role': 'user', 'content': '你跟ChatGPT和DeepSeek相比，谁更强？'}]
 response = dashscope.Generation.call("qwen-turbo",
                             messages=messages,
                             result_format='message',  # set the result to be "message"  format.
                             stream=False, # set streaming output
                             )
 
-pprint(response.output.choices[0].message.content, width = 72)
+Markdown(response.output.choices[0].message.content)
 ```
 
-### 使用 OpenAI SDK
-
-```{python}
-#| cache: true
-
-from openai import OpenAI
-import os
-
-# 创建 client
-client = OpenAI(
-    api_key=os.getenv("DASHSCOPE_API_KEY"), # 如果您没有配置环境变量，请在此处用您的API Key进行替换
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",  # 填写DashScope服务的base_url
-)
-
-# 生成对话
-completion = client.chat.completions.create(
-    model="qwen-turbo",
-    messages=[
-        {'role': 'system', 'content': 'You are a helpful assistant.'},
-        {'role': 'user', 'content': '你是谁？'}],
-    temperature=0.8,
-    top_p=0.8
-    )
-
-print(completion.choices[0].message.content)
-```
 
 ## 视觉推理
 
@@ -85,14 +85,17 @@ Qwen-VL(`qwen-vl-plus`/`qwen-vl-max`) 模型现有几大特点：
 #| cache: true
 from http import HTTPStatus
 import dashscope
+from IPython.display import Markdown
 
-
+# 定义一个简单的多模态对话调用函数
 def simple_multimodal_conversation_call():
     """Simple single round multimodal conversation call.
     """
     messages = [
         {
             "role": "user",
+            
+            # 使用一个列表来传递图片地址和提示词
             "content": [
                 {"image": "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg"},
                 {"text": "这是什么?"}
@@ -110,10 +113,14 @@ def simple_multimodal_conversation_call():
         print(response.code)  # The error code.
         print(response.message)  # The error message.
 
-
+# 调用视觉推理模型
 response = simple_multimodal_conversation_call()
+
+# 获取响应内容
 content = response.output.choices[0]['message']['content'][0]['text']
-pprint(content, width = 72)
+
+# 使用 IPython.display 模块的 Markdown 类来显示 Markdown 内容。
+Markdown(content)
 ```
 
 ## 文生图
@@ -135,7 +142,7 @@ from pathlib import PurePosixPath
 import requests
 from dashscope import ImageSynthesis
 
-def simple_call(prompt = 'Mouse rides elephant', outdir = "output", filename = "mouse-rides-elephant.png"):
+def simple_call(prompt = '一个面容姣好的汉族少女骑着一头白色的老虎在暗夜森林中穿梭，二次元风格', outdir = "output", filename = "girl-riding-tiger.png"):
     rsp = ImageSynthesis.call(model=ImageSynthesis.Models.wanx_v1,
                               prompt=prompt,
                               n=1,
@@ -155,16 +162,18 @@ def simple_call(prompt = 'Mouse rides elephant', outdir = "output", filename = "
         print('Failed, status_code: %s, code: %s, message: %s' %
               (rsp.status_code, rsp.code, rsp.message))
 
-
+# 调用文生图模型
 simple_call()
 ```
+
+显示模型生成的图片。
 
 ```{python}
 from PIL import Image
 import matplotlib.pyplot as plt
 
 # 读取所有图片文件
-image_path = "output/mouse-rides-elephant.png"
+image_path = "output/girl-riding-tiger.png"
 image = Image.open(image_path)
 
 plt.imshow(image)
@@ -183,6 +192,7 @@ import json
 from urllib import request
 from http import HTTPStatus
 
+# 使用 dashscope 调用模型
 import dashscope
 
 
@@ -199,7 +209,7 @@ if transcription_response.status_code == HTTPStatus.OK:
     for transcription in transcription_response.output['results']:
         url = transcription['transcription_url']
         result = json.loads(request.urlopen(url).read().decode('utf8'))
-        pprint(json.dumps(result, indent=4, ensure_ascii=False))
+        Markdown(json.dumps(result, indent=4, ensure_ascii=False))
     print('transcription done!')
 else:
     print('Error: ', transcription_response.output.message)
@@ -305,8 +315,6 @@ client.files.delete(file_object.id)
 
 ```{python}
 #| results: asis
-from pprint import pprint
-
 # 获取文件内容
 # 新文档上传后需要等待模型解析，首轮响应时间可能较长
 completion = client.chat.completions.create(
@@ -328,8 +336,8 @@ completion = client.chat.completions.create(
     stream=False
 )
 
-
-pprint(completion.choices[0].message.model_dump(), width = 72)
+# 打印文档解析结果
+Markdown(completion.choices[0].message.content)
 ```
 
 ### 多个文档
@@ -392,7 +400,7 @@ completion = client.chat.completions.create(
 )
 
 # 打印出第一轮响应
-print(f"第一轮响应：{completion.choices[0].message.model_dump()}")
+Markdown(f"第一轮响应：{completion.choices[0].message.content}")
 ```
 
 将第一轮响应的内容添加到历史记录中。
@@ -438,6 +446,11 @@ completion = client.chat.completions.create(
     stream=False
 )
 
-print(f"追加文档后的响应：{completion.choices[0].message.model_dump()}")
+Markdown(f"追加文档后的响应：{completion.choices[0].message.content}")
 ```
+
+
+## 总结
+
+通过上面的介绍，我们可以看到，百炼平台提供了丰富的模型和功能，可以满足不同的需求。在国内，类似的平台还有火山引擎、Kimi、ChatGLM 等，他们都有提供自身自主开发的大模型、国际上的开源模型以及国内第三方发表的模型等。通常都支持 OpenAI 的 API 接口，方便开发者使用。
 

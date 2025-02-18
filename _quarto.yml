@@ -105,6 +105,7 @@ format:
     out-width: 100%
     include-in-header:
           text: |
+            \sloppy
             \usepackage{ctex}
             \usepackage{amsthm,mathrsfs}
             \usepackage{fvextra}
