@@ -76,7 +76,7 @@ book:
     - ggplot2-cheatsheet.qmd
     - dplyr-cheatsheet.qmd
 
-bibliography: references.bib
+bibliography: [references.bib, packages.bib]
 
 
 
