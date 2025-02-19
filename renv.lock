@@ -710,6 +710,25 @@
       "NeedsCompilation": "yes",
       "Author": "Guangchuang Yu [aut, cre], Alexey Stukalov [ctb], Pingfan Guo [ctb], Chuanle Xiao [ctb], Lluís Revilla Sancho [ctb]"
     },
+    "GenSA": {
+      "Package": "GenSA",
+      "Version": "1.1.14.1",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "R Functions for Generalized Simulated Annealing",
+      "Date": "2024-01-22",
+      "Author": "Sylvain Gubian, Yang Xiang, Brian Suomela, Julia Hoeng, PMP SA.",
+      "Maintainer": "Sylvain Gubian <DL.RSupport@pmi.com>",
+      "Depends": [
+        "R (>= 2.12.0)"
+      ],
+      "Description": "Performs search for global minimum of a very complex non-linear objective function with a very large number of optima.",
+      "License": "GPL-2",
+      "LazyLoad": "yes",
+      "NeedsCompilation": "yes",
+      "Repository": "CRAN",
+      "RoxygenNote": "7.2.3"
+    },
     "GenomeInfoDb": {
       "Package": "GenomeInfoDb",
       "Version": "1.42.3",
@@ -1400,25 +1419,28 @@
     },
     "R6": {
       "Package": "R6",
-      "Version": "2.5.1",
+      "Version": "2.6.1",
       "Source": "Repository",
       "Title": "Encapsulated Classes with Reference Semantics",
-      "Authors@R": "person(\"Winston\", \"Chang\", role = c(\"aut\", \"cre\"), email = \"winston@stdout.org\")",
+      "Authors@R": "c( person(\"Winston\", \"Chang\", , \"winston@posit.co\", role = c(\"aut\", \"cre\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
       "Description": "Creates classes with reference semantics, similar to R's built-in reference classes. Compared to reference classes, R6 classes are simpler and lighter-weight, and they are not built on S4 classes so they do not require the methods package. These classes allow public and private members, and they support inheritance, even when the classes are defined in different packages.",
+      "License": "MIT + file LICENSE",
+      "URL": "https://r6.r-lib.org, https://github.com/r-lib/R6",
+      "BugReports": "https://github.com/r-lib/R6/issues",
       "Depends": [
-        "R (>= 3.0)"
+        "R (>= 3.6)"
       ],
       "Suggests": [
-        "testthat",
-        "pryr"
+        "lobstr",
+        "testthat (>= 3.0.0)"
       ],
-      "License": "MIT + file LICENSE",
-      "URL": "https://r6.r-lib.org, https://github.com/r-lib/R6/",
-      "BugReports": "https://github.com/r-lib/R6/issues",
-      "RoxygenNote": "7.1.1",
+      "Config/Needs/website": "tidyverse/tidytemplate, ggplot2, microbenchmark, scales",
+      "Config/testthat/edition": "3",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
       "NeedsCompilation": "no",
-      "Author": "Winston Chang [aut, cre]",
-      "Maintainer": "Winston Chang <winston@stdout.org>",
+      "Author": "Winston Chang [aut, cre], Posit Software, PBC [cph, fnd]",
+      "Maintainer": "Winston Chang <winston@posit.co>",
       "Repository": "CRAN"
     },
     "RColorBrewer": {
@@ -1492,6 +1514,40 @@
       "NeedsCompilation": "yes",
       "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>), Hadley Wickham [aut], David A. James [aut], Seth Falcon [aut], D. Richard Hipp [ctb] (for the included SQLite sources), Dan Kennedy [ctb] (for the included SQLite sources), Joe Mistachkin [ctb] (for the included SQLite sources), SQLite Authors [ctb] (for the included SQLite sources), Liam Healy [ctb] (for the included SQLite sources), R Consortium [fnd], RStudio [cph]",
       "Maintainer": "Kirill Müller <kirill@cynkra.com>",
+      "Repository": "CRAN"
+    },
+    "RVenn": {
+      "Package": "RVenn",
+      "Version": "1.1.0",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "Set Operations for Many Sets",
+      "Authors@R": "person(\"Turgut Yigit\", \"Akyol\", email = \"tyakyol@gmail.com\", role = c(\"aut\", \"cre\"))",
+      "Maintainer": "Turgut Yigit Akyol <tyakyol@gmail.com>",
+      "Description": "Set operations for many sets. The base functions for set operations in R can be used for only two sets. This package uses 'purr' to find the union, intersection and difference of three or more sets. This package also provides functions for pairwise set operations among several sets. Further,  based on 'ggplot2' and 'ggforce', a Venn diagram can be drawn for two or  three sets. For bigger data sets, a clustered heatmap showing presence/absence  of the elements of the sets can be drawn based on the 'pheatmap' package.  Finally, enrichment test can be applied to two sets whether an overlap is  statistically significant or not.",
+      "License": "GPL-3",
+      "Encoding": "UTF-8",
+      "LazyData": "true",
+      "Imports": [
+        "ggforce (>= 0.2.1)",
+        "ggplot2 (>= 3.0.0)",
+        "magrittr (>= 1.5)",
+        "purrr (>= 0.2.5)",
+        "methods (>= 3.5.1)",
+        "rlang (>= 0.2.2)",
+        "vegan (>= 2.5.2)",
+        "pheatmap (>= 1.0.10)"
+      ],
+      "RoxygenNote": "6.1.1",
+      "Collate": "'Construct.R' 'Plot.R' 'SetOperations.R' 'RVenn.R' 'Enrichment.R' 'Pairs.R' 'Heatmap.R'",
+      "Suggests": [
+        "testthat",
+        "knitr",
+        "rmarkdown"
+      ],
+      "VignetteBuilder": "knitr",
+      "NeedsCompilation": "no",
+      "Author": "Turgut Yigit Akyol [aut, cre]",
       "Repository": "CRAN"
     },
     "Rcpp": {
@@ -2215,40 +2271,30 @@
       "Author": "Hervé Pagès [aut, cre]",
       "Maintainer": "Hervé Pagès <hpages.on.github@gmail.com>"
     },
-    "V8": {
-      "Package": "V8",
-      "Version": "6.0.1",
+    "VennDiagram": {
+      "Package": "VennDiagram",
+      "Version": "1.7.3",
       "Source": "Repository",
       "Type": "Package",
-      "Title": "Embedded JavaScript and WebAssembly Engine for R",
-      "Authors@R": "c( person(\"Jeroen\", \"Ooms\", role = c(\"aut\", \"cre\"), email = \"jeroenooms@gmail.com\", comment = c(ORCID = \"0000-0002-4035-0289\")), person(\"Jan Marvin\", \"Garbuszus\", role = \"ctb\"))",
-      "Description": "An R interface to V8 <https://v8.dev>: Google's open source JavaScript and WebAssembly engine. This package can be compiled either with V8 version 6  and up or NodeJS when built as a shared library.",
-      "License": "MIT + file LICENSE",
-      "URL": "https://jeroen.r-universe.dev/V8",
-      "BugReports": "https://github.com/jeroen/v8/issues",
-      "SystemRequirements": "V8 engine version 6+ is needed for ES6 and WASM support. On Linux you can build against libv8-dev (Debian) or v8-devel (Fedora). We also provide static libv8 binaries for most platforms, see the README for details.",
-      "NeedsCompilation": "yes",
-      "VignetteBuilder": "knitr",
+      "Title": "Generate High-Resolution Venn and Euler Plots",
+      "Date": "2022-04-11",
+      "Author": "Hanbo Chen",
+      "Maintainer": "Paul Boutros <pboutros@mednet.ucla.edu>",
       "Imports": [
-        "Rcpp (>= 0.12.12)",
-        "jsonlite (>= 1.0)",
-        "curl (>= 1.0)",
-        "utils"
+        "methods"
       ],
-      "LinkingTo": [
-        "Rcpp"
+      "Depends": [
+        "R (>= 3.5.0)",
+        "grid (>= 2.14.1)",
+        "futile.logger"
       ],
+      "Description": "A set of functions to generate high-resolution Venn and Euler plots. Includes handling for several special cases, including two-case scaling, and extensive customization of plot shape and structure.",
+      "License": "GPL-2",
+      "LazyLoad": "yes",
       "Suggests": [
-        "testthat",
-        "knitr",
-        "rmarkdown"
+        "testthat"
       ],
-      "RoxygenNote": "7.3.1",
-      "Language": "en-US",
-      "Encoding": "UTF-8",
-      "Biarch": "true",
-      "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>), Jan Marvin Garbuszus [ctb]",
-      "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
+      "NeedsCompilation": "no",
       "Repository": "CRAN"
     },
     "XVector": {
@@ -2553,34 +2599,6 @@
       "License": "GPL-2 | GPL-3",
       "URL": "http://www.rforge.net/base64enc",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN"
-    },
-    "bigD": {
-      "Package": "bigD",
-      "Version": "0.3.0",
-      "Source": "Repository",
-      "Type": "Package",
-      "Title": "Flexibly Format Dates and Times to a Given Locale",
-      "Description": "Format dates and times flexibly and to whichever locales make sense. Parses dates, times, and date-times in various formats (including string-based ISO 8601 constructions). The formatting syntax gives the user many options for formatting the date and time output in a precise manner. Time zones in the input can be expressed in multiple ways and there are many options for formatting time zones in the output as well. Several of the provided helper functions allow for automatic generation of locale-aware formatting patterns based on date/time skeleton formats and standardized date/time formats with varying specificity.",
-      "Authors@R": "c( person(\"Richard\", \"Iannone\", , \"rich@posit.co\", c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-3925-190X\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
-      "License": "MIT + file LICENSE",
-      "URL": "https://rstudio.github.io/bigD/, https://github.com/rstudio/bigD",
-      "BugReports": "https://github.com/rstudio/bigD/issues",
-      "Encoding": "UTF-8",
-      "RoxygenNote": "7.3.2",
-      "Depends": [
-        "R (>= 3.3.0)"
-      ],
-      "Suggests": [
-        "covr",
-        "testthat (>= 3.0.0)",
-        "tibble (>= 3.2.1)"
-      ],
-      "Config/testthat/edition": "3",
-      "Config/testthat/parallel": "true",
-      "NeedsCompilation": "no",
-      "Author": "Richard Iannone [aut, cre] (<https://orcid.org/0000-0003-3925-190X>), Posit Software, PBC [cph, fnd]",
-      "Maintainer": "Richard Iannone <rich@posit.co>",
       "Repository": "CRAN"
     },
     "biomformat": {
@@ -2943,6 +2961,31 @@
       "Maintainer": "Carson Sievert <carson@posit.co>",
       "Repository": "CRAN"
     },
+    "caTools": {
+      "Package": "caTools",
+      "Version": "1.18.3",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "Tools: Moving Window Statistics, GIF, Base64, ROC AUC, etc",
+      "Date": "2024-09-04",
+      "Authors@R": "c(person(given = \"Jarek\", family = \"Tuszynski\", role = \"aut\", email = \"jaroslaw.w.tuszynski@saic.com\"), person(given = \"Michael\", family = \"Dietze\", role = \"cre\", email = \"michael.dietze@uni-goettingen.de\"))",
+      "Maintainer": "Michael Dietze <michael.dietze@uni-goettingen.de>",
+      "Depends": [
+        "R (>= 3.6.0)"
+      ],
+      "Imports": [
+        "bitops"
+      ],
+      "Suggests": [
+        "MASS",
+        "rpart"
+      ],
+      "Description": "Contains several basic utility functions including: moving (rolling, running) window statistic functions, read/write for GIF and ENVI binary files, fast calculation of AUC, LogitBoost classifier, base64 encoder/decoder, round-off-error-free sum and cumsum, etc.",
+      "License": "GPL-3",
+      "NeedsCompilation": "yes",
+      "Repository": "CRAN",
+      "Author": "Jarek Tuszynski [aut], Michael Dietze [cre]"
+    },
     "cachem": {
       "Package": "cachem",
       "Version": "1.1.0",
@@ -3301,10 +3344,10 @@
     },
     "cli": {
       "Package": "cli",
-      "Version": "3.6.3",
+      "Version": "3.6.4",
       "Source": "Repository",
       "Title": "Helpers for Developing Command Line Interfaces",
-      "Authors@R": "c( person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")), person(\"Hadley\", \"Wickham\", role = \"ctb\"), person(\"Kirill\", \"Müller\", role = \"ctb\"), person(\"Salim\", \"Brüggemann\", , \"salim-b@pm.me\", role = \"ctb\", comment = c(ORCID = \"0000-0002-5329-5987\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
+      "Authors@R": "c( person(\"Gábor\", \"Csárdi\", , \"gabor@posit.co\", role = c(\"aut\", \"cre\")), person(\"Hadley\", \"Wickham\", role = \"ctb\"), person(\"Kirill\", \"Müller\", role = \"ctb\"), person(\"Salim\", \"Brüggemann\", , \"salim-b@pm.me\", role = \"ctb\", comment = c(ORCID = \"0000-0002-5329-5987\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
       "Description": "A suite of tools to build attractive command line interfaces ('CLIs'), from semantic elements: headings, lists, alerts, paragraphs, etc. Supports custom themes via a 'CSS'-like language. It also contains a number of lower level 'CLI' elements: rules, boxes, trees, and 'Unicode' symbols with 'ASCII' alternatives. It support ANSI colors and text styles as well.",
       "License": "MIT + file LICENSE",
       "URL": "https://cli.r-lib.org, https://github.com/r-lib/cli",
@@ -3326,14 +3369,13 @@
         "htmlwidgets",
         "knitr",
         "methods",
-        "mockery",
         "processx",
         "ps (>= 1.3.4.9000)",
         "rlang (>= 1.0.2.9003)",
         "rmarkdown",
         "rprojroot",
         "rstudioapi",
-        "testthat",
+        "testthat (>= 3.2.0)",
         "tibble",
         "whoami",
         "withr"
@@ -3341,10 +3383,10 @@
       "Config/Needs/website": "r-lib/asciicast, bench, brio, cpp11, decor, desc, fansi, prettyunits, sessioninfo, tidyverse/tidytemplate, usethis, vctrs",
       "Config/testthat/edition": "3",
       "Encoding": "UTF-8",
-      "RoxygenNote": "7.2.3",
+      "RoxygenNote": "7.3.2",
       "NeedsCompilation": "yes",
       "Author": "Gábor Csárdi [aut, cre], Hadley Wickham [ctb], Kirill Müller [ctb], Salim Brüggemann [ctb] (<https://orcid.org/0000-0002-5329-5987>), Posit Software, PBC [cph, fnd]",
-      "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+      "Maintainer": "Gábor Csárdi <gabor@posit.co>",
       "Repository": "CRAN"
     },
     "clipr": {
@@ -4431,6 +4473,54 @@
       "NeedsCompilation": "no",
       "Author": "Guangchuang Yu [aut, cre] (<https://orcid.org/0000-0002-6485-8781>), Chun-Hui Gao [ctb] (<https://orcid.org/0000-0002-1445-7939>)",
       "Maintainer": "Guangchuang Yu <guangchuangyu@gmail.com>"
+    },
+    "eulerr": {
+      "Package": "eulerr",
+      "Version": "7.0.2",
+      "Source": "Repository",
+      "Title": "Area-Proportional Euler and Venn Diagrams with Ellipses",
+      "Authors@R": "c(person(\"Johan\", \"Larsson\", email = \"johanlarsson@outlook.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-4029-5945\")), person(\"A. Jonathan R.\", \"Godfrey\", role = \"ctb\"), person(\"Peter\", \"Gustafsson\", role = \"ctb\"), person(\"David H.\", \"Eberly\", role = \"ctb\", comment = \"geometric algorithms\"), person(\"Emanuel\", \"Huber\", role = \"ctb\", comment = \"root solver code\"), person(\"Florian\", \"Privé\", role = \"ctb\"))",
+      "Description": "Generate area-proportional Euler diagrams using numerical optimization. An Euler diagram is a generalization of a Venn diagram, relaxing the criterion that all interactions need to be represented. Diagrams may be fit with ellipses and circles via a wide range of inputs and can be visualized in numerous ways.",
+      "Depends": [
+        "R (>= 3.3.0)"
+      ],
+      "Imports": [
+        "GenSA",
+        "graphics",
+        "grDevices",
+        "grid",
+        "polyclip",
+        "polylabelr",
+        "Rcpp",
+        "stats",
+        "utils"
+      ],
+      "Suggests": [
+        "covr",
+        "knitr",
+        "lattice",
+        "pBrackets",
+        "RConics",
+        "rmarkdown",
+        "testthat",
+        "spelling"
+      ],
+      "LinkingTo": [
+        "Rcpp (>= 0.12.12)",
+        "RcppArmadillo (>= 0.7.600.1.0)"
+      ],
+      "License": "GPL-3",
+      "Encoding": "UTF-8",
+      "LazyData": "true",
+      "VignetteBuilder": "knitr",
+      "URL": "https://github.com/jolars/eulerr, https://jolars.github.io/eulerr/",
+      "BugReports": "https://github.com/jolars/eulerr/issues",
+      "RoxygenNote": "7.2.3",
+      "Language": "en-US",
+      "NeedsCompilation": "yes",
+      "Author": "Johan Larsson [aut, cre] (<https://orcid.org/0000-0002-4029-5945>), A. Jonathan R. Godfrey [ctb], Peter Gustafsson [ctb], David H. Eberly [ctb] (geometric algorithms), Emanuel Huber [ctb] (root solver code), Florian Privé [ctb]",
+      "Maintainer": "Johan Larsson <johanlarsson@outlook.com>",
+      "Repository": "CRAN"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -5597,6 +5687,42 @@
       "NeedsCompilation": "no",
       "Author": "Guangchuang Yu [aut, cre, cph] (<https://orcid.org/0000-0002-6485-8781>), Tommy Tsan-Yuk Lam [aut, ths], Shuangbin Xu [aut] (<https://orcid.org/0000-0003-3513-5362>), Lin Li [ctb], Bradley Jones [ctb], Justin Silverman [ctb], Watal M. Iwasaki [ctb], Yonghe Xia [ctb], Ruizhu Huang [ctb]"
     },
+    "ggvenn": {
+      "Package": "ggvenn",
+      "Version": "0.1.16",
+      "Source": "GitHub",
+      "Title": "Draw Venn Diagram by 'ggplot2'",
+      "Authors@R": "person(given = \"Linlin\", family = \"Yan\", role = c(\"aut\", \"cre\"), email = \"yanlinlin82@gmail.com\", comment = c(ORCID = \"0000-0002-4990-6239\"))",
+      "Author": "Linlin Yan [aut, cre] (<https://orcid.org/0000-0002-4990-6239>)",
+      "Maintainer": "Linlin Yan <yanlinlin82@gmail.com>",
+      "Description": "An easy-to-use way to draw pretty venn diagram by 'ggplot2'.",
+      "URL": "https://yanlinlin82.github.io/ggvenn/, https://github.com/yanlinlin82/ggvenn",
+      "BugReports": "https://github.com/yanlinlin82/ggvenn/issues",
+      "License": "MIT + file LICENSE",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.1",
+      "Depends": [
+        "ggplot2"
+      ],
+      "Suggests": [
+        "testthat (>= 3.0.0)"
+      ],
+      "Imports": [
+        "dplyr",
+        "grid",
+        "scales",
+        "lifecycle"
+      ],
+      "Roxygen": "list(markdown = TRUE)",
+      "Config/testthat/edition": "3",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "ggvenn",
+      "RemoteUsername": "yanlinlin82",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "775cefb569ddf86cdb84c87ed71b9d5967d96649",
+      "NeedsCompilation": "no"
+    },
     "globals": {
       "Package": "globals",
       "Version": "0.16.3",
@@ -5783,6 +5909,42 @@
       "Author": "Mark van der Loo [aut, cre], David Turner [ctb]",
       "Repository": "CRAN"
     },
+    "gplots": {
+      "Package": "gplots",
+      "Version": "3.2.0",
+      "Source": "Repository",
+      "Title": "Various R Programming Tools for Plotting Data",
+      "Description": "Various R programming tools for plotting data, including: - calculating and plotting locally smoothed summary function as ('bandplot', 'wapply'), - enhanced versions of standard plots ('barplot2', 'boxplot2', 'heatmap.2', 'smartlegend'), - manipulating colors ('col2hex', 'colorpanel', 'redgreen', 'greenred', 'bluered', 'redblue', 'rich.colors'), - calculating and plotting two-dimensional data summaries ('ci2d', 'hist2d'), - enhanced regression diagnostic plots ('lmplot2', 'residplot'), - formula-enabled interface to 'stats::lowess' function ('lowess'), - displaying textual data in plots ('textplot', 'sinkplot'), - plotting dots whose size reflects the relative magnitude of the elements ('balloonplot', 'bubbleplot'), - plotting \"Venn\" diagrams ('venn'), - displaying Open-Office style plots ('ooplot'), - plotting multiple data on same region, with separate axes ('overplot'), - plotting means and confidence intervals ('plotCI', 'plotmeans'), - spacing points in an x-y plot so they don't overlap ('space').",
+      "Depends": [
+        "R (>= 3.0)"
+      ],
+      "Imports": [
+        "gtools",
+        "stats",
+        "caTools",
+        "KernSmooth",
+        "methods"
+      ],
+      "Suggests": [
+        "grid",
+        "MASS",
+        "knitr",
+        "rmarkdown",
+        "r2d2",
+        "nlme"
+      ],
+      "LazyData": "yes",
+      "VignetteBuilder": "knitr",
+      "Date": "2024-10-05",
+      "Authors@R": "c( person(\"Gregory R.\", \"Warnes\", , role = \"aut\"), person(\"Ben\", \"Bolker\", , role = \"aut\"), person(\"Lodewijk\", \"Bonebakker\", , role = \"aut\"), person(\"Robert\", \"Gentleman\", role = \"aut\"), person(\"Wolfgang\", \"Huber\", role = \"aut\"), person(\"Andy\", \"Liaw\", role = \"aut\"), person(\"Thomas\", \"Lumley\", role = \"aut\"), person(\"Martin\", \"Maechler\", role = \"aut\"), person(\"Arni\", \"Magnusson\", role = \"aut\"), person(\"Steffen\", \"Moeller\", role = \"aut\"), person(\"Marc\", \"Schwartz\", role = \"aut\"), person(\"Bill\", \"Venables\", role = \"aut\"), person(\"Tal\", \"Galili\", , \"tal.galili@gmail.com\", c(\"aut\", \"cre\")) )",
+      "License": "GPL-2",
+      "URL": "https://github.com/talgalili/gplots, https://talgalili.github.io/gplots/",
+      "BugReports": "https://github.com/talgalili/gplots/issues",
+      "NeedsCompilation": "no",
+      "Author": "Gregory R. Warnes [aut], Ben Bolker [aut], Lodewijk Bonebakker [aut], Robert Gentleman [aut], Wolfgang Huber [aut], Andy Liaw [aut], Thomas Lumley [aut], Martin Maechler [aut], Arni Magnusson [aut], Steffen Moeller [aut], Marc Schwartz [aut], Bill Venables [aut], Tal Galili [aut, cre]",
+      "Maintainer": "Tal Galili <tal.galili@gmail.com>",
+      "Repository": "CRAN"
+    },
     "gridExtra": {
       "Package": "gridExtra",
       "Version": "2.3",
@@ -5906,76 +6068,6 @@
       "Maintainer": "Guangchuang Yu <guangchuangyu@gmail.com>",
       "Repository": "CRAN"
     },
-    "gt": {
-      "Package": "gt",
-      "Version": "0.11.1",
-      "Source": "Repository",
-      "Type": "Package",
-      "Title": "Easily Create Presentation-Ready Display Tables",
-      "Authors@R": "c( person(\"Richard\", \"Iannone\", , \"rich@posit.co\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-3925-190X\")), person(\"Joe\", \"Cheng\", , \"joe@posit.co\", role = \"aut\"), person(\"Barret\", \"Schloerke\", , \"barret@posit.co\", role = \"aut\", comment = c(ORCID = \"0000-0001-9986-114X\")), person(\"Ellis\", \"Hughes\", , \"ellis.h.hughes@gsk.com\", role = \"aut\", comment = c(ORCID = \"0000-0003-0637-4436\")), person(\"Alexandra\", \"Lauer\", , \"alexandralauer1@gmail.com\", role = \"aut\", comment = c(ORCID = \"0000-0002-4191-6301\")), person(\"JooYoung\", \"Seo\", , \"jseo1005@illinois.edu\", role = \"aut\", comment = c(ORCID = \"0000-0002-4064-6012\")), person(\"Ken\", \"Brevoort\", , \"ken@brevoort.com\", role = \"aut\", comment = c(ORCID = \"0000-0002-4001-8358\")), person(\"Olivier\", \"Roy\", role = \"aut\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
-      "Description": "Build display tables from tabular data with an easy-to-use set of functions. With its progressive approach, we can construct display tables with a cohesive set of table parts. Table values can be formatted using any of the included formatting functions. Footnotes and cell styles can be precisely added through a location targeting system. The way in which 'gt' handles things for you means that you don't often have to worry about the fine details.",
-      "License": "MIT + file LICENSE",
-      "URL": "https://gt.rstudio.com, https://github.com/rstudio/gt",
-      "BugReports": "https://github.com/rstudio/gt/issues",
-      "Depends": [
-        "R (>= 3.6.0)"
-      ],
-      "Imports": [
-        "base64enc (>= 0.1-3)",
-        "bigD (>= 0.2)",
-        "bitops (>= 1.0-7)",
-        "cli (>= 3.6.3)",
-        "commonmark (>= 1.9.1)",
-        "dplyr (>= 1.1.4)",
-        "fs (>= 1.6.4)",
-        "glue (>= 1.8.0)",
-        "htmltools (>= 0.5.8.1)",
-        "htmlwidgets (>= 1.6.4)",
-        "juicyjuice (>= 0.1.0)",
-        "magrittr (>= 2.0.3)",
-        "markdown (>= 1.13)",
-        "reactable (>= 0.4.4)",
-        "rlang (>= 1.1.4)",
-        "sass (>= 0.4.9)",
-        "scales (>= 1.3.0)",
-        "tidyselect (>= 1.2.1)",
-        "vctrs",
-        "xml2 (>= 1.3.6)"
-      ],
-      "Suggests": [
-        "digest (>= 0.6.31)",
-        "fontawesome (>= 0.5.2)",
-        "ggplot2",
-        "grid",
-        "gtable",
-        "katex (>= 1.4.1)",
-        "knitr",
-        "lubridate",
-        "magick",
-        "paletteer",
-        "RColorBrewer",
-        "rmarkdown (>= 2.20)",
-        "rsvg",
-        "rvest",
-        "shiny (>= 1.9.1)",
-        "testthat (>= 3.1.9)",
-        "tidyr",
-        "webshot2 (>= 0.1.0)",
-        "withr"
-      ],
-      "Config/Needs/coverage": "officer",
-      "Config/Needs/website": "quarto",
-      "ByteCompile": "true",
-      "Config/testthat/edition": "3",
-      "Config/testthat/parallel": "true",
-      "Encoding": "UTF-8",
-      "LazyData": "true",
-      "RoxygenNote": "7.3.2",
-      "NeedsCompilation": "no",
-      "Author": "Richard Iannone [aut, cre] (<https://orcid.org/0000-0003-3925-190X>), Joe Cheng [aut], Barret Schloerke [aut] (<https://orcid.org/0000-0001-9986-114X>), Ellis Hughes [aut] (<https://orcid.org/0000-0003-0637-4436>), Alexandra Lauer [aut] (<https://orcid.org/0000-0002-4191-6301>), JooYoung Seo [aut] (<https://orcid.org/0000-0002-4064-6012>), Ken Brevoort [aut] (<https://orcid.org/0000-0002-4001-8358>), Olivier Roy [aut], Posit Software, PBC [cph, fnd]",
-      "Maintainer": "Richard Iannone <rich@posit.co>",
-      "Repository": "CRAN"
-    },
     "gtable": {
       "Package": "gtable",
       "Version": "0.3.6",
@@ -6014,6 +6106,37 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut], Thomas Lin Pedersen [aut, cre], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
+      "Repository": "CRAN"
+    },
+    "gtools": {
+      "Package": "gtools",
+      "Version": "3.9.5",
+      "Source": "Repository",
+      "Title": "Various R Programming Tools",
+      "Description": "Functions to assist in R programming, including: - assist in developing, updating, and maintaining R and R packages ('ask', 'checkRVersion', 'getDependencies', 'keywords', 'scat'), - calculate the logit and inverse logit transformations ('logit', 'inv.logit'), - test if a value is missing, empty or contains only NA and NULL values ('invalid'), - manipulate R's .Last function ('addLast'), - define macros ('defmacro'), - detect odd and even integers ('odd', 'even'), - convert strings containing non-ASCII characters (like single quotes) to plain ASCII ('ASCIIfy'), - perform a binary search ('binsearch'), - sort strings containing both numeric and character components ('mixedsort'), - create a factor variable from the quantiles of a continuous variable ('quantcut'), - enumerate permutations and combinations ('combinations', 'permutation'), - calculate and convert between fold-change and log-ratio ('foldchange', 'logratio2foldchange', 'foldchange2logratio'), - calculate probabilities and generate random numbers from Dirichlet distributions ('rdirichlet', 'ddirichlet'), - apply a function over adjacent subsets of a vector ('running'), - modify the TCP_NODELAY ('de-Nagle') flag for socket objects, - efficient 'rbind' of data frames, even if the column names don't match ('smartbind'), - generate significance stars from p-values ('stars.pval'), - convert characters to/from ASCII codes ('asc', 'chr'), - convert character vector to ASCII representation ('ASCIIfy'), - apply title capitalization rules to a character vector ('capwords').",
+      "Authors@R": "c(person(\"Gregory R.\", \"Warnes\", role = \"aut\"), person(\"Ben\", \"Bolker\", role = c(\"aut\", \"cre\"), email = \"bolker@mcmaster.ca\", comment=c(ORCID=\"0000-0002-2127-0443\")), person(\"Thomas\", \"Lumley\", role = \"aut\"), person(\"Arni\", \"Magnusson\", role = \"aut\"), person(\"Bill\", \"Venables\", role = \"aut\"), person(\"Genei\", \"Ryodan\", role = \"aut\"), person(\"Steffen\", \"Moeller\", role = \"aut\"), person(\"Ian\", \"Wilson\", role = \"ctb\"), person(\"Mark\", \"Davis\", role = \"ctb\"), person(\"Nitin\", \"Jain\", role=\"ctb\"), person(\"Scott\", \"Chamberlain\", role = \"ctb\"))",
+      "License": "GPL-2",
+      "Depends": [
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "URL": "https://github.com/r-gregmisc/gtools",
+      "BugReports": "https://github.com/r-gregmisc/gtools/issues",
+      "Language": "en-US",
+      "Suggests": [
+        "car",
+        "gplots",
+        "knitr",
+        "rstudioapi",
+        "SGP",
+        "taxize"
+      ],
+      "RoxygenNote": "7.2.3",
+      "Encoding": "UTF-8",
+      "NeedsCompilation": "yes",
+      "Author": "Gregory R. Warnes [aut], Ben Bolker [aut, cre] (<https://orcid.org/0000-0002-2127-0443>), Thomas Lumley [aut], Arni Magnusson [aut], Bill Venables [aut], Genei Ryodan [aut], Steffen Moeller [aut], Ian Wilson [ctb], Mark Davis [ctb], Nitin Jain [ctb], Scott Chamberlain [ctb]",
+      "Maintainer": "Ben Bolker <bolker@mcmaster.ca>",
       "Repository": "CRAN"
     },
     "hardhat": {
@@ -6776,30 +6899,6 @@
       "Encoding": "UTF-8",
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>), Duncan Temple Lang [ctb], Lloyd Hilaiel [cph] (author of bundled libyajl)",
-      "Repository": "CRAN"
-    },
-    "juicyjuice": {
-      "Package": "juicyjuice",
-      "Version": "0.1.0",
-      "Source": "Repository",
-      "Title": "Inline CSS Properties into HTML Tags Using 'juice'",
-      "Authors@R": "c( person(\"Richard\", \"Iannone\", , \"riannone@me.com\", c(\"aut\", \"cre\", \"cph\"), comment = c(ORCID = \"0000-0003-3925-190X\")), person(\"Automattic\", role = c(\"cph\"), comment = \"juice library\"), person(\"juice contributors\", role = c(\"ctb\"), comment = \"juice library\") )",
-      "Description": "There are occasions where you need a piece of HTML with integrated styles. A prime example of this is HTML email. This transformation involves moving the CSS and associated formatting instructions from the style block in the head of your document into the body of the HTML. Many prominent email clients require integrated styles in HTML email; otherwise a received HTML email will be displayed without any styling. This package will quickly and precisely perform these CSS transformations when given HTML text and it does so by using the JavaScript 'juice' library.",
-      "License": "MIT + file LICENSE",
-      "URL": "https://github.com/rich-iannone/juicyjuice",
-      "BugReports": "https://github.com/rich-iannone/juicyjuice/issues",
-      "Encoding": "UTF-8",
-      "RoxygenNote": "7.2.1",
-      "Imports": [
-        "V8 (>= 4.2.0)"
-      ],
-      "Suggests": [
-        "testthat (>= 3.0.0)"
-      ],
-      "Config/testthat/edition": "3",
-      "NeedsCompilation": "no",
-      "Author": "Richard Iannone [aut, cre, cph] (<https://orcid.org/0000-0003-3925-190X>), Automattic [cph] (juice library), juice contributors [ctb] (juice library)",
-      "Maintainer": "Richard Iannone <riannone@me.com>",
       "Repository": "CRAN"
     },
     "kableExtra": {
@@ -8289,6 +8388,40 @@
       "Author": "Angus Johnson [aut] (C++ original, http://www.angusj.com/delphi/clipper.php), Adrian Baddeley [aut, trl, cre], Kurt Hornik [ctb], Brian D. Ripley [ctb], Elliott Sales de Andrade [ctb], Paul Murrell [ctb], Ege Rubak [ctb], Mark Padgham [ctb]",
       "Repository": "CRAN"
     },
+    "polylabelr": {
+      "Package": "polylabelr",
+      "Version": "0.3.0",
+      "Source": "Repository",
+      "Title": "Find the Pole of Inaccessibility (Visual Center) of a Polygon",
+      "Authors@R": "c(person(given = \"Johan\", family = \"Larsson\", role = c(\"aut\", \"cre\"), email = \"johanlarsson@outlook.com\", comment = c(ORCID = \"0000-0002-4029-5945\")), person(given = \"Kent\", family = \"Johnson\", role = \"ctb\", email = \"kent@kentsjohnson.com\"), person(\"Mapbox\", role = \"cph\", comment = \"polylabel, variant, and geometry libraries\"))",
+      "Description": "A wrapper around the C++ library 'polylabel' from 'Mapbox', providing an efficient routine for finding the approximate pole of inaccessibility of a polygon, which usually serves as an excellent candidate for labeling of a polygon.",
+      "License": "MIT + file LICENSE",
+      "Copyright": "see file COPYRIGHTS",
+      "Encoding": "UTF-8",
+      "URL": "https://github.com/jolars/polylabelr, https://jolars.github.io/polylabelr/",
+      "BugReports": "https://github.com/jolars/polylabelr/issues",
+      "Depends": [
+        "R (>= 3.3.0)"
+      ],
+      "LinkingTo": [
+        "Rcpp"
+      ],
+      "Imports": [
+        "Rcpp"
+      ],
+      "RoxygenNote": "7.3.2",
+      "Suggests": [
+        "covr",
+        "testthat",
+        "spelling",
+        "sf"
+      ],
+      "Language": "en-US",
+      "NeedsCompilation": "yes",
+      "Author": "Johan Larsson [aut, cre] (<https://orcid.org/0000-0002-4029-5945>), Kent Johnson [ctb], Mapbox [cph] (polylabel, variant, and geometry libraries)",
+      "Maintainer": "Johan Larsson <johanlarsson@outlook.com>",
+      "Repository": "CRAN"
+    },
     "polynom": {
       "Package": "polynom",
       "Version": "1.4-1",
@@ -8850,82 +8983,6 @@
       "Maintainer": "Georgi N. Boshnakov <georgi.boshnakov@manchester.ac.uk>",
       "Repository": "CRAN"
     },
-    "reactR": {
-      "Package": "reactR",
-      "Version": "0.6.1",
-      "Source": "Repository",
-      "Type": "Package",
-      "Title": "React Helpers",
-      "Date": "2024-09-14",
-      "Authors@R": "c( person( \"Facebook\", \"Inc\" , role = c(\"aut\", \"cph\") , comment = \"React library in lib, https://reactjs.org/; see AUTHORS for full list of contributors\" ), person( \"Michel\",\"Weststrate\", , role = c(\"aut\", \"cph\") , comment = \"mobx library in lib, https://github.com/mobxjs\" ), person( \"Kent\", \"Russell\" , role = c(\"aut\", \"cre\") , comment = \"R interface\" , email = \"kent.russell@timelyportfolio.com\" ), person( \"Alan\", \"Dipert\" , role = c(\"aut\") , comment = \"R interface\" , email = \"alan@rstudio.com\" ), person( \"Greg\", \"Lin\" , role = c(\"aut\") , comment = \"R interface\" , email = \"glin@glin.io\" ) )",
-      "Maintainer": "Kent Russell <kent.russell@timelyportfolio.com>",
-      "Description": "Make it easy to use 'React' in R with 'htmlwidget' scaffolds, helper dependency functions, an embedded 'Babel' 'transpiler', and examples.",
-      "URL": "https://github.com/react-R/reactR",
-      "BugReports": "https://github.com/react-R/reactR/issues",
-      "License": "MIT + file LICENSE",
-      "Encoding": "UTF-8",
-      "Imports": [
-        "htmltools"
-      ],
-      "Suggests": [
-        "htmlwidgets (>= 1.5.3)",
-        "rmarkdown",
-        "shiny",
-        "V8",
-        "knitr",
-        "usethis",
-        "jsonlite"
-      ],
-      "RoxygenNote": "7.3.2",
-      "VignetteBuilder": "knitr",
-      "NeedsCompilation": "no",
-      "Author": "Facebook Inc [aut, cph] (React library in lib, https://reactjs.org/; see AUTHORS for full list of contributors), Michel Weststrate [aut, cph] (mobx library in lib, https://github.com/mobxjs), Kent Russell [aut, cre] (R interface), Alan Dipert [aut] (R interface), Greg Lin [aut] (R interface)",
-      "Repository": "CRAN"
-    },
-    "reactable": {
-      "Package": "reactable",
-      "Version": "0.4.4",
-      "Source": "Repository",
-      "Type": "Package",
-      "Title": "Interactive Data Tables for R",
-      "Authors@R": "c( person(\"Greg\", \"Lin\", email = \"glin@glin.io\", role = c(\"aut\", \"cre\")), person(\"Tanner\", \"Linsley\", role = c(\"ctb\", \"cph\"), comment = \"React Table library\"), person(family = \"Emotion team and other contributors\", role = c(\"ctb\", \"cph\"), comment = \"Emotion library\"), person(\"Kent\", \"Russell\", role = c(\"ctb\", \"cph\"), comment = \"reactR package\"), person(\"Ramnath\", \"Vaidyanathan\", role = c(\"ctb\", \"cph\"), comment = \"htmlwidgets package\"), person(\"Joe\", \"Cheng\", role = c(\"ctb\", \"cph\"), comment = \"htmlwidgets package\"), person(\"JJ\", \"Allaire\", role = c(\"ctb\", \"cph\"), comment = \"htmlwidgets package\"), person(\"Yihui\", \"Xie\", role = c(\"ctb\", \"cph\"), comment = \"htmlwidgets package\"), person(\"Kenton\", \"Russell\", role = c(\"ctb\", \"cph\"), comment = \"htmlwidgets package\"), person(family = \"Facebook, Inc. and its affiliates\", role = c(\"ctb\", \"cph\"), comment = \"React library\"), person(family = \"FormatJS\", role = c(\"ctb\", \"cph\"), comment = \"FormatJS libraries\"), person(family = \"Feross Aboukhadijeh, and other contributors\", role = c(\"ctb\", \"cph\"), comment = \"buffer library\"), person(\"Roman\", \"Shtylman\", role = c(\"ctb\", \"cph\"), comment = \"process library\"), person(\"James\", \"Halliday\", role = c(\"ctb\", \"cph\"), comment = \"stream-browserify library\"), person(family = \"Posit Software, PBC\", role = c(\"fnd\", \"cph\")) )",
-      "Description": "Interactive data tables for R, based on the 'React Table' JavaScript library. Provides an HTML widget that can be used in 'R Markdown' or 'Quarto' documents, 'Shiny' applications, or viewed from an R console.",
-      "License": "MIT + file LICENSE",
-      "URL": "https://glin.github.io/reactable/, https://github.com/glin/reactable",
-      "BugReports": "https://github.com/glin/reactable/issues",
-      "Depends": [
-        "R (>= 3.1)"
-      ],
-      "Imports": [
-        "digest",
-        "htmltools (>= 0.5.2)",
-        "htmlwidgets (>= 1.5.3)",
-        "jsonlite",
-        "reactR"
-      ],
-      "Suggests": [
-        "covr",
-        "crosstalk",
-        "dplyr",
-        "fontawesome",
-        "knitr",
-        "leaflet",
-        "MASS",
-        "rmarkdown",
-        "shiny",
-        "sparkline",
-        "testthat",
-        "tippy",
-        "V8"
-      ],
-      "Encoding": "UTF-8",
-      "RoxygenNote": "7.2.1",
-      "Config/testthat/edition": "3",
-      "NeedsCompilation": "no",
-      "Author": "Greg Lin [aut, cre], Tanner Linsley [ctb, cph] (React Table library), Emotion team and other contributors [ctb, cph] (Emotion library), Kent Russell [ctb, cph] (reactR package), Ramnath Vaidyanathan [ctb, cph] (htmlwidgets package), Joe Cheng [ctb, cph] (htmlwidgets package), JJ Allaire [ctb, cph] (htmlwidgets package), Yihui Xie [ctb, cph] (htmlwidgets package), Kenton Russell [ctb, cph] (htmlwidgets package), Facebook, Inc. and its affiliates [ctb, cph] (React library), FormatJS [ctb, cph] (FormatJS libraries), Feross Aboukhadijeh, and other contributors [ctb, cph] (buffer library), Roman Shtylman [ctb, cph] (process library), James Halliday [ctb, cph] (stream-browserify library), Posit Software, PBC [fnd, cph]",
-      "Maintainer": "Greg Lin <glin@glin.io>",
-      "Repository": "CRAN"
-    },
     "readr": {
       "Package": "readr",
       "Version": "2.1.5",
@@ -9160,6 +9217,53 @@
       "Encoding": "UTF-8",
       "NeedsCompilation": "no",
       "Author": "Gábor Csárdi [aut, cre], Matthew Lincoln [ctb]",
+      "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "remotes": {
+      "Package": "remotes",
+      "Version": "2.5.0",
+      "Source": "Repository",
+      "Title": "R Package Installation from Remote Repositories, Including 'GitHub'",
+      "Authors@R": "c( person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")), person(\"Jim\", \"Hester\", role = \"aut\"), person(\"Hadley\", \"Wickham\", role = \"aut\"), person(\"Winston\", \"Chang\", role = \"aut\"), person(\"Martin\", \"Morgan\", role = \"aut\"), person(\"Dan\", \"Tenenbaum\", role = \"aut\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")), person(\"Ascent Digital Services\", role = \"cph\") )",
+      "Description": "Download and install R packages stored in 'GitHub', 'GitLab', 'Bitbucket', 'Bioconductor', or plain 'subversion' or 'git' repositories.  This package provides the 'install_*' functions in 'devtools'. Indeed most of the code was copied over from 'devtools'.",
+      "License": "MIT + file LICENSE",
+      "URL": "https://remotes.r-lib.org, https://github.com/r-lib/remotes#readme",
+      "BugReports": "https://github.com/r-lib/remotes/issues",
+      "Depends": [
+        "R (>= 3.0.0)"
+      ],
+      "Imports": [
+        "methods",
+        "stats",
+        "tools",
+        "utils"
+      ],
+      "Suggests": [
+        "brew",
+        "callr",
+        "codetools",
+        "covr",
+        "curl",
+        "git2r (>= 0.23.0)",
+        "knitr",
+        "mockery",
+        "pingr",
+        "pkgbuild (>= 1.0.1)",
+        "rmarkdown",
+        "rprojroot",
+        "testthat (>= 3.0.0)",
+        "webfakes",
+        "withr"
+      ],
+      "VignetteBuilder": "knitr",
+      "Config/Needs/website": "tidyverse/tidytemplate",
+      "Config/testthat/edition": "3",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.2.3",
+      "SystemRequirements": "Subversion for install_svn, git for install_git",
+      "NeedsCompilation": "no",
+      "Author": "Gábor Csárdi [aut, cre], Jim Hester [aut], Hadley Wickham [aut], Winston Chang [aut], Martin Morgan [aut], Dan Tenenbaum [aut], Posit Software, PBC [cph, fnd], Ascent Digital Services [cph]",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
       "Repository": "CRAN"
     },
