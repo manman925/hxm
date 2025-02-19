@@ -1,1 +1,204 @@
 # 与全世界开发者协作
+
+开发者之间的协作依托与代码托管平台，如 GitHub、GitLab、Gitee 等。下面以 GitHub 为例，介绍开发者之间的协作。
+
+GitHub 是全球最流行的代码托管平台之一，提供了强大的协作工具，支持版本控制、代码审查、自动化流程等功能。
+
+## 仓库（Repository）
+
+仓库是 GitHub 的核心概念，它用于存储项目的代码、文档和资源。每个仓库都可以公开（Public）或私有（Private），支持 Git 版本控制，使开发者可以追踪代码的变更。
+
+主要功能：
+
+- **分支（Branch）**：允许开发者创建多个并行的代码版本。
+- **标签（Tag）**：用于标记特定的版本，例如发布（Release）。
+- **README** 文件：通常包含项目简介、安装方法和使用指南。
+- **LICENSE** 文件：定义项目的许可协议。
+
+
+## 组织（Organization）
+
+GitHub 允许用户创建组织（Organization）来管理多个仓库和成员。组织适用于团队协作，可设置不同的访问权限，并提供团队管理功能。
+
+主要功能：
+
+- **团队（Teams）**：可以为不同的成员分配不同的权限。
+- **权限管理**：可设置成员的访问级别，如管理员、写入权限或只读权限。
+- **企业级功能**：支持审计日志、单点登录（SSO）等。
+
+
+## 拉取请求（Pull Request, PR）
+
+Pull Request（简称 PR）是 GitHub 代码协作的核心功能。开发者可以提交代码变更请求，等待团队成员审核并合并。
+
+主要流程：
+
+1. 在分支中进行代码修改。
+2. 提交 Pull Request，描述变更内容。
+3. 其他开发者进行代码审核（Review）。
+4. 审核通过后，合并到主分支。
+
+PR 还支持自动检查，如代码风格检查、测试运行等。
+
+## 问题（Issue）
+
+Issue 用于跟踪任务、Bug 以及改进建议。它可以与 PR 关联，帮助开发者高效管理项目。
+
+主要功能：
+
+- **标签（Labels）**：分类 Issue（如 bug、enhancement）。
+- **指派（Assignees）**：分配 Issue 负责人。
+- **里程碑（Milestones）**：跟踪项目进度。
+- **讨论（Discussion）**：团队可以在 Issue 中讨论问题。
+
+::: {.callout-note}
+**如何在 GitHub Issue 上提问**
+
+在 GitHub Issue 上提问时，确保问题清晰、可复现，并提供足够的信息，以便维护者或社区成员快速理解和解决。以下是一个高质量 Issue 的关键要素：
+
+**1. 写一个清晰的标题**
+
+标题应该简洁明了，概括问题的核心。例如：
+
+- ✅ **“安装后运行时报错：ModuleNotFoundError”**
+- ❌ **“求助！！！出错了”**
+
+**2. 说明问题**
+
+在 Issue 描述中，回答以下问题：
+
+- **发生了什么？**（简要描述问题）
+- **你期望的行为是什么？**
+- **问题如何复现？**（提供最小可复现步骤）
+- **是否有错误日志？**（截图或代码块格式化错误信息）
+
+示例：
+
+````
+## 问题描述
+
+在运行 `my_script.py` 时，程序报错 `ModuleNotFoundError: No module named 'requests'`。
+
+## 复现步骤
+
+1. 安装项目 `git clone https://github.com/example/repo.git`
+2. 运行 `python my_script.py`
+3. 看到如下错误：
+   ```
+   Traceback (most recent call last):
+     File "my_script.py", line 1, in <module>
+       import requests
+   ModuleNotFoundError: No module named 'requests'
+   ```
+````
+
+**3. 提供环境信息**
+
+不同环境可能导致不同的 Bug，所以提供你的系统和依赖信息：
+
+```
+- 操作系统: macOS 14.2 / Ubuntu 22.04 / Windows 11
+- Python 版本: 3.9.6
+- 依赖项: `pip freeze | grep requests` 结果为空
+- 相关软件或工具版本：Git 2.34.1，Node.js 18.16.0
+```
+
+**4. 附加上下文**
+
+- 你是否尝试过解决？哪些方法不起作用？
+- 你是否查阅了 README、Wiki、FAQ 或已有 Issue？
+- 是否有截图、GIF 或代码片段可以辅助理解？
+
+**5. 避免无效 Issue**
+
+- **避免模糊的描述**：“软件坏了” → **具体描述问题**。
+- **避免催促**：“快点帮忙！” → **保持礼貌**，维护者通常是志愿者。
+- **避免重复 Issue**：先搜索是否已有类似问题。
+
+一个格式良好的 Issue，不仅能让维护者快速响应，还能帮助其他开发者遇到相同问题时更快找到解决方案。
+
+:::
+
+## 代码审查（Review）
+
+GitHub 提供代码审查功能，开发者可以对 PR 进行评论和建议，提高代码质量。
+
+主要功能：
+
+- **批准（Approve）**：表示代码可以合并。
+- **请求更改（Request Changes）**：开发者需要修改代码。
+- **评论（Comment）**：对特定代码行提出建议。
+
+## GitHub Actions
+
+GitHub Actions 是 GitHub 提供的 CI/CD（持续集成/持续部署）工具。开发者可以通过 YAML 文件定义自动化任务，如测试、构建、部署等。
+
+主要功能：
+
+- **工作流（Workflow）**：定义自动化流程。
+- **作业（Job）**：工作流中的任务。
+- **步骤（Step）**：具体执行的操作，如运行脚本。
+- **触发器（Trigger）**：可以在 Push、PR、Issue 变更时触发工作流。
+
+示例 YAML 配置：
+
+```yaml
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run tests
+        run: make test
+```
+
+
+::: {.callout-note}
+CI（Continuous Integration，持续集成）是一种软件开发实践，开发者会频繁地将代码变更集成到主代码库中，并通过自动化构建和测试来验证代码的正确性。CI 的主要目标是尽早发现问题，提高代码质量，减少集成冲突。
+
+在 GitHub 中，CI 主要通过 **GitHub Actions** 或 **第三方 CI 工具（如 Jenkins、Travis CI、CircleCI）** 来实现，通常包括以下步骤：
+
+1. **代码提交（Commit & Push）**：开发者提交代码到远程仓库。
+2. **触发 CI 流程**：CI 工具检测到代码变更后，自动执行预定义的任务，如编译、测试等。
+3. **运行自动化测试**：执行单元测试、集成测试，确保代码正确。
+4. **构建和部署**（可选）：如果测试通过，可以自动部署应用到测试环境或生产环境。
+
+你在 GitHub 相关章节中提到的 **GitHub Actions** 就是 GitHub 提供的 CI/CD 解决方案，可以用 YAML 文件定义自动化流程。
+:::
+
+## GitHub Pages
+
+GitHub Pages 是 GitHub 提供的静态网站托管服务，适用于个人博客、软件文档等。
+
+主要功能：
+
+- **自动部署**：支持从 `main` 或 `gh-pages` 分支自动构建网站。
+- **Jekyll 支持**：可使用 Jekyll 生成静态网站。
+- **自定义域名**：支持绑定自定义域名。
+
+启用 GitHub Pages 的方法：
+
+1. 在仓库的 `Settings` > `Pages` 选项中配置发布源。
+2. 选择 `main` 分支或 `docs` 目录作为站点源。
+3. 访问 `https://username.github.io/repository` 预览。
+
+::: {.callout-note}
+
+要将 GitHub Pages (`gh-pages` 分支) 发布到 Netlify，可以按照以下步骤进行：
+
+1. **登录 Netlify**：访问 [Netlify](https://www.netlify.com/) 并使用 GitHub 账号登录。
+2. **创建新站点**：在 Netlify 仪表盘点击 **“Add new site” → “Import from GitHub”**。
+3. **选择仓库**：授权 Netlify 访问 GitHub，然后选择你的项目仓库。
+4. **配置构建**：
+   - **Branch**：选择 `gh-pages` 分支（如果是其他分支，手动修改）。
+   - **Build command**：通常 `gh-pages` 分支已包含静态文件，留空即可。
+   - **Publish directory**：填写 `.` 或 `_site`（如果使用 Jekyll/Hugo）。
+5. **部署**：点击 **“Deploy site”**，Netlify 会自动拉取 `gh-pages` 分支内容并发布。
+:::
+
+## 结论
+
+GitHub 提供了丰富的功能，涵盖代码托管、协作、自动化和网站托管等方面。掌握这些功能可以帮助开发者更高效地管理项目，提高团队协作效率。
+
