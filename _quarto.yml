@@ -90,8 +90,10 @@ format:
     warning: false
     message: false
     include-after-body:
+        - giscus.html
         - text: |
               <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+              <script async src="https://hypothes.is/embed.js"></script>
   pdf:
     documentclass: scrreprt
     papersize: a4
