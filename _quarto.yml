@@ -89,6 +89,8 @@ format:
     out-width: 100%
     warning: false
     message: false
+    include-in-header:
+        - ga.html
     include-after-body:
         - giscus.html
         - text: |
