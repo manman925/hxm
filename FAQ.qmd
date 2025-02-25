@@ -1,0 +1,34 @@
+# 拾遗
+
+
+## 多变量分布和相关性作图
+
+> 来自同学汪意茹的提问：如何绘制多变量之间的关系图？
+
+使用 `GGally` 包中的 `ggpairs` 函数可以绘制多变量之间的关系图。
+
+下面是一个可复现的示例：
+
+```{r}
+library(GGally)
+library(ggplot2)
+
+# 生成示例数据
+set.seed(123)
+df = as.data.frame(matrix(rnorm(100 * 5), ncol = 5))
+colnames(df) = paste0("Var", 1:5)
+
+# 绘制变量间的关系
+ggpairs(df, 
+        lower = list(continuous = wrap("points", alpha = 0.5)),  # 下三角：散点图
+        diag = list(continuous = wrap("densityDiag")),          # 对角线：密度图
+        upper = list(continuous = wrap("cor", size = 5)))       # 上三角：相关系数
+```
+
+上面的代码中，首先生成了一个 100 行 5 列的数据框，然后使用 `ggpairs` 函数绘制了变量间的关系图。其中，
+
+- `lower` 参数用于指定下三角的图形，这里使用了 `points` 函数绘制散点图，`alpha` 参数用于指定透明度；
+- `diag` 参数用于指定对角线的图形，这里使用了 `densityDiag` 函数绘制密度图；
+- `upper` 参数用于指定上三角的图形，这里使用了 `cor` 函数绘制相关系数图，`size` 参数用于指定相关系数的字体大小。
+
+`GGally` 包还提供了其他的图形函数，例如 `barDiag`、`boxplotDiag`、`dotplotDiag`、`histDiag`、`qqDiag`、`rcorr`、`rcorrDiag`、`rcorrPlot`、`rcorrPlotDiag`、`smoothDiag`、`textDiag` 等，可以根据需要选择合适的图形函数。
