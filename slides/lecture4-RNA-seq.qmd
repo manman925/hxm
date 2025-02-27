@@ -70,6 +70,7 @@ bibliography:
 ## 基因组文件格式
 
 -   `*.fasta`：基因组序列
+-   第一行是序列 ID，后跟碱基序列。
 
 ``` bash
 head genome.fa
@@ -82,9 +83,24 @@ head ../data/RNA-seq/data/genome/genome.fa
 
 ------------------------------------------------------------------------
 
+## 测序文件格式
+
+-  `*.fastq`、`*.fq`、`*.fq.gz`：测序结果文件
+-  有测序公司提供的原始结果，为了减少磁盘占用，通常以 `gz` 格式压缩
+
+```bash
+head control_1_1.fq
+```
+
+```{bash}
+#| echo: false
+zcat ../data/RNA-seq/data/reads/control_1_1.fq.gz | head
+```
+
 ## 基因组文件格式
 
 -   `*.gtf`：基因组注释  
+-   可从基因组注释数据库中下载，也可使用自己的注释结果
 
 ``` bash
 head annotation.gtf
@@ -384,6 +400,7 @@ library(DESeq2) # 用于差异表达分析
 library(dplyr) # 用于数据处理
 library(tidyr) # 用于数据转换
 library(tibble) # 用于数据处理
+library(ggplot2) # 用于数据可视化
 
 # 设置绘图默认主题
 theme_set(theme_bw())
@@ -393,7 +410,7 @@ theme_set(theme_bw())
 
 ### 数据预处理
 
-构建一个函数对数据按物种筛选、转换为计数矩阵和样本信息：
+构建函数对数据按物种筛选、转换为计数矩阵和样本信息：
 
 ```{r}
 myDESeqMatrix <- function(ht_counts, org = NULL) {
@@ -620,21 +637,10 @@ deg_count <- function(data) {
         ratio,
         levels = c("less", "equal", "more"),
         labels = c("1:1000", "1:1", "1000:1")
-      ),
-      type = factor(
-        type,
-        levels = c("up", "dn"),
-        labels = c("Up", "Down")
       )
     ) %>%
     # 使用更高效的分组补全方式
-    group_by(ratio) %>%
-    complete(
-      time = full_seq(time, 1),
-      type,
-      fill = list(count = 0)
-    ) %>%
-    ungroup()
+    complete(ratio, time, type, fill = list(count = 0))
 }
 ```
 
@@ -719,13 +725,8 @@ deg2 <- bind_rows(DEG_results.PP) %>%
   mutate(comparison = gsub("_vs_.*", "", comparison),
          ratio = gsub("_.*", "", comparison),
          time = gsub(".*_", "", comparison))
-
-# 如未安装 KEGG.db 则安装
-if (!requireNamespace("KEGG.db", quietly = TRUE)) {
-  install.packages("deg/KEGG.db_1.0.tar.gz")
-}
-library(KEGG.db)
 ```
+
 
 ------------------------------------------------------------------------
 
@@ -750,6 +751,29 @@ ck2 <- compareCluster(
   fun = "enrichKEGG",
   organism = "ppu",
   use_internal_data = FALSE
+)
+```
+
+
+-----------------------------------------------------------------------
+
+为了保证可复现，文章提供了一个 KEGG 数据库的快照版本。防止数据库更新后造成结果的差异。
+
+```r
+# 如未安装 KEGG.db 则安装
+if (!requireNamespace("KEGG.db", quietly = TRUE)) {
+  install.packages("deg/KEGG.db_1.0.tar.gz")
+}
+library(KEGG.db)
+
+library(clusterProfiler) # 用于富集分析
+
+ck1 <- compareCluster(
+  gene ~ ratio + time,
+  data = deg1,
+  fun = "enrichKEGG",
+  organism = "eco",
+  use_internal_data = TRUE
 )
 ```
 
@@ -793,7 +817,7 @@ plot_grid(p1, p2, rel_heights = c(1, 0.3), ncol = 1, labels = "auto", align = "v
 
 ```{r}
 # 显示预计算的基因表达数据（示例）
-gene_expression.EC[[1]]
+head(gene_expression.EC[[1]])
 
 # 定义提取基因列表的函数
 get_genelist <- function(x) {
