@@ -55,7 +55,7 @@
 
 下面是根据提纲展开的详细操作步骤说明，每一步均附有具体的操作说明和注意事项，帮助你在电脑上搭建一个可重复的数据分析环境。
 
-### 安装脚本语言工具 R
+### 安装脚本语言工具 R {#sec-install-r}
 
 #### 安装 R（最新版本）
 
@@ -110,6 +110,25 @@
      devtools::install_github("gaospecial/ggVennDiagram")
      ```
   4. 安装完成后，通过 `library(ggVennDiagram)` 加载包检查是否正常。
+
+
+::: {.callout-tip}
+**给 R 包安装提速**
+
+不管是安装 CRAN、Bioconductor 还是 GitHub 上面的 R 包，都需要首先把 R 包下载到本地电脑中才能进行。通过设置镜像网站，可以显著提升 R 包安装的速度。在 R 终端中输入下列命令，可以修改默认源到中科大的镜像。
+
+```r
+options(
+  # 使用中科大镜像作为 CRAN 包的安装源
+  repos = c(CRAN = "https://mirrors.ustc.edu.cn/CRAN/"),
+
+  # 使用中科大镜像作为 Bioconductor 包的安装源
+  BioC_mirror = "https://mirrors.ustc.edu.cn/bioc/")
+```
+
+将上述配置添加到 `~/.Rprofile` 文件中，则可以在每次打开 R 的时候，自动修改为镜像服务器。
+
+:::
 
 ---
 
