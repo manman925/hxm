@@ -46,6 +46,7 @@ book:
         - microbiome-data-analysis-and-visualization.qmd
     - part: 大模型API调用
       chapters:
+        - how-to-get-api-key.qmd
         - huggingface.qmd
         - chatanywhere.qmd
         - bailian.qmd
