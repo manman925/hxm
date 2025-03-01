@@ -47,6 +47,7 @@ book:
     - part: 大模型API调用
       chapters:
         - how-to-get-api-key.qmd
+        - reading-paper.qmd
         - huggingface.qmd
         - chatanywhere.qmd
         - bailian.qmd

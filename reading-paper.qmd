@@ -1,0 +1,224 @@
+# AI 批量读文献
+
+```{python}
+#| label: setup
+#| include: false
+import os
+import json
+from pathlib import Path
+from datetime import datetime
+from openai import OpenAI
+
+# 初始化百炼客户端
+client = OpenAI(
+    api_key=os.getenv("DASHSCOPE_API_KEY"),
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+)
+
+# 配置路径
+PDF_BASE_DIR = Path("paper")
+CACHE_DIR = Path("output/data-processed/paper-cache/")
+FILEID_CACHE_DIR = Path("output/data-processed/fileid-cache/")  # 新增fileid缓存目录
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+FILEID_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+```
+
+
+```{python}
+#| include: false
+# 提示词模板
+PROMPT_TEMPLATE = """请按照以下步骤对英文文献进行深入解读和分析，确保结果逻辑清晰、内容全面：
+
+### 基本信息提取
+
+提取文章标题、作者、通讯作者的单位（附中文翻译）、发表年份、期刊名称等关键信息。
+
+### 研究背景
+
+- 总结文献的研究背景，说明研究所解决的问题或提出的假设。
+- 明确指出作者的研究目的和研究动机。
+
+### 研究结论
+
+- 概述文章的核心发现和关键数据。
+- 对图表、统计数据和实验结果进行总结和分析。
+- 强调研究结果对原始问题的解答和新发现。
+
+### 核心创新点
+
+- 指出文献在理论、方法或实践方面的创新与独特贡献。
+- 讨论该研究如何推动领域的发展，及其实际应用意义。
+
+### 实验设计
+
+- 指出研究使用的样品来源，材料出处等。
+- 描述作者采用的研究方法（如实验、调查、建模、定量/定性分析等）。
+- 解释数据来源、采集方式以及实验设计或分析框架。
+
+### 讨论
+
+分析作者如何讨论结果及其对研究领域的影响，并指出研究局限性、未解决的问题或作者提出的未来研究方向。
+
+### 产业转化可行性
+
+评估研究在产业转化上的前景并给出理由。
+
+### 结论
+
+最后，用一句话讲清楚研究的重要发现及意义。
+
+
+请确保在解读过程中：
+
+- 语言表达准确、逻辑清晰；
+- 分析内容既关注整体框架也注意细节；
+- 引用和解释关键概念和数据时要做到充分且有条理。
+
+注意：在输出列表的时候，需要再列表头与列表项之间加入两个空行（换行符），否则Quarto渲染时候会出错。
+"""
+
+def process_title(title):
+    # 处理双大括号字面量(需优先处理)
+    title = re.sub(r'{{(.*?)}}', r'{\1}', title)
+    # 移除大小写保护括号
+    title = re.sub(r'{(.*?)}', r'\1', title)
+    # 转换LaTeX特殊字符到Unicode
+    latex_to_unicode = {
+        r"{\\\'i}": "í",    # 匹配{\'i}
+        r"{'i}": "í",       # 匹配{'i}
+        r"{\\\'\i}": "í",  # 匹配{\'\i}
+        r"{\\'a}": "á",
+        r"{\\'e}": "é",
+        r"{\\'o}": "ó",
+        r"{\\'u}": "ú",
+        r"{\\~n}": "ñ",
+        r"{\\'c}": "ć",
+        r'{\\"u}': 'ü',
+        r'{\\ss}': 'ß',
+        r"{í}": "í"         # 处理已正确编码但被大括号包裹的情况
+    }
+    for pattern, replacement in latex_to_unicode.items():
+        title = re.sub(re.escape(pattern), replacement, title)
+    # 清理残留反斜杠（匹配1个或多个反斜杠）
+    title = re.sub(r'\\+', '', title)
+    # 处理特殊单引号转义
+    title = re.sub(r"{\\'}", "'", title)
+    # print(f"标题转换前: {title} => 转换后: {title}")  # 调试日志
+    return title
+
+def get_pdf_files():
+    """获取paper目录下的所有pdf文件"""
+    pdf_files = []
+    for file in PDF_BASE_DIR.glob("*.pdf"):
+        pdf_files.append({
+            "ID": file.stem,
+            "title": str(file),
+            "pdf_path": str(file)
+        })
+    return pdf_files
+
+def process_paper(entry):
+    """处理单个文献条目"""
+    cache_file = CACHE_DIR / f"{entry['ID']}.json"
+    fileid_cache_file = FILEID_CACHE_DIR / f"{entry['ID']}.txt"
+    
+    # 检查处理结果缓存
+    if cache_file.exists():
+        with open(cache_file, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    
+    # 检查PDF文件存在性
+    pdf_path = Path(entry['pdf_path'])
+    print(f"正在检查PDF文件路径: {pdf_path}")  # 调试日志
+    if not pdf_path.exists():
+        print(f"警告：跳过未找到的PDF文件: {pdf_path}")
+        return None
+    
+    try:
+        # 检查文件ID缓存
+        if fileid_cache_file.exists():
+            with open(fileid_cache_file, 'r', encoding='utf-8') as f:
+                file_id = f.read().strip()
+        else:
+            # 上传文件并缓存ID
+            file_object = client.files.create(
+                file=Path(entry['pdf_path']),
+                purpose="file-extract"
+            )
+            file_id = file_object.id
+            with open(fileid_cache_file, 'w', encoding='utf-8') as f:
+                f.write(file_id)
+        
+        completion = client.chat.completions.create(
+            model="qwen-long",
+            messages=[
+                {'role': 'system', 'content': f'fileid://{file_id}'},
+                {'role': 'user', 'content': PROMPT_TEMPLATE}
+            ],
+            temperature=0.2
+        )
+        
+        # 解析结果并缓存
+        result = {
+            "id": entry['ID'],
+            "title": entry['title'],
+            "content": completion.choices[0].message.content,
+            "processed_at": datetime.now().isoformat()
+        }
+        
+        with open(cache_file, 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
+            
+        return result
+    
+    except Exception as e:
+        print(f"处理文献 {entry['ID']} 时出错: {str(e)}")
+        # 清理可能不完整的缓存
+        if 'file_id' in locals() and not fileid_cache_file.exists():
+            fileid_cache_file.unlink(missing_ok=True)
+        return None
+
+def generate_markdown(result):
+    """生成Markdown格式的报告"""
+    if not result:
+        return ""
+    
+    md_content = f"""
+## {result['title']}
+
+{result['content']}
+
+---
+"""
+    return md_content
+```
+
+
+```{python}
+# 主处理流程
+entries = get_pdf_files()
+
+len(entries)
+```
+
+
+```{python}
+all_results = []
+for entry in entries:
+    result = process_paper(entry)
+    if result:
+        all_results.append(result)
+```
+
+
+```{python}
+# 生成最终报告
+output = "\n".join([generate_markdown(r) for r in all_results])
+```
+
+
+```{python}
+#| output: asis
+#| echo: false
+print(output)
+```
