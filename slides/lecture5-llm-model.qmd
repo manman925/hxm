@@ -21,9 +21,11 @@ bibliography:
 
 ## 大模型简史
 
-*截止2024年12月31日发生的故事*
 
 <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113747259558558&bvid=BV1Vq6HYbEfT&cid=27629456558&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="600px"></iframe>
+
+*截止2024年12月31日发生的故事*
+
 
 ## DeepSeek 带来的巨大冲击
 
