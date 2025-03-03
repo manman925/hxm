@@ -1,8 +1,11 @@
 # AI 批量读文献
 
+## 批处理程序
+
+### 配置客户端和缓存
+
 ```{python}
 #| label: setup
-#| include: false
 import os
 import json
 from pathlib import Path
@@ -23,9 +26,9 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 FILEID_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 ```
 
+### 设定提示词
 
 ```{python}
-#| include: false
 # 提示词模板
 PROMPT_TEMPLATE = """请按照以下步骤对英文文献进行深入解读和分析，确保结果逻辑清晰、内容全面：
 
@@ -76,14 +79,19 @@ PROMPT_TEMPLATE = """请按照以下步骤对英文文献进行深入解读和�
 
 注意：在输出列表的时候，需要再列表头与列表项之间加入两个空行（换行符），否则Quarto渲染时候会出错。
 """
+```
 
+
+### 编写自定义函数
+
+
+```{python}
 def get_pdf_files():
     """获取paper目录下的所有pdf文件"""
     pdf_files = []
     for file in PDF_BASE_DIR.glob("*.pdf"):
         pdf_files.append({
             "ID": file.stem,
-            "title": str(file),
             "pdf_path": str(file)
         })
     return pdf_files
@@ -132,7 +140,7 @@ def process_paper(entry):
         # 解析结果并缓存
         result = {
             "id": entry['ID'],
-            "title": entry['title'],
+            "title": entry['pdf_path'],
             "content": completion.choices[0].message.content,
             "processed_at": datetime.now().isoformat()
         }
@@ -187,6 +195,8 @@ for entry in entries:
 output = "\n".join([generate_markdown(r) for r in all_results])
 ```
 
+
+## 输出报告
 
 ```{python}
 #| output: asis

@@ -1,0 +1,214 @@
+---
+title: "大模型 API 调用实战"
+author: "高春辉"
+format:
+  revealjs: 
+    theme: white
+    echo: true
+    message: true
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    css: slide.css
+    footer: '[课程仓库](https://github.com/D2RS-2025spring)'
+  pptx:
+    reference-doc: template.pptx
+bibliography: 
+    - ../references.bib
+    - ../packages.bib
+---
+
+## 大模型简史
+
+*截止2024年12月31日发生的故事*
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113747259558558&bvid=BV1Vq6HYbEfT&cid=27629456558&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="600px"></iframe>
+
+## DeepSeek 带来的巨大冲击
+
+- 开源，任何人可以部署，可以商业化使用；
+- 极低成本训练和调用；
+- 性能直逼最好的闭源模型。
+
+## 使用 API 调用大语言模型
+
+- 在阿里云百炼平台申请一个 API KEY
+- 下载 ChatBox 应用程序
+- 配置 ChatBox 调用阿里云百炼的 DeepSeek R1 模型（`deepseek-r1`)
+- 在 ChatBox 中自定义文献解读的对话
+
+---
+
+### 在阿里云百炼平台申请一个 API KEY
+
+<iframe src="https://www.aliyun.com/product/bailian" width="100%" height="600px"></iframe>
+
+---
+
+### 下载 ChatBox 应用程序
+
+<iframe src="https://chatboxai.app/zh" width="100%" height="600px"></iframe>
+
+---
+
+### ChatBox 配置 API KEY
+
+**屏幕演示**
+
+- API 域名：`https://dashscope.aliyuncs.com/compatible-mode/v1`
+- API 路径：`/chat/completions`
+- API KEY：`sk-adfadfa`
+- 模型：`deepseek-r1`
+
+---
+
+### 在 ChatBox 中自定义文献解读的对话 {.scrollable}
+
+**屏幕演示**
+
+- 新建一个会话
+- 添加一个文献解读的系统提示词
+
+```
+请按照以下步骤对英文文献进行深入解读和分析，确保结果逻辑清晰、内容全面：
+
+## 基本信息提取
+
+提取文章标题、作者、发表年份、期刊名称等关键信息。
+
+## 研究背景与目的
+
+总结文献的研究背景，说明研究所解决的问题或提出的假设。
+明确指出作者的研究目的和研究动机。
+
+## 研究方法
+
+描述作者采用的研究方法（如实验、调查、建模、定量/定性分析等）。
+解释数据来源、采集方式以及实验设计或分析框架。
+分析所选方法的优势和可能存在的局限性。
+
+## 主要发现与结果
+
+概述文章的核心发现和关键数据。
+对图表、统计数据和实验结果进行总结和分析。
+强调研究结果对原始问题的解答和新发现。
+
+## 讨论与结论
+
+分析作者如何讨论结果及其对研究领域的影响。
+总结文章的结论，并指出研究局限性、未解决的问题或作者提出的未来研究方向。
+
+## 创新点与贡献
+
+指出文献在理论、方法或实践方面的创新与独特贡献。
+讨论该研究如何推动领域的发展，及其实际应用意义。
+
+## 个人评价与启示
+
+提出对文献整体质量、方法合理性和结果可信度的评价。
+指出文献中的不足或存在争议之处。
+给出自己对相关领域未来研究的建议和启示。
+
+请确保在解读过程中：
+语言表达准确、逻辑清晰；
+分析内容既关注整体框架也注意细节；
+引用和解释关键概念和数据时要做到充分且有条理。
+```
+
+---
+
+## 批量解读文献
+
+如果有非常多的文献，怎么办？
+
+<iframe src="https://d2rs.bio-spring.top/reading-paper.html" width="100%" height="600px"></iframe>
+
+
+
+## 召唤 Python 来为你打工
+
+- 安装 Conda
+- 配置 Conda 使用国内（如清华大学）的源
+- 初始化一个 Conda 环境：`conda create -n llm python=3.10`
+- 在 `llm` 环境中安装 Python 的 openai 模块
+- 使用 Python 编写程序，批处理指定文件夹中的文档
+- 使用 Quarto 技术将文档输出成网页
+
+---
+
+### [安装 Conda](https://www.anaconda.com/download/)
+
+<iframe src="https://www.anaconda.com/download/" width="100%" height="600px"></iframe>
+
+---
+
+### 配置 Conda 源
+
+<iframe src="https://mirrors.tuna.tsinghua.edu.cn/help/anaconda/" width="100%" height="600px"></iframe>
+
+---
+
+### [初始化 Conda 环境](https://anaconda.org/conda-forge/openai)
+
+```
+conda create -n llm python=3.10 
+conda activate llm
+conda install openai # https://anaconda.org/conda-forge/openai
+```
+
+<iframe src="https://anaconda.org/conda-forge/openai" width="100%" height="600px"></iframe>
+
+---
+
+## 安排和配置使用 VSCode 
+
+- 安装 VSCode
+- 安装 Quarto 插件
+- 安装 R 语言插件
+- 安装 Python 语言插件
+- 安装 Cline 插件
+
+
+---
+
+### [安装 VSCode](https://code.visualstudio.com/)
+
+<iframe src="https://code.visualstudio.com/" width="100%" height="600px"></iframe>
+
+---
+
+### 安装 VSCode 插件
+
+- 安装 Quarto 插件
+- 安装 R 语言插件
+- 安装 Python 语言插件
+- 安装 Cline 插件
+
+---
+
+## 实现批量读文献的流程
+
+**屏幕演示**
+
+---
+
+## 更多 API 调用知识
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=114002642537724&bvid=BV1LEKMexEV7&cid=28391309746&p=1" width="100%" height="600px"></iframe>
+
+---
+
+## 更多的大模型
+
+- 阿里云百炼
+- Huggingface
+- ChatAnyWhere
+- DeepSeek
+
+---
+
+## 文献知识库
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113995746902713&bvid=BV1DeKHeDETj&cid=28369161137&p=1" width="100%" height="600px"></iframe>
+

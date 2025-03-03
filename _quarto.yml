@@ -48,9 +48,9 @@ book:
       chapters:
         - how-to-get-api-key.qmd
         - reading-paper.qmd
+        - bailian.qmd
         - huggingface.qmd
         - chatanywhere.qmd
-        - bailian.qmd
         - deepseek.qmd
     - part: 从零开始神经网络
       chapters:
