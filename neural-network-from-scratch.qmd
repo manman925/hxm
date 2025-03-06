@@ -1,10 +1,28 @@
 # 手搓神经网络模型
 
+## 先决条件
+
+在开始之前，请确保您具备以下知识和环境配置：
+
+1. **Python 编程基础**：熟悉基本的 Python 语法和常用库
+2. **环境配置**：
+   - Python 3.10 或更高版本
+   - Conda 包管理工具
+   - PyTorch 2.0 或更高版本
+   - GPU 支持（可选，但推荐）
+
+如果您还没有准备好这些环境，请先按照 [./setup-a-reproducible-envionment.qmd] 部分的说明进行设置。
+
+## 概述
+
 本项目将展示如何利用 PyTorch 从零开始构建一个神经网络模型，以解决手写字母（实际上这里使用的是 MNIST 手写数字）识别问题。本文内容不仅介绍了神经网络的基础知识、训练本质和卷积操作的优势，还给出了完整代码实现，让你能够亲自动手构建并训练模型。
 
 ## 神经网络模型基础
 
 在开始代码实现之前，我们先介绍一些神经网络的基本概念和原理。
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113332711333508&bvid=BV1atCRYsE7x&cid=26360022345&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+
 
 ### 什么是神经网络？
 
@@ -20,8 +38,53 @@
 
 ```{mermaid}
 flowchart LR
-    A[输入层] --> B[隐藏层]
-    B --> C[输出层]
+  %% 输入层
+  subgraph 输入层
+    A1
+    A2
+    A3
+    A4
+    A5
+  end
+
+  %% 隐藏层 1
+  subgraph 隐藏层 1
+    H11
+    H12
+  end
+
+  %% 隐藏层 2
+  subgraph 隐藏层 2
+    H21
+    H22
+  end
+
+  %% 输出层
+  subgraph 输出层
+    O1((y))
+  end
+
+  %% 连接 输入层 → 隐藏层 1
+  A1 --> H11
+  A1 --> H12
+  A2 --> H11
+  A2 --> H12
+  A3 --> H11
+  A3 --> H12
+  A4 --> H11
+  A4 --> H12
+  A5 --> H11
+  A5 --> H12
+
+  %% 连接 隐藏层 1 → 隐藏层 2
+  H11 --> H21
+  H11 --> H22
+  H12 --> H21
+  H12 --> H22
+
+  %% 连接 隐藏层 2 → 输出层
+  H21 --> O1
+  H22 --> O1
 ```
 
 : 神经网络的基本结构。
@@ -84,8 +147,8 @@ MNIST 数据集便是一个经典的例子，它包含了 60000 张训练图像�
 ### 配置 Conda 环境
 
 ```bash
-# 创建一个新的 Conda 环境，命名为 pytorch_env，使用 Python 3.8 版本
-conda create -n pytorch_env python=3.8
+# 创建一个新的 Conda 环境，命名为 pytorch_env，使用 Python 3.10 版本
+conda create -n pytorch_env python=3.10
 
 # 激活该环境
 conda activate pytorch_env
@@ -140,25 +203,18 @@ test_dataset = datasets.MNIST(
     transform=transform
 )
 
-# 创建数据加载器
-train_loader = torch.utils.data.DataLoader(
-    dataset=train_dataset,
-    batch_size=64,
-    shuffle=True
-)
-
-test_loader = torch.utils.data.DataLoader(
-    dataset=test_dataset,
-    batch_size=1000,
-    shuffle=False
-)
 ```
+
+
 
 ### 绘制数据集
 
 绘制 12 张训练集和 4 张测试集图像，并在图上右下角标出数据集图像的id。
 
 ```{python}
+#| label: fig-example-of-numbers
+#| fig-cap: 手写数字示例（红色取自训练集，绿色取自测试集）
+#| out-width: 100%
 plt.figure(figsize=(10, 6))
 
 # 绘制训练集图像
@@ -307,6 +363,78 @@ print(model)
 
 接下来，我们将编写训练和测试的代码，并整合到主函数中，实现对模型的训练和评估。
 
+### 创建数据加载器
+
+在训练深度学习模型时，我们通常需要 **创建数据加载器（`DataLoader`）**，其主要作用如下：  
+
+**1. 方便批量处理（Mini-Batch）**
+
+训练时，我们不会一次性输入所有数据，而是 **按批次（Batch）输入**，这样可以：
+
+- **提高计算效率**：GPU 并行处理多个样本，比逐个样本计算更快。
+- **稳定梯度下降**：批量计算梯度，减少随机性，提高模型收敛速度。
+
+```python
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+```
+
+上面代码表示 **每次取 64 个样本进行训练**。
+
+**2. 随机打乱数据（Shuffle）**
+
+如果不打乱数据，模型可能会 **学习到数据的顺序，而不是特征模式**。  
+
+`shuffle=True` 确保每个 epoch 训练时，样本顺序是随机的，防止模型过拟合于数据的排列方式。
+
+
+**3. 自动并行加载数据**
+
+`DataLoader` 允许使用 **多线程并行加载数据**，这样可以加快训练：
+
+```python
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=4)
+```
+
+- `num_workers=4` 表示使用 4 个进程同时加载数据，提高效率。
+
+
+**4. 方便数据预处理**
+
+在 `DataLoader` 中，我们可以添加 **`transforms`（数据增强）**，比如：
+
+- **标准化**（Normalization）
+- **数据扩增**（Random Flip, Crop, Rotate）
+
+例如，对 `MNIST` 进行标准化：
+
+```python
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,))
+])
+
+train_dataset = datasets.MNIST(root='./data', train=True, transform=transform, download=True)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+```
+
+这样，我们就能高效地进行深度学习训练！🚀
+
+```{python}
+# 创建数据加载器
+train_loader = torch.utils.data.DataLoader(
+    dataset=train_dataset,
+    batch_size=64,
+    shuffle=True
+)
+
+test_loader = torch.utils.data.DataLoader(
+    dataset=test_dataset,
+    batch_size=1000,
+    shuffle=False
+)
+```
+
+
 ### 定义训练函数
 
 训练函数中，模型对每个批次数据进行前向传播，计算损失后进行反向传播，并使用优化器更新权重。每隔一定批次输出当前损失，方便观察训练进度。
@@ -418,21 +546,34 @@ def test(model, device, test_loader, criterion):
     model.eval()  # 将模型设置为评估模式，关闭 dropout 等训练特性
     test_loss = 0  # 初始化测试损失
     correct = 0    # 初始化预测正确的样本计数
+    all_preds = []  # 用于存储所有预测结果
+    all_targets = []  # 用于存储所有真实标签
+    
     # 在测试阶段不计算梯度，节省内存和加快计算速度
-    with torch.no_grad(): # 不计算梯度，节省内存和加快计算速度
+    with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += criterion(output, target).item() * data.size(0)
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
+            
+            # 收集预测结果和真实标签
+            all_preds.extend(pred.cpu().numpy().flatten())
+            all_targets.extend(target.cpu().numpy())
     
-    test_loss /= len(test_loader.dataset) # 计算平均损失
-    accuracy = 100. * correct / len(test_loader.dataset) # 计算准确率
-    return test_loss, accuracy
+    test_loss /= len(test_loader.dataset)  # 计算平均损失
+    accuracy = 100. * correct / len(test_loader.dataset)  # 计算准确率
+    
+    # 计算混淆矩阵
+    from sklearn.metrics import confusion_matrix
+    cm = confusion_matrix(all_targets, all_preds)
+    
+    return test_loss, accuracy, cm
 ```
 
 **代码说明：**  
+
 测试函数中，模型在测试集上进行前向传播，并累计计算总体损失与正确预测数量，最终输出平均损失及准确率，以评估模型的泛化能力。
 
 
@@ -468,7 +609,7 @@ def test(model, device, test_loader, criterion):
 模型训练推荐使用 CUDA 或 MPS 进行训练（GPU），如果 CUDA 或 MPS 不可用，则使用 CPU 进行训练。
 
 ```{python}
-# 主函数，整合数据加载、模型构建、训练和测试过程
+# 主函数：训练与评估模型
 # 检查是否有 GPU 可用，否则使用 CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
 
@@ -519,12 +660,12 @@ train_accs = []
 test_losses = []
 test_accs = []
 
-epochs = 5  # 设定训练轮数为 5
+epochs = 20  # 设定训练轮数为 20
 # 循环训练和测试模型
 for epoch in range(1, epochs + 1):
     # 训练并记录指标
     train_loss, train_acc = train(model, device, train_loader, optimizer, criterion, epoch)
-    test_loss, test_acc = test(model, device, test_loader, criterion)
+    test_loss, test_acc, cm = test(model, device, test_loader, criterion)
     
     # 保存指标
     train_losses.append(train_loss)
@@ -537,11 +678,45 @@ for epoch in range(1, epochs + 1):
     print(f"Test  - Loss: {test_loss:.4f}, Accuracy: {test_acc:.2f}%\n")
 ```
 
+
+::: {.callout-note}
+
+#### 训练一轮都发生了哪些计算？
+
+训练一轮（**epoch**）可以想象成小朋友学一道数学题的完整过程，分成以下几个步骤：
+
+1. **尝试解题（前向传播）**
+   - 你看到了一道数学题，比如 **"5 + 3 = ?"**。
+   - 你心里想一下，觉得答案应该是 **"8"**。
+
+2. **检查答案（计算损失）**
+   - 你把答案写在作业本上，然后老师告诉你对不对。
+   - 如果你写错了，比如写成 **"7"**，老师就会告诉你错了 **"1"**。
+
+3. **找出错在哪里（反向传播）**
+   - 你想一想，为什么错了？  
+   - 可能是你心算的时候少加了 **1**。
+
+4. **改正错误（参数更新）**
+   - 你下次遇到类似的题目，会更加小心，比如数手指来确认。
+   - 这样，你学得越来越好，错误越来越少。
+
+5. **重复练习**
+   - 你做完这道题，老师再给你新的题目。
+   - 你继续练习，直到你能快速又准确地做出答案。
+
+训练一轮就像这样，**让神经网络做题（预测）、检查答案（计算损失）、找错误（反向传播）、改正（更新参数）**，然后继续学习，直到变得很聪明！📚😊
+
+:::
+
 ### 绘制训练过程图表
 
 训练结束后，我们可以绘制训练过程的损失曲线和准确率曲线。
 
 ```{python}
+#| label: fig-traning-process
+#| fig-cap: 训练损失曲线和准确率变化
+#| out-width: 100%
 # 绘制训练过程图表
 epochs_range = range(1, epochs + 1)
 
@@ -844,6 +1019,8 @@ $$
 最终输出特征图将突出显示原始图像中的水平边缘。
 
 ```{python}
+#| label: fig-cnn-mechanism
+#| fig-cap: 图像的卷积操作
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import convolve2d
@@ -909,39 +1086,48 @@ print(conv1_weights)
 这些数值组合在实际运算中会产生类似边缘检测、角点检测的效果。
 
 ```{python}
+#| label: fig-cnn-and-pooling
+#| fig-cap: 图像的卷积和池化
 from scipy.signal import convolve2d
 from torch.nn import MaxPool2d
+import math
 
 # 最大池化层
 maxpool = MaxPool2d(kernel_size=2, stride=2)
 
-plt.figure(figsize=(4, 10))
+num_kernels = len(conv1_weights)
+num_cols = 6
+num_rows = math.ceil(num_kernels * 3 / num_cols)
+
+plt.figure(figsize=(num_cols * 2, num_rows * 2))
 
 for kernel_idx, kernel in enumerate(conv1_weights):
-    # 进行卷积
     convolved_image = convolve2d(matrix, kernel.squeeze().cpu().detach().numpy(), mode='valid')
     pooled_image = maxpool(torch.tensor(convolved_image).unsqueeze(0)).squeeze(0).cpu().detach().numpy()
 
-    plt.subplot(len(conv1_weights), 3, kernel_idx*3+1)
+    plt.subplot(num_rows, num_cols, kernel_idx * 3 + 1)
     plt.imshow(matrix, cmap='gray', interpolation='nearest')
     plt.title("Original")
     plt.axis("off")
 
-    plt.subplot(len(conv1_weights), 3, kernel_idx*3+2)
+    plt.subplot(num_rows, num_cols, kernel_idx * 3 + 2)
     plt.imshow(convolved_image, cmap='gray', interpolation='nearest')
     plt.title(f"Convolved ({kernel_idx + 1})")
     plt.axis("off")
 
-    plt.subplot(len(conv1_weights), 3, kernel_idx*3+3)
+    plt.subplot(num_rows, num_cols, kernel_idx * 3 + 3)
     plt.imshow(pooled_image, cmap='gray', interpolation='nearest')
     plt.title(f"Pooled ({kernel_idx + 1})")
     plt.axis("off")
 
+plt.tight_layout()
 plt.show()
+
 ```
 
 
 通过这种局部感受野的滑动计算，CNN能够逐层提取从简单到复杂的空间特征，最终形成对输入数据的层次化理解。
+
 
 ## 总结
 

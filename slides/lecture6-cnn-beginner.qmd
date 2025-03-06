@@ -1,0 +1,466 @@
+---
+title: "从零手搓神经网络"
+author: "高春辉"
+format:
+  revealjs: 
+    theme: white
+    echo: true
+    message: true
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    css: slide.css
+    footer: '[课程仓库](https://github.com/D2RS-2025spring)'
+  pptx:
+    reference-doc: template.pptx
+bibliography: 
+    - ../references.bib
+    - ../packages.bib
+---
+
+## 神经网络简介
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113332711333508&bvid=BV1atCRYsE7x&cid=26360022345&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%"></iframe>
+
+## 神经网络模型的结构
+
+```{mermaid}
+#| include: false
+flowchart LR
+  %% 输入层
+  subgraph 输入层
+    A1
+    A2
+    A3
+    A4
+    A5
+  end
+
+  %% 隐藏层 1
+  subgraph 隐藏层 1
+    H11
+    H12
+  end
+
+  %% 隐藏层 2
+  subgraph 隐藏层 2
+    H21
+    H22
+  end
+
+  %% 输出层
+  subgraph 输出层
+    O1((y))
+  end
+
+  %% 连接 输入层 → 隐藏层 1
+  A1 --> H11
+  A1 --> H12
+  A2 --> H11
+  A2 --> H12
+  A3 --> H11
+  A3 --> H12
+  A4 --> H11
+  A4 --> H12
+  A5 --> H11
+  A5 --> H12
+
+  %% 连接 隐藏层 1 → 隐藏层 2
+  H11 --> H21
+  H11 --> H22
+  H12 --> H21
+  H12 --> H22
+
+  %% 连接 隐藏层 2 → 输出层
+  H21 --> O1
+  H22 --> O1
+```
+
+
+
+## 先决条件
+
+在开始之前，请确保您具备以下知识和环境配置：
+
+1. **Python 编程基础**：熟悉基本的 Python 语法和常用库
+2. **环境配置**：
+   - Python 3.10 或更高版本
+   - Conda 包管理工具
+   - PyTorch 2.0 或更高版本
+   - GPU 支持（可选，但推荐）
+
+## 配置环境
+
+- 创建 Conda 环境
+  - `conda create -n lecture6`
+- 安装 Pytorch
+  - `conda activate lecture6`
+  - `conda install pytorch torchvision torchaudio -c pytorch`
+
+
+## 手写字母识别的历史 {.smaller}
+
+- 【邮政编码】：手写字母或数字识别一直是人工智能领域的经典问题。
+  - 早期研究中，专家需要手工设计特征提取方法来识别图像中的字母或数字。  
+  - 随着神经网络，尤其是卷积神经网络（CNN）的出现，系统能够自动学习并提取图像特征，大幅提升了识别准确率。 
+- 手写字母识别使用的**数据集**
+  - `MNIST` 数据集便是一个经典的例子，它包含了 60000 张训练图像和 10000 张测试图像，每张图像为 28x28 像素的灰度图，广泛用于手写数字识别的教学和研究中。
+
+
+## 导入需要用到的库
+
+
+```{python}
+# 导入必要的库
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+import torch.nn.functional as F
+```
+
+
+## 下载 MNIST 数据集
+
+我们将利用 torchvision 自动下载 MNIST 数据集。
+
+- `transforms.ToTensor()`  将 PIL 图像或 numpy 数组转换为 tensor，并将像素值归一化到 [0, 1] 范围内
+- `transforms.Normalize()` 进一步将数据标准化，均值和标准差是针对 MNIST 数据集计算得到的
+
+```{python}
+# 定义图像预处理流程
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,))
+])
+
+# 下载并加载数据集
+train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+```
+
+
+## 绘制数据集
+
+绘制 12 张训练集和 4 张测试集图像，并在图上右下角标出数据集图像的id。
+
+```{python}
+#| echo: false
+#| label: fig-example-of-numbers
+#| fig-cap: 手写数字示例（红色取自训练集，绿色取自测试集）
+#| out-width: 100%
+plt.figure(figsize=(10, 6))
+
+# 绘制训练集图像
+plt.title("MNIST Dataset Examples")
+for i in range(21): # 绘制 21 张训练集图像
+    plt.subplot(4, 7, i+1) # 绘制第 i+1 张图像
+    plt.axis("off") # 不显示坐标轴
+    img = train_dataset[i][0].squeeze() # 获取第 i 张图像
+    label = train_dataset[i][1] # 获取第 i 张图像的标签
+    plt.imshow(img, cmap="gray") # 绘制第 i 张图像
+    plt.text(18, 26, f"{label}", fontsize=10, color="red") # 在图像右下角标出红色标签
+
+# 绘制测试集图像
+for i in range(7): # 绘制 7 张测试集图像
+    plt.subplot(4, 7, i+22) # 绘制第 i+22 张图像
+    plt.axis("off") # 不显示坐标轴
+    img = test_dataset[i][0].squeeze() # 获取第 i 张图像
+    label = test_dataset[i][1] # 获取第 i 张图像的标签
+    plt.imshow(img, cmap="gray") # 绘制第 i 张图像
+    plt.text(20, 25, f"{label}", fontsize=10, color="green") # 在图像右下角标出绿色标签
+
+plt.tight_layout()
+plt.show()
+```
+
+
+## 构建 LeNet 模型 {.scrollable .smaller}
+
+下面代码定义了 LeNet 模型，其中包含两个卷积层、两个池化层和三个全连接层。每一步均附有详细注释。
+
+```{python}
+# 定义 LeNet 神经网络模型类，继承自 nn.Module
+class LeNet(nn.Module):
+    def __init__(self):
+        # 初始化父类 nn.Module
+        super(LeNet, self).__init__()
+        # 第一个卷积层：
+        # 输入通道：1（灰度图像），输出通道：6，卷积核大小：5x5
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5)
+        
+        # 定义池化层：
+        # 使用 2x2 的最大池化，能够减小特征图的尺寸
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        
+        # 第二个卷积层：
+        # 输入通道：6，输出通道：16，卷积核大小：5x5
+        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5)
+        
+        # 第一个全连接层：
+        # 输入特征数为 16*4*4（经过两次卷积和池化后的特征图尺寸），输出特征数为 120
+        self.fc1 = nn.Linear(in_features=16*4*4, out_features=120)
+        
+        # 第二个全连接层：将 120 个特征映射到 84 个特征
+        self.fc2 = nn.Linear(in_features=120, out_features=84)
+        
+        # 第三个全连接层：输出 10 个类别，对应 MNIST 中 10 个数字
+        self.fc3 = nn.Linear(in_features=84, out_features=10)
+
+    def forward(self, x):
+        # 将输入通过第一个卷积层，并使用 ReLU 激活函数增加非线性
+        x = torch.relu(self.conv1(x))
+        # 应用池化层，减小特征图尺寸
+        x = self.pool(x)
+        # 第二个卷积层 + ReLU 激活
+        x = torch.relu(self.conv2(x))
+        # 再次池化
+        x = self.pool(x)
+        # 将多维特征图展平为一维向量，为全连接层做准备
+        x = x.view(-1, 16*4*4)
+        # 第一个全连接层 + ReLU 激活
+        x = torch.relu(self.fc1(x))
+        # 第二个全连接层 + ReLU 激活
+        x = torch.relu(self.fc2(x))
+        # 第三个全连接层得到最终输出（未经过激活，后续会结合损失函数使用）
+        x = self.fc3(x)
+        return x
+```
+
+## LeNet 模型结构图 {.smalller}
+
+初始化一个 LeNet 模型，并打印其结构。
+
+```{python}
+model = LeNet()
+print(model)
+```
+
+**数据流向说明**：
+
+1. 输入的 28×28 图像首先经过第一个卷积层，生成 6 个 24×24 的特征图
+2. 经过池化层后，特征图变为 6 个 12×12
+3. 第二个卷积层将特征图转换为 16 个 8×8 的特征图
+4. 再次池化后，得到 16 个 4×4 的特征图
+5. 将特征图展平为一维向量（16×4×4 = 256）
+6. 通过三个全连接层逐步将特征降维，最终输出 10 个类别的概率分布
+
+
+## 创建数据加载器
+
+在训练深度学习模型时，我们通常需要 **创建数据加载器（`DataLoader`）**，以批量处理数据，打乱数据顺序等。
+
+```{python}
+# 创建数据加载器
+train_loader = torch.utils.data.DataLoader(
+    dataset=train_dataset,
+    batch_size=64,
+    shuffle=True
+)
+
+test_loader = torch.utils.data.DataLoader(
+    dataset=test_dataset,
+    batch_size=1000,
+    shuffle=False
+)
+```
+
+
+## 定义训练函数 {.smaller}
+
+训练函数中，模型对每个批次数据进行前向传播，计算损失后进行反向传播，并使用优化器更新权重。每隔一定批次输出当前损失，方便观察训练进度。
+
+```{python}
+# 定义训练函数，用于在训练集上训练模型
+def train(model, device, train_loader, optimizer, criterion, epoch):
+    model.train()
+    train_loss = 0
+    correct = 0
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = criterion(output, target)
+        loss.backward()
+        optimizer.step()
+        
+        # 累计损失和正确预测数
+        train_loss += loss.item() * data.size(0)
+        pred = output.argmax(dim=1, keepdim=True)
+        correct += pred.eq(target.view_as(pred)).sum().item()
+        
+        if batch_idx % 5000 == 0:
+            print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}]\tLoss: {loss.item():.6f}")
+    
+    # 计算平均损失和准确率
+    train_loss /= len(train_loader.dataset)
+    accuracy = 100. * correct / len(train_loader.dataset)
+    return train_loss, accuracy
+```
+
+## 优化器和损失函数
+
+在神经网络训练中，优化器和损失函数是两个核心组件：
+
+1. **随机梯度下降优化器（SGD）**：
+   - **用途**：通过计算损失函数对模型参数的梯度，沿着梯度的反方向更新参数
+   - **学习率**：控制每次参数更新的步长（这里设为 0.01）
+   - **动量**：这里设为 0.9，表示保留 90% 的历史梯度信息
+
+```{python}
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+```
+
+## 优化器和损失函数
+
+2. **交叉熵损失函数（CrossEntropyLoss）**：
+   - **用途**：计算多分类问题结果的一致性（如本例中的 10 个数字分类）
+   - **结果**：输出值在 [0, ∞) 范围内，0 表示完美预测
+
+```{python}
+criterion = nn.CrossEntropyLoss()
+```
+
+
+## 定义测试函数
+
+测试函数中，模型在测试集上进行前向传播，并累计计算总体损失与正确预测数量，最终输出平均损失及准确率，以评估模型的泛化能力。
+
+```{python}
+# 定义测试函数，用于评估模型在测试集上的表现
+def test(model, device, test_loader, criterion):
+    model.eval()  # 将模型设置为评估模式，关闭 dropout 等训练特性
+    test_loss = 0  # 初始化测试损失
+    correct = 0    # 初始化预测正确的样本计数
+    all_preds = []  # 用于存储所有预测结果
+    all_targets = []  # 用于存储所有真实标签
+    
+    # 在测试阶段不计算梯度，节省内存和加快计算速度
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += criterion(output, target).item() * data.size(0)
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+            
+            # 收集预测结果和真实标签
+            all_preds.extend(pred.cpu().numpy().flatten())
+            all_targets.extend(target.cpu().numpy())
+    
+    test_loss /= len(test_loader.dataset)  # 计算平均损失
+    accuracy = 100. * correct / len(test_loader.dataset)  # 计算准确率
+    
+    # 计算混淆矩阵
+    from sklearn.metrics import confusion_matrix
+    cm = confusion_matrix(all_targets, all_preds)
+    
+    return test_loss, accuracy, cm
+```
+
+
+## 主函数：训练与评估模型
+
+模型训练推荐使用 CUDA 或 MPS 进行训练（GPU），如果 CUDA 或 MPS 不可用，则使用 CPU 进行训练。
+
+```{python}
+# 主函数：训练与评估模型
+# 检查是否有 GPU 可用，否则使用 CPU
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
+
+# 实例化 LeNet 模型，并移动到指定设备上
+model = LeNet().to(device)
+```
+
+## 开始训练
+
+训练过程中，我们记录了训练损失、训练准确率、测试损失和测试准确率。
+
+
+```{python}
+# 用于记录训练过程的指标
+train_losses = []
+train_accs = []
+test_losses = []
+test_accs = []
+
+epochs = 4 # 设定训练轮数为 4
+# 循环训练和测试模型
+for epoch in range(1, epochs + 1):
+    # 训练并记录指标
+    train_loss, train_acc = train(model, device, train_loader, optimizer, criterion, epoch)
+    test_loss, test_acc, cm = test(model, device, test_loader, criterion)
+    
+    # 保存指标
+    train_losses.append(train_loss)
+    train_accs.append(train_acc)
+    test_losses.append(test_loss)
+    test_accs.append(test_acc)
+```
+
+
+## 训练一轮都发生了哪些计算？ {.smaller}
+
+训练一轮（**epoch**）可以想象成小朋友学一道数学题的完整过程，分成以下几个步骤：
+
+1. **尝试解题（前向传播）**
+   - 你看到了一道数学题，比如 **"5 + 3 = ?"**。
+   - 你心里想一下，觉得答案应该是 **"8"**。
+
+2. **检查答案（计算损失）**
+   - 你把答案写在作业本上，然后老师告诉你对不对。
+   - 如果你写错了，比如写成 **"7"**，老师就会告诉你错了 **"1"**。
+
+3. **找出错在哪里（反向传播）**
+   - 你想一想，为什么错了？  
+   - 可能是你心算的时候少加了 **1**。
+
+## 训练一轮都发生了哪些计算？ {.smaller}
+
+4. **改正错误（参数更新）**
+   - 你下次遇到类似的题目，会更加小心，比如数手指来确认。
+   - 这样，你学得越来越好，错误越来越少。
+
+5. **重复练习**
+   - 你做完这道题，老师再给你新的题目。
+   - 你继续练习，直到你能快速又准确地做出答案。
+
+训练一轮就像这样，**让神经网络做题（预测）、检查答案（计算损失）、找错误（反向传播）、改正（更新参数）**，然后继续学习，直到变得很聪明！📚😊
+
+## 绘制训练过程图表
+
+训练结束后，我们可以绘制训练过程的损失曲线和准确率曲线。
+
+```{python}
+#| label: fig-traning-process
+#| fig-cap: 训练损失曲线和准确率变化
+#| out-width: 100%
+# 绘制训练过程图表
+epochs_range = range(1, epochs + 1)
+
+plt.figure(figsize=(12, 5))
+
+# 绘制损失曲线
+plt.subplot(1, 2, 1)
+plt.plot(epochs_range, train_losses, 'bo-', label='Training Loss')
+plt.plot(epochs_range, test_losses, 'ro-', label='Test Loss')
+plt.title('Model Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+
+# 绘制准确率曲线
+plt.subplot(1, 2, 2)
+plt.plot(epochs_range, train_accs, 'bo-', label='Training Accuracy')
+plt.plot(epochs_range, test_accs, 'ro-', label='Test Accuracy')
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy (%)')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
