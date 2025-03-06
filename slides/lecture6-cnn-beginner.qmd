@@ -21,62 +21,7 @@ bibliography:
 
 ## 神经网络简介
 
-<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113332711333508&bvid=BV1atCRYsE7x&cid=26360022345&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%"></iframe>
-
-## 神经网络模型的结构
-
-```{mermaid}
-#| include: false
-flowchart LR
-  %% 输入层
-  subgraph 输入层
-    A1
-    A2
-    A3
-    A4
-    A5
-  end
-
-  %% 隐藏层 1
-  subgraph 隐藏层 1
-    H11
-    H12
-  end
-
-  %% 隐藏层 2
-  subgraph 隐藏层 2
-    H21
-    H22
-  end
-
-  %% 输出层
-  subgraph 输出层
-    O1((y))
-  end
-
-  %% 连接 输入层 → 隐藏层 1
-  A1 --> H11
-  A1 --> H12
-  A2 --> H11
-  A2 --> H12
-  A3 --> H11
-  A3 --> H12
-  A4 --> H11
-  A4 --> H12
-  A5 --> H11
-  A5 --> H12
-
-  %% 连接 隐藏层 1 → 隐藏层 2
-  H11 --> H21
-  H11 --> H22
-  H12 --> H21
-  H12 --> H22
-
-  %% 连接 隐藏层 2 → 输出层
-  H21 --> O1
-  H22 --> O1
-```
-
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113332711333508&bvid=BV1atCRYsE7x&cid=26360022345&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%"  height="600px"></iframe>
 
 
 ## 先决条件
@@ -104,8 +49,10 @@ flowchart LR
 - 【邮政编码】：手写字母或数字识别一直是人工智能领域的经典问题。
   - 早期研究中，专家需要手工设计特征提取方法来识别图像中的字母或数字。  
   - 随着神经网络，尤其是卷积神经网络（CNN）的出现，系统能够自动学习并提取图像特征，大幅提升了识别准确率。 
-- 手写字母识别使用的**数据集**
-  - `MNIST` 数据集便是一个经典的例子，它包含了 60000 张训练图像和 10000 张测试图像，每张图像为 28x28 像素的灰度图，广泛用于手写数字识别的教学和研究中。
+- 手写字母识别使用的**数据集**：`MNIST`
+  - 包含了 60000 张训练图像和 10000 张测试图像
+  - 每张图像为 28x28 像素的灰度图
+  - 广泛用于手写数字识别的教学和研究中
 
 
 ## 导入需要用到的库
@@ -137,14 +84,16 @@ transform = transforms.Compose([
 ])
 
 # 下载并加载数据集
-train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+train_dataset = datasets.MNIST(root='./data', train=True, download=True, 
+  transform=transform)
+test_dataset = datasets.MNIST(root='./data', train=False, download=True, 
+  transform=transform)
 ```
 
 
-## 绘制数据集
+## 绘制数据集 {.smaller}
 
-绘制 12 张训练集和 4 张测试集图像，并在图上右下角标出数据集图像的id。
+绘制 12 张训练集和 4 张测试集图像，并标出数据集图像的id。
 
 ```{python}
 #| echo: false
@@ -229,24 +178,32 @@ class LeNet(nn.Module):
         return x
 ```
 
-## LeNet 模型结构图 {.smalller}
+## 初始化模型 {.smalller}
 
-初始化一个 LeNet 模型，并打印其结构。
+初始化一个 LeNet 模型，并绑定设备（GPU）
+
+模型训练推荐使用 CUDA 或 MPS 进行训练（GPU），如果 CUDA 或 MPS 不可用，则使用 CPU 进行训练。
 
 ```{python}
-model = LeNet()
-print(model)
+# 检查是否有 GPU 可用，否则使用 CPU
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
+
+# 实例化 LeNet 模型，并移动到指定设备上
+model = LeNet().to(device)
 ```
 
-**数据流向说明**：
+## 打印模型结构
 
-1. 输入的 28×28 图像首先经过第一个卷积层，生成 6 个 24×24 的特征图
-2. 经过池化层后，特征图变为 6 个 12×12
-3. 第二个卷积层将特征图转换为 16 个 8×8 的特征图
-4. 再次池化后，得到 16 个 4×4 的特征图
-5. 将特征图展平为一维向量（16×4×4 = 256）
-6. 通过三个全连接层逐步将特征降维，最终输出 10 个类别的概率分布
 
+```{python}
+# 1. 输入的 28×28 图像首先经过第一个卷积层，生成 6 个 24×24 的特征图
+# 2. 经过池化层后，特征图变为 6 个 12×12
+# 3. 第二个卷积层将特征图转换为 16 个 8×8 的特征图
+# 4. 再次池化后，得到 16 个 4×4 的特征图
+# 5. 将特征图展平为一维向量（16×4×4 = 256）
+# 6. 通过三个全连接层逐步将特征降维，最终输出 10 个类别的概率分布
+print(model)
+```
 
 ## 创建数据加载器
 
@@ -324,9 +281,9 @@ criterion = nn.CrossEntropyLoss()
 ```
 
 
-## 定义测试函数
+## 定义测试函数 {.smaller}
 
-测试函数中，模型在测试集上进行前向传播，并累计计算总体损失与正确预测数量，最终输出平均损失及准确率，以评估模型的泛化能力。
+测试函数中，模型在测试集上进行前向传播，并累计计算总体损失与正确预测数量，最终输出平均损失及准确率，以评估模型的**泛化能力**。
 
 ```{python}
 # 定义测试函数，用于评估模型在测试集上的表现
@@ -361,23 +318,10 @@ def test(model, device, test_loader, criterion):
 ```
 
 
-## 主函数：训练与评估模型
 
-模型训练推荐使用 CUDA 或 MPS 进行训练（GPU），如果 CUDA 或 MPS 不可用，则使用 CPU 进行训练。
-
-```{python}
-# 主函数：训练与评估模型
-# 检查是否有 GPU 可用，否则使用 CPU
-device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu")
-
-# 实例化 LeNet 模型，并移动到指定设备上
-model = LeNet().to(device)
-```
-
-## 开始训练
+## 开始训练 {.smaller}
 
 训练过程中，我们记录了训练损失、训练准确率、测试损失和测试准确率。
-
 
 ```{python}
 # 用于记录训练过程的指标
@@ -403,7 +347,7 @@ for epoch in range(1, epochs + 1):
 
 ## 训练一轮都发生了哪些计算？ {.smaller}
 
-训练一轮（**epoch**）可以想象成小朋友学一道数学题的完整过程，分成以下几个步骤：
+训练一轮（**epoch**）可以想象成小朋友学一道数学题的完整过程：
 
 1. **尝试解题（前向传播）**
    - 你看到了一道数学题，比如 **"5 + 3 = ?"**。
@@ -429,14 +373,14 @@ for epoch in range(1, epochs + 1):
 
 训练一轮就像这样，**让神经网络做题（预测）、检查答案（计算损失）、找错误（反向传播）、改正（更新参数）**，然后继续学习，直到变得很聪明！📚😊
 
-## 绘制训练过程图表
+## 绘制训练过程图表 {.smaller}
 
 训练结束后，我们可以绘制训练过程的损失曲线和准确率曲线。
 
 ```{python}
 #| label: fig-traning-process
 #| fig-cap: 训练损失曲线和准确率变化
-#| out-width: 100%
+#| echo: false
 # 绘制训练过程图表
 epochs_range = range(1, epochs + 1)
 
@@ -464,3 +408,10 @@ plt.tight_layout()
 plt.show()
 ```
 
+## 总结
+
+- 模型架构
+- 数据集：训练数据集、测试数据集
+- 配置优化器和损失函数
+- 评估训练结果
+- 得到训练后的模型
