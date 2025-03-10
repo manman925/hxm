@@ -55,6 +55,7 @@ book:
     - part: 从零开始神经网络
       chapters:
         - neural-network-from-scratch.qmd
+        - two-dimensional-classification.qmd
     - part: 机器学习
       chapters:
         - machine-learning-algorithms-and-implementation.qmd
