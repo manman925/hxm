@@ -27,12 +27,12 @@ book:
         - setup-a-reproducible-environment.qmd
     - part: 基础知识
       chapters:
+        - literate-programming.qmd
         - linux-shell.qmd
         - r-basic.qmd
         - python-basic.qmd
         - python-vs-r.qmd
         - git-basic.qmd
-        - literate-programming.qmd
     - part: 分组数据分析
       chapters:
         - grouped-data-analysis.qmd

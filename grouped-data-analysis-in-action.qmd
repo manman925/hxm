@@ -198,8 +198,6 @@ carbon_name <- left_join(carbon_name, carbon_prefer)
 
 在大肠杆菌偏好的碳源中,大肠杆菌的 CUE 在统计学上显著高于恶臭假单胞菌,而在恶臭假单胞菌偏好的碳源中,恶臭假单胞菌的 CUE 在统计学上显著高于大肠杆菌。
 
-更多信息请参见[@fig-3]。
-
 ### 碳源汇总
 
 [@tbl-S1]列出了本研究使用的所有71种碳源，现在碳源增加了两列内容，一列为碳源利用分组（`usage`），一列为碳源利用偏好（`prefer`）。
@@ -280,7 +278,6 @@ aov_p <- compare_means(ratio1 ~ ratio0,
 aov_p
 ```
 
-ANOVA检验的显著性在 [@fig-2A] 中可视化,并在[@fig-2B]中给出了显著和非显著结果的五个示例。
 
 ### 最终比例 ANOVA 检验p值的密度分布
 
@@ -315,22 +312,6 @@ p2 <- ggplot(aov_p, aes(p.adj.signif,fill=prefer)) + geom_bar() +
   theme(legend.text = element_text(face="italic"),
         legend.position = c(0.65,0.7))
 p2
-```
-
-为了让图形布局更加紧凑，我们将 [@fig-aov-p-density] 和 [@fig-aov-p-bar] 合并为一个图[@fig-2A]。
-
-```{r}
-#| label: fig-2A
-#| fig-width: 7
-#| fig-height: 0.618
-#| fig-cap: "所有碳源中检验最终比例三种共培养是否不同的调整后p值(ANOVA)的密度分布。X轴表示调整后的p值,垂直线表示p值截断值(0.05)的位置。插图:柱状图显示调整后p值显著性的频数(**,p<0.01,*,p<0.05,ns,p≥0.05)。在柱状图中,频数按碳源偏好性着色。"
-
-# 使用 grid 将两个图合并为一个图
-library(grid)
-vp <- viewport(width=0.3,height=0.6,x=0.7,y=0.5)
-pushViewport(vp)
-print(p1)
-print(p2,vp=vp)
 ```
 
 ### 最终比例
@@ -467,7 +448,7 @@ p2
 首先，我们比较了单培养和共培养的碳源利用效率(CUE)。[@fig-coculture-enhance-CUE]显示了单培养和共培养的 CUE。为了便于比较，我们在图上做了一个水平参考线，表示所有样本的中位数。此外，还在图上标记了每个初始比例下的中位数。
 
 ```{r}
-#| label: coculture-enhance-CUE
+#| label: fig-coculture-enhance-CUE
 #| fig-cap: "单培养和共培养的比较。用箱线图显示了单培养和共培养的碳源利用效率(CUE)。为了便于比较，在图上做了一个水平参考线，表示所有样本的中位数。此外，还在图上标记了每个初始比例下的中位数。"
 p_cue <- ggplot(biolog_24h,aes(ratio0,A590)) + 
   geom_boxplot() +
@@ -485,44 +466,7 @@ p_cue <- ggplot(biolog_24h,aes(ratio0,A590)) +
 p_cue
 ```
 
-接下来，我们对不同初始比例下的碳源利用情况进行 PCA 分析。[@fig-s3]显示了碳源利用谱的 PCA 分析。椭圆代表聚类的 95% 置信区间。
-
-为了给 PCA 添加置信区间，我们定义了一个函数 `add_ellipase()`。这并不是必须的。而且，现在也有很多包可以实现这个功能。
-
-```{r}
-# 在PCA中添加置信区间
-add_ellipase <- function(p, x="PC1", y="PC2", group="group",
-                         ellipase_pro = 0.95,
-                         linetype="dashed",
-                         colour = "black",
-                         lwd = 1,...){
-  obs <- p$data[,c(x,y,group)]
-  colnames(obs) <- c("x", "y", "group")
-  ellipse_pro <- ellipase_pro
-  theta <- c(seq(-pi, pi, length = 50), seq(pi, -pi, length = 50))
-  circle <- cbind(cos(theta), sin(theta))
-  ell <- plyr::ddply(obs, 'group', function(x) {
-    if(nrow(x) <= 2) {
-      return(NULL)
-    }
-    sigma <- var(cbind(x$x, x$y))
-    mu <- c(mean(x$x), mean(x$y))
-    ed <- sqrt(qchisq(ellipse_pro, df = 2))
-    data.frame(sweep(circle %*% chol(sigma) * ed, 2, mu, FUN = '+'))
-    })
-  names(ell)[2:3] <- c('x', 'y')
-  
-  ell <- plyr::ddply(ell, plyr::.(group) , function(x) x[chull(x$x, x$y), ])
-  p <- p + geom_polygon(data = ell, 
-                        aes(x=x,y=y,group = group), 
-                        colour = colour,
-                        linetype=linetype,
-                        lwd =lwd,
-                        inherit.aes = F,
-                        ...)
-  return(p)
-}
-```
+接下来，我们使用 `vegan::rda()` 对不同初始比例下的碳源利用情况进行 PCA 分析。
 
 为了更好地理解不同初始比例菌群碳源利用谱的差异，我们将 PCA 分析结果绘制成图。[@fig-cue-pca]显示了碳源利用谱的 PCA 分析。椭圆代表聚类的 95% 置信区间。由图可知，这 5 组样品大体上被分为 3 类。第一类是大肠杆菌单独培养，第二类是恶臭假单胞菌和1:1000 共培养，第三类是大肠杆菌与恶臭假单胞菌 1:1 和 1000:1 的共培养。
 
@@ -530,7 +474,11 @@ add_ellipase <- function(p, x="PC1", y="PC2", group="group",
 #| label: fig-cue-pca
 #| fig-cap: "碳源利用谱的PCA分析。椭圆代表聚类的95%置信区间。"
 library(vegan)
+
+# PCA
 pca <- rda(t(M_A590_24h))
+
+# 计算贡献率
 percent_var <- pca$CA$eig/pca$tot.chi
 df <- scores(pca)$sites  %>%
   as.data.frame() %>%
@@ -539,18 +487,21 @@ df <- scores(pca)$sites  %>%
 df$ratio0 <- factor(df$ratio0, 
   levels = c("none","less","equal","more","all"),
   labels = c("P. putida","1:1000","1:1","1000:1","E. coli"))
+
+# 聚类
 group <- cutree(hclust(dist(t(M_A590_24h))),k=3)
-clustered_group <- as.data.frame(group) %>% tibble::rownames_to_column(var = "sample")
+clustered_group <- as.data.frame(group) %>% 
+  tibble::rownames_to_column(var = "sample")
 df = df |>  left_join(clustered_group) 
+
+# PCA plot
 p <- ggplot(df, aes(PC1,PC2,label=ratio0, color=ratio0))+
   geom_point(size=3) +
   scale_color_manual(values = brewer.pal(9,"YlOrRd")[5:9],name="initial ratio")+
   xlab(paste0("PC1: ", round(percent_var[1] * 100), "% Variance")) +
   ylab(paste0("PC2: ", round(percent_var[2] * 100), "% Variance"))
 
-p_pca <- add_ellipase(p,alpha=0.1,show.legend = F,lwd=1)
-
-p_pca
+p
 ```
 
 
@@ -571,7 +522,7 @@ pheatmap(t(M_A590_24h),
          cutree_cols = 3,
          # cutree_rows = 3,
          fontsize_col = 6,
-         silent = T)
+         silent = T) |> print()
 ```
 
 我们接下来分析，这14 种 U2 碳源下不同体系的CUE[@fig-u2-cue]。

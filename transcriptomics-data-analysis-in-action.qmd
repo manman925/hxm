@@ -10,11 +10,21 @@
 
 ```{r}
 # 读取 HT-seq 计数数据
-ht_counts <- readRDS("deg/data/ht_counts.rds")
+ht_counts <- readRDS("data/deg/ht_counts.rds")
 
 # 查看数据结构
-head(ht_counts)
+ht_counts
 ```
+
+这个数据有很多行，每一行包括一个基因在某一实验条件下的 Read counts。对其所有的列的解释如下：
+
+- `gene`：基因名。
+- `count`：基因的计数。基因在对应样本中的 reads count。
+- `sample_id`：样本 ID。样本的唯一标识。
+- `organism`：物种名称。`EC` 指这个基因是 *E. coli* 中的基因；`PP` 指这个基因是 *P. putida* 中的基因。
+- `time`：采样时间。间隔 4 h 取样，一共取样 48 h。
+- `ratio0`：初始比例。这里，`none` 表示为 *P. putida* 纯培养，`less` 表示 1:1000，`equal` 表示 1:1，`more` 表示 1000:1，`all` 表示为 *E. coli* 纯培养。
+- `group`：实验组别。按照初始比例和时间分组后，得到的实验组别。每个实验组别包括 3 个实验重复。
 
 ### 数据预处理
 
@@ -341,16 +351,6 @@ deg2 <- do.call("rbind", DEG_results.PP) %>%
 - `DEG_results.EC` 和 `DEG_results.PP` 是预先计算好的差异表达基因结果。
 - 使用 `separate` 函数将 `comparison` 列拆分为 `ratio`（比例条件）和 `time`（时间点）两列，方便后续分组分析。
 
-#### 安装 KEGG.db 包
-
-```{r}
-# 安装 KEGG.db 包
-if (!requireNamespace("KEGG.db", quietly = TRUE)) {
-  install.packages("deg/KEGG.db_1.0.tar.gz")
-}
-
-library(KEGG.db)
-```
 
 #### 执行 KEGG 富集分析
 
@@ -384,7 +384,6 @@ ck2 <- compareCluster(
 - `use_internal_data = TRUE` 表示使用 `clusterProfiler` 内置的 KEGG 数据库。
 
 #### 可视化富集分析结果
-
 
 ```{r}
 #| label: fig-kegg_plot
