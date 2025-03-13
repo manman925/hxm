@@ -20,7 +20,7 @@ book:
     - part: 课程简介
       chapters:
         - what-is-reproducible-study.qmd
-        - intro.qmd
+        - project-introduction.qmd
     - part: 环境搭建
       chapters:
         - reproducible-data-analysis-environment.qmd
@@ -104,7 +104,7 @@ format:
               <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
               <script async src="https://hypothes.is/embed.js"></script>
   pdf:
-    documentclass: scrreprt
+    documentclass: ctexbook
     papersize: a4
     margin: 1.5cm
     mermaid-format: png
@@ -116,10 +116,10 @@ format:
     out-width: 100%
     include-in-header:
           text: |
-            \sloppy
-            \usepackage{ctex}
-            \usepackage{amsthm,mathrsfs}
-            \usepackage{fvextra}
-            \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
-            \usepackage[version=4]{mhchem}
-            \usepackage{siunitx}
+            \sloppy % 解决中英文混排的断行问题
+            \usepackage{ctex} % 中文支持, 用于中文书籍排版
+            \usepackage{amsthm,mathrsfs} % 数学支持, 数学字体
+            \usepackage{fvextra} % 代码块支持, 代码块中支持断行
+            \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}} % 代码块中支持断行
+            \usepackage[version=4]{mhchem} % 化学方程式支持
+            \usepackage{siunitx} % 国际单位支持
