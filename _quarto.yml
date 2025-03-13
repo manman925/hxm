@@ -28,7 +28,7 @@ book:
     - part: 基础知识
       chapters:
         - literate-programming.qmd
-        - linux-shell.qmd
+        - cli.qmd
         - r-basic.qmd
         - python-basic.qmd
         - python-vs-r.qmd
