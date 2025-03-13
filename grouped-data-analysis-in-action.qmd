@@ -12,8 +12,8 @@
 
 ### 研究方法
 
-- 选取 **大肠杆菌 (E. coli K-12)** 与 **荧光假单胞菌 (P. putida KT2440)** 作为共培养模型
-- 在 71 种不同碳源条件下培养，初始比例从 **1:1000 到 1000:1**
+- 选取 **大肠杆菌 (E. coli K-12，EC)** 与 **荧光假单胞菌 (P. putida KT2440，PP)** 作为共培养模型
+- 在 71 种不同碳源条件下培养，初始比例分别为 **PP纯培养**、**1:1000（EC/PP）共培养**、**1:1（EC/PP）共培养**、 **1000:1（EC/PP）共培养**、**EC纯培养**
 - 通过比色法 (Biolog GEN III) 评估碳源利用率 (CUE)
 - 通过 qPCR 测定共培养中两种菌的相对丰度
 
@@ -31,42 +31,37 @@
 - **1:1000 共培养** 代谢能力较弱，与单菌培养相似
 - 可能机制：物种间 **代谢共生 (metabolic coupling)** 仅在特定初始比例下被触发
 
-#### 初始比例和碳源共同决定菌间相互作用
-
-- **1:1000 共培养**：主要为 **负相互作用**（62%）
-- **1:1 和 1000:1 共培养**：更易形成 **正相互作用**（46% 和 30%）
-- **代谢互补性** 可能依赖于足够数量的两种菌共存
-
 ### 研究结论
 
 - 初始接种比例不仅影响共培养实验的 **可重复性**，还可能 **改变微生物相互作用模式**
 - 碳源可调节初始比例对最终群落结构和功能的影响
 - 该研究为微生物群落的可控构建提供了新的思路
 
-
 ## 数据准备
 
-论文的原始数据及分析代码都在 [GitHub](https://github.com/gaospecial/ratio) 上。首先，使用 Git 命令将代码克隆到本地：
+论文的原始数据及分析代码都在 [GitHub](https://github.com/gaospecial/ratio) 上。使用 Git 命令将代码克隆到本地，可以快速获取数据和分析代码。
 
 ```bash
 git clone https://github.com/gaospecial/ratio.git --depth 1
 ```
+
+在本项目中，我们主要关注分组数据的分析和可视化。要用到的数据保存在 `data/ratio` 文件夹中。接下来我们将使用 R 语言对数据进行处理和分析，生成论文中的图表。
 
 ## 加载所需的R包
 
 ```{r}
 #| label: packages
 #| message: false
-library(tidyverse)
-library(cowplot)
-library(ggpubr)
-library(pheatmap)
-library(RColorBrewer)
-library(vegan)
-library(reshape2)
-library(corrplot)
-library(kableExtra)
-library(agricolae)
+library(tidyverse) # 数据处理
+library(cowplot) # 拼图
+library(ggpubr) # 统计分析和作图
+library(pheatmap) # 热图
+library(RColorBrewer) # 调色板
+library(vegan) # 获取多变量分析函数
+library(reshape2) # 数据重塑
+library(corrplot) # 相关性分析
+library(kableExtra) # 表格美化
+library(agricolae) # 多重比较
 
 # 设置默认主题
 theme_set(theme_bw())
@@ -77,58 +72,50 @@ theme_set(theme_bw())
 原始数据存储在 `data` 文件夹中。数据主要来自两个实验:一个是使用 eco-plate 的 BIOLOG 标准测定,另一个是物种特异性的 qPCR 测定。原始数据以格式化的形式提供。
 
 ```{r}
-#| label: data
-biolog <- read_csv("ratio/data/biolog.csv")
-qPCR_data <- read_csv("ratio/data/qPCR.csv")
-mono_data <- read_csv("ratio/data/mono.csv")
+#| label: data-biolog
+biolog <- read_csv("data/ratio/biolog.csv")
 head(biolog)
-head(qPCR_data)
-head(mono_data)
 ```
 
 数据列说明:
 
-- `ratio0`: 初始比例,表示培养物的名称。"none"、"less"、"equal"、"more"、"all" 分别代表铜绿假单胞菌单培养、1:1000(大肠杆菌/铜绿假单胞菌,下同)、1:1、1000:1 共培养和大肠杆菌单培养。
+- `ratio0`: 初始比例,表示培养物的名称。"none"、"less"、"equal"、"more"、"all" 分别代表恶臭假单胞菌单培养、1:1000(大肠杆菌/恶臭假单胞菌,下同)、1:1、1000:1 共培养和大肠杆菌单培养。
 - `plate`: 实验重复。
+- `carbon_id`: 碳源的编号。从1-72,其中1是阴性对照。下面的变量 `carbon_name` 显示了每种碳源的名称。
 - `A590`: BIOLOG 工作站报告的 590 nm 吸光度,在本研究中作为**碳源利用效率(CUE)**的测量值。
 - `A750`: BIOLOG 工作站报告的 750 nm 吸光度。
-- `carbon_id`: 碳源的编号。从1-72,其中1是阴性对照。下面的变量 `carbon_name` 显示了每种碳源的名称。
-- `EC`: 共培养中大肠杆菌的数量
-- `PP`: 共培养中铜绿假单胞菌的数量
+
 
 ```{r}
+#| label: data-qPCR
+qPCR_data <- read_csv("data/ratio/qPCR.csv")
+head(qPCR_data)
+```
+
+- `EC`: 共培养中大肠杆菌的数量
+- `PP`: 共培养中恶臭假单胞菌的数量
+
+```{r}
+#| label: data-carbon
 carbon_name <- read_csv("ratio/data/carbon.csv")
 head(carbon_name)
 ```
 
-大肠杆菌和铜绿假单胞菌的 qPCR 引物具有特异性(见[@fig-primer-specificity])。
-
-```{r}
-#| label: fig-primer-specificity
-#| echo: false
-#| fig-width: 4
-#| fig-cap: "（原文图 S1）物种特异性引物的特异性。PCR 实验分别使用大肠杆菌(EC)和铜绿假单胞菌(PP)特异性引物及其基因组 DNA 进行。"
-knitr::include_graphics("ratio/figures/Figure-S1-primer-specificity.png")
-```
+- `carbon_id`: 碳源的编号
+- `carbon_source`: 碳源的名称
 
 ## 原始数据处理
 
 qPCR 定量数据处理:
 
 ```{r}
-mono_data <- mono_data  %>% melt(id.vars=c("plate","carbon_id"),variable.name ="Target.Name",value.name="Quantity_mono")
-
-cocu_data <-qPCR_data %>% select(plate,carbon_id,ratio0,EC,PP) %>% melt(id.vars=c("plate","carbon_id","ratio0"),variable.name ="Target.Name",value.name="Quantity_cocu")
-
-data_all <- merge(mono_data, cocu_data, by = c("carbon_id","Target.Name","plate"),all=T) %>% filter(carbon_id!="1")
+qPCR_data <- qPCR_data %>%
+   mutate(ratio0 = factor(ratio0, levels = c("less","equal","more")))
 ```
 
 通过减去每个平板中阴性对照的值来标准化 `A590`:
 
 ```{r}
-qPCR_data <- qPCR_data %>%
-   mutate(ratio0 = factor(ratio0, levels = c("less","equal","more")))
-
 # 标准化
 biolog_24h <- biolog %>% 
   mutate(ratio0 = factor(ratio0, levels = c("none","less","equal","more","all"))) %>%
@@ -136,10 +123,13 @@ biolog_24h <- biolog %>%
   mutate(A590=A590-A590[carbon_id==1],A750=A750-A750[carbon_id==1]) %>%   # 将阴性对照设为零
   filter(carbon_id!=1) %>%
   ungroup()
+
+# 分离单培养数据
 biolog_mono_24h <- biolog_24h %>% 
   filter(ratio0 %in% c("none","all")) %>% 
   mutate(species=factor(ratio0,levels = c("all","none"),labels = c("E. coli","P. putida"))) %>% 
   dplyr::select(-ratio0)
+# 共培养数据
 biolog_coculture_24h <- biolog_24h %>% 
   filter(ratio0 %in% c("less","equal","more")) %>%
   mutate(ratio0 = factor(ratio0, levels = c("less","equal","more")))
@@ -147,164 +137,91 @@ biolog_coculture_24h <- biolog_24h %>%
 
 ## 本研究使用的碳源
 
-本研究使用了71种不同的碳源。首先,我们需要将它们分组或聚类成不同的子组。在本研究中,我们使用了两种方法来实现这一点。
+本研究使用了 71 种不同的碳源。首先,我们需要将它们分组或聚类成不同的子组。在本研究中,我们使用了两种方法来实现这一点。
 
-### 碳源聚类
+### 碳源聚类并分为三组
 
-首先,通过所有培养物中的 `A590` 值对碳源进行聚类。这就是我们所说的"使用组"。使用R中的 `hclust()` 方法生成了三个使用组,分别命名为 `U1`、`U2` 和 `U3`。
+首先,通过所有培养物中的 `A590` 值对碳源进行聚类。这就是我们所说的"使用组"。使用 R 中的 `hclust()` 方法聚类，然后再使用 `cutree()` 生成了三个使用组（`k = 3`），并分别命名为 `U1`、`U2` 和 `U3`。
 
 ```{r defining_carbon_usage}
-M_A590_24h <- biolog_24h %>% mutate(sample=paste(ratio0,plate,sep="-")) %>%
+M_A590_24h <- biolog_24h %>% 
+  mutate(sample=paste(ratio0,plate,sep="-")) %>%
   dplyr::select(sample,carbon_id,A590) %>%
-  spread(key=sample,value=A590) %>%
+  pivot_wider(names_from = sample, values_from = A590) %>%
   as.data.frame() %>%
   tibble::column_to_rownames(var="carbon_id")
+
+# 碳源聚类
 k3 <- cutree(hclust(dist(M_A590_24h)),k=3)
 carbon_group <-  data.frame(usage=k3) %>%
   rownames_to_column(var="carbon_id") %>%
   mutate(carbon_id=as.numeric(carbon_id)) %>%
   mutate(usage=paste("U",usage,sep=""))
 
+# 把分组信息加入碳源数据
 carbon_name <- left_join(carbon_name, carbon_group)
 ```
 
 ### 定义碳源偏好性
 
-其次,通过比较大肠杆菌和铜绿假单胞菌单培养中的 `A590` 值来确定碳源偏好性。
+其次,通过比较大肠杆菌和恶臭假单胞菌单培养中的 `A590` 值来确定碳源偏好性。
 
 ```{r}
-#| label: defining_carbon_prefer
+#| label: defining-carbon-prefer
 biolog_mono_A590_24h <- biolog_mono_24h %>% 
   dplyr::select(plate,carbon_id,species,A590) %>% 
-  spread(species,A590) 
+  pivot_wider(names_from = species, values_from = A590)
 
+# 获取PP偏好的碳源
 PP_prefered <- biolog_mono_A590_24h %>% 
   group_by(carbon_id) %>%  
   summarise(p=t.test(`P. putida`,`E. coli`,alternative = "greater")$p.value) %>% 
   filter(p<0.05)
+
+# 获取EC偏好的碳源
 EC_prefered <- biolog_mono_A590_24h %>% 
   group_by(carbon_id) %>%  
   summarise(p=t.test(`P. putida`,`E. coli`,alternative = "less")$p.value) %>% 
   filter(p<0.05)
 
+# 构建碳源偏好性数据框（默认设为"None"）
 carbon_prefer <- data.frame("carbon_id"=carbon_name$carbon_id,
                             "prefer"="None",
                             stringsAsFactors = F)
+# 标记碳源偏好性，PP偏好为"PP"，EC偏好为"EC"
 carbon_prefer[carbon_prefer$carbon_id %in% EC_prefered$carbon_id,"prefer"] <- "EC"
 carbon_prefer[carbon_prefer$carbon_id %in% PP_prefered$carbon_id,"prefer"] <- "PP"
 
+# 在碳源数据中添加利用偏好性信息
 carbon_name <- left_join(carbon_name, carbon_prefer)
 ```
 
-在大肠杆菌偏好的碳源中,大肠杆菌的 CUE 在统计学上显著高于铜绿假单胞菌,而在铜绿假单胞菌偏好的碳源中,铜绿假单胞菌的 CUE 在统计学上显著高于大肠杆菌。
+在大肠杆菌偏好的碳源中,大肠杆菌的 CUE 在统计学上显著高于恶臭假单胞菌,而在恶臭假单胞菌偏好的碳源中,恶臭假单胞菌的 CUE 在统计学上显著高于大肠杆菌。
 
 更多信息请参见[@fig-3]。
 
-### 碳源汇总 {#table1}
+### 碳源汇总
 
-[@tbl-S1]列出了本研究使用的所有71种碳源。
+[@tbl-S1]列出了本研究使用的所有71种碳源，现在碳源增加了两列内容，一列为碳源利用分组（`usage`），一列为碳源利用偏好（`prefer`）。
 
 ```{r}
 #| label: tbl-S1
-#| tbl-cap: "表 S1. 本研究使用的71种碳源列表"
+#| tbl-cap: "本研究使用的71种碳源列表"
 carbon_name %>% 
   left_join(carbon_prefer) |> 
   kableExtra::kable()
 ```
 
-## 定义社会互作 {#fig1}
-
-社会互作模型如[@fig-1]所示。
-
-更多信息请参见[@fig-3]。
-
-
-```{r}
-#| label: fig-1
-#| echo: false 
-#| fig-cap: "（原文图 1）本研究中使用的互作模型。(A) 菌株 A 和菌株 B 在单培养中的表型(CUE)分别为 CUE_A_ 和 CUE_B_。假设两个菌株在共培养中的 CUE 不相等,且 CUE_A_ 高于 CUE_B_。(B) 当菌株 A 和 B 共培养时,共培养的 CUE 通常可分为三种情况。首先,如果 CUE > CUE_A_,则解释为正互作模式(诱导),因为共培养增加了总体能力。相反,如果 CUE < CUE_B_,则解释为负互作模式(抑制)。此外,如果 CUE 在 CUE_A_ 和 CUE_B_ 之间,则如方法中所述应用额外的假设检验方法来揭示互作模式(C 和 D)。(C)显示了正互作的示例。测得的共培养 CUE 呈正态分布,均值为 μ1,菌株 A 和 B 的相对丰度分别为 A% 和 B%。使用单培养 CUE_A_ 和 CUE_B_ 及其相对丰度,我们可以得到计算的 CUE,它也呈正态分布,均值为 μ2。如果 μ1 显著大于 μ2,我们将共培养定义为正互作模式。(D)显示了负互作的示例。尽管测得的共培养 CUE 等于(C)中的值,但由于菌株 A 和 B 的相对丰度不同,我们得到了负互作模式。"
-knitr::include_graphics("ratio/figures/Figure-definition_of_social_type-1.png")
-```
-
-根据这个模型,我们可以得到每种培养物在特定碳源和初始比例下的互作模式。
-
-```{r}
-#| fig-width: 6
-ratio1 <- qPCR_data %>% filter(ratio0 %in% c("less","equal","more")) %>%
-  complete(ratio0,carbon_id,plate) %>% 
-  group_by(ratio0,carbon_id) %>% 
-  dplyr::select(ratio0,plate,carbon_id,ratio1) %>% 
-  mutate(ratio1_mean=mean(ratio1,na.rm = T)) %>% 
-  mutate(ratio1=ifelse(is.na(ratio1),ratio1_mean,ratio1)) %>% 
-  dplyr::select(-ratio1_mean)
-
-mono_A590 <- biolog_mono_24h %>% 
-  group_by(carbon_id,species) %>% 
-  summarise(A590=mean(A590)) %>% 
-  spread(key="species",value="A590") 
-
-A590_caculated <- left_join(ratio1,mono_A590) %>% 
-  mutate(A590_cac=(`P. putida`+ratio1*`E. coli`)/(1+ratio1))
-
-social <- biolog_coculture_24h %>% dplyr::select(plate,carbon_id,ratio0,A590) %>%
-  left_join(A590_caculated) %>%
-  group_by(carbon_id,ratio0) %>% 
-  mutate(p_pos=t.test(x=A590,y=A590_cac,alternative = "greater")$p.value,
-            p_neg=t.test(x=A590,y=A590_cac,alternative = "less")$p.value) %>%
-  mutate(social_type=ifelse(
-    p_pos<0.05,"+",
-    ifelse(p_neg<0.05,"-","unresolved"))
-    ) %>% 
-  ungroup() %>%
-  dplyr::select(carbon_id,ratio0,social_type,p_pos,p_neg) %>%
-  unique() %>%
-  mutate(ratio0=factor(ratio0,levels = c("less","equal","more")))
-
-table(social$social_type) %>% barplot(col=c("blue","red","grey"))
-```
-
-最终,我们得到了70个负互作、59个正互作和84个未解析的互作模式。
-
-基于单培养和共培养两种菌的吸光度来定义社会互作。
-
-```{r}
-social_qpcr <- data_all %>% 
-  group_by(carbon_id,Target.Name,ratio0) %>% 
-  summarise(p_pos=t.test(x=log10(Quantity_cocu),y=log10(Quantity_mono),alternative = "greater")$p.value,
-            p_neg=t.test(x=log10(Quantity_cocu),y=log10(Quantity_mono),alternative = "less")$p.value) %>%
-  mutate(social_type=ifelse(
-    p_pos<0.05,"+",
-    ifelse(p_neg<0.05,"-","unresolved"))
-    ) %>% ungroup() %>%
-  mutate(ratio0=factor(ratio0,levels = c("less","equal","more")))
-
-table(social_qpcr$social_type) %>% barplot(col=c("blue","red","grey"))
-```
-
 ## 数据探索
 
-现在我们有了多个参数,包括初始比例(`ratio0`)和最终比例(`ratio1`)、共培养中大肠杆菌和铜绿假单胞菌的数量(`EC`和`PP`)、CUE(`A590`)、碳源对大肠杆菌和铜绿假单胞菌的偏好性,以及如[@fig-1]所述计算的社会互作模式(`social_type`)。
+现在我们有了多个参数,包括初始比例(`ratio0`)和最终比例(`ratio1`)、共培养中大肠杆菌和恶臭假单胞菌的数量(`EC`和`PP`)、CUE(`A590`)、碳源对大肠杆菌和恶臭假单胞菌的偏好性等。
 
 我们将所有这些数据合并到R中的一个数据框中,并进行如下统计分析。
 
 ```{r}
 merged <- left_join(biolog_coculture_24h,qPCR_data) %>% 
-  left_join(social) %>% 
   left_join(carbon_name) %>%
   filter(!is.na(ratio1))
-```
-
-包含基于绝对密度定义的社会行为的总数据:
-
-```{r}
-social_qpcr <- social_qpcr %>% select(social_type,carbon_id,ratio0)
-  
-merged_qpcr <- qPCR_data %>% 
-  left_join(social_qpcr) %>% 
-  left_join(carbon_name) %>%
-  filter(!is.na(ratio1)) %>% mutate(social_type=factor(social_type,levels = c('unresolved','+','-'))) %>% mutate(prefer=factor(prefer,levels = c('none','EC','PP')))
-merged_qpcr$EC <- log10(merged_qpcr$EC)
-merged_qpcr$PP <- log10(merged_qpcr$PP)
 ```
 
 ### 数据标准化 {#data-normalization}
@@ -314,6 +231,7 @@ merged_qpcr$PP <- log10(merged_qpcr$PP)
 ```{r}
 #| label: fig-data-normalization
 #| fig-width: 10
+#| fig-cap: "数据标准化。左侧为原始数据的直方图和Q-Q图,右侧为对数转换后的直方图和Q-Q图。由上至下分别为大肠杆菌数量(EC)、恶臭假单胞菌数量(PP)和最终比例(ratio1)。有图可见，这些数据经过对数转换后,大致符合正态分布。"
 #| message: false
 #| out-width: 95%
 merged <- merged %>% filter(ratio0 %in% c("less","equal","more"))
@@ -336,7 +254,7 @@ hist(log10(merged$ratio1))
 qqnorm(log10(merged$ratio1))
 ```
 
-因此,我们对大肠杆菌(EC)和铜绿假单胞菌(PP)的数量进行对数转换,对A590值进行平方根转换。
+因此,我们对大肠杆菌(EC)和恶臭假单胞菌(PP)的数量进行对数转换。
 
 ```{r}
 merged <- merged  %>%
@@ -344,116 +262,10 @@ merged <- merged  %>%
   mutate_at(c("EC","PP","ratio1"),log10)
 ```
 
-此外,我们优化了分组变量的参考水平。例如,初始比例的基准水平设置为"`equal`",即大肠杆菌和铜绿假单胞菌的`1:1`。`social_type`的基准水平是"`unresolved`",`usage`的基准水平是"`U1`",`prefer`的基准水平是"`None`"。
-
-```{r}
-merged$ratio0 <- relevel(merged$ratio0,"equal")
-
-merged$social_type <- as_factor(merged$social_type)
-merged$social_type <- relevel(merged$social_type,"unresolved")
-
-merged$usage <- as_factor(merged$usage)
-merged$usage <- relevel(merged$usage, "U1")
-
-merged$prefer <- as_factor(merged$prefer)
-merged$prefer <- relevel(merged$prefer,"None")
-```
-
-### CUE、细胞数量和最终比例的相关性
-
-下图显示了三个因变量之间的相关性,这些变量是CUE(`A590`)、大肠杆菌(`EC`)和铜绿假单胞菌(`PP`)的数量,以及最终比例(`ratio1`)。**CUE与铜绿假单胞菌的数量的相关性比与大肠杆菌数量的相关性更强**,尽管两种相关性都很显著。此外,最终比例与大肠杆菌数量呈正相关,与铜绿假单胞菌数量呈负相关。另外,大肠杆菌和铜绿假单胞菌之间也存在相关性。
-
-```{r}
-#| label: fig-correlation
-#| fig-width: 5
-#| fig-height: 5
-#| fig-cap: "变量之间的相关性。"
-library(corrplot)
-mat <- merged[c("A590","EC","PP","ratio1")]
-res <- cor.mtest(mat, conf.level=0.95)
-cor <- cor(mat)
-corrplot(cor, type = "upper", sig.level = c(.001, .01, .05), pch.cex = .9, insig = "label_sig",
-         p.mat = res$p, 
-         addCoef.col = "grey80",
-         diag = FALSE)
-```
-
-### 多元线性回归
-
-我们使用多元线性回归来探索输入变量和输出变量之间的相关性。输入变量包括初始比例(`ratio0`)、碳源(按碳源偏好性(`prefer`)或使用组(`usage`)进一步聚类)。输出变量包括CUE(`A590`)、大肠杆菌(`EC`)和铜绿假单胞菌(`PP`)的数量,以及社会互作模式(`social_type`)。
-
-```{r}
-data <- merged[,c("ratio0","usage","prefer","A590","EC","PP","ratio1","social_type")]
-```
-
-首先,对碳源利用效率(CUE,即A590)与初始比例、碳源使用组、碳源偏好性进行回归。回归模型结果显示,根据调整后的R方(0.6782,p < 2.2e-16),可以解释68%的因变量变异。**显著影响CUE(A590)的因素从强到弱依次是:碳源使用组(与U1碳源相比)、初始比例(ratio0,与1:1共培养相比)、互作类型(social_type+,与未解析互作模式相比)和碳源偏好性(与非偏好碳源相比)**。此外,当其他参数受控时,将初始比例从1:1增加到1000:1或从1:1降低到1:1000,都会显著降低CUE。线性模型总结如下。
-
-```{r}
-model <- lm(A590~ ratio0 + usage + prefer, data = data)
-summary(model)
-```
-
-其次,研究了最终比例(`ratio1`)与输入变量之间的关系。该模型解释了64%的输入变量方差(调整后的R方 = 0.6389,p值 < 2.2e-16)。结果表明,最终比例与所有变量都显著相关。当其他参数受控时,**大肠杆菌偏好的碳源(`preferEC`)是影响最终比例最重要的正向因素,其次是使用组U2(`usageU2`)**。相比之下,`ratio0less`、`usageU3`、`preferPP`和`ratio0more`是从强到弱的负向影响因素。
-
-```{r}
-model <- lm(ratio1 ~ ratio0 + usage + prefer, data = data)
-summary(model)
-```
-
-同样,我们研究了铜绿假单胞菌(或大肠杆菌)的数量与输入变量之间的关系。
-
-如下所示,该模型解释了59%的输入变量方差(R方 = 0.5904,p < 2.2e-16)。我们发现共培养中铜绿假单胞菌的数量从强到弱显著地与碳源和初始比例相关。值得注意的是,碳源使用组对CUE的影响比偏好性更强。有趣的是,**当其他参数受控时,初始接种中大肠杆菌较多(more,1000:1)有助于增加铜绿假单胞菌的最终数量(与1:1初始比例相比)**。相反,**当其他参数受控时,初始接种中大肠杆菌较少(less,1:1000)会降低铜绿假单胞菌的最终数量(与1:1初始比例相比)**。
-
-```{r}
-model <- lm(PP~ ratio0 + usage + prefer, data = data)
-summary(model)
-```
-
-该模型解释了70%的输入变量方差(R方 = 0.7047,p < 2.2e-16)。我们发现大肠杆菌的数量与初始比例呈负相关,而与碳源使用组U2(usageU2)、偏好碳源(preferEC)呈正相关。**这些结果表明生态位条件是影响大肠杆菌数量的主要挑战**。
-
-```{r}
-model <- lm(EC~ ratio0 + usage + prefer, data = data)
-summary(model)
-```
-
-最后,我们使用多项式逻辑回归来研究影响社会互作的因素。
-
-```{r}
-model <- nnet::multinom(social_type ~ ratio0 + usage + prefer, data = data)
-summary(model)
-```
-
-在比较正互作与未解析互作时,我们得到如下模型:
-
-$$
-ln(+/unresolved)= -0.96 - 4.61 * ratio0less - 1.73 * ratio0more + \\ 
-2.56* usageU2 - 0.79 * usageU3 + 3.07 * preferEC + 1.49 * preferPP
-$$
-
-在所有输入变量中,`usageU2`(与`usageU1`相比)和`preferEC`(与`prefernone`相比)对正互作的影响最大,且都具有统计学显著性(见下文)。
-
-在比较负互作与未解析互作时,我们得到如下模型:
-
-$$
-ln(-/unresolved) = -0.06 + 1.12 * ratio0less - 1.51 * ratio0more - \\ 
-1.57 * usageU2 + 0.22 * usageU3 - 0.45 * preferEC - 0.18 * preferPP
-$$
-
-从这个模型中,我们了解到usageU2(与U1碳源相比)是影响负互作最重要的因素。其他显著因素是`ratio0more`、`ratio0less`和`preferEC`(见下文)。
-
-```{r}
-#| label: tbl-model
-#| fig-cap: "多元线性回归模型结果。"
-rstatix::tidy(model) %>% 
-  mutate(sig = cut(p.value, breaks = c(0,0.001,0.01,0.05,1),labels = c("***","**", "*", ""), include.lowest = TRUE)) %>%
-  mutate_at(c("estimate","std.error","statistic"), round, digits = 3) %>%
-  mutate_at("p.value", formatC, format = "e", digits = 1) %>%
-  kable()
-```
 
 ## 共培养的最终比例 {#final-ratio}
 
-我们使用ANOVA检验来揭示每种碳源中三种共培养的最终比例的差异。由于包含多重比较,使用"BH"方法对p值进行了调整。
+对于符合正态分布的数据，我们可以使用 ANOVA 检验来揭示每种碳源中三种共培养的最终比例的差异。由于包含多重比较，所以使用"BH"方法对 p 值进行了调整。
 
 ```{r}
 aov_p <- compare_means(ratio1 ~ ratio0,
@@ -464,49 +276,66 @@ aov_p <- compare_means(ratio1 ~ ratio0,
   arrange(p.adj) %>% 
   mutate(p.adj.signif = cut(p.adj,breaks = c(0,0.01,0.05,1),labels = c("**","*","ns"))) %>%
   left_join(carbon_prefer)
+
+aov_p
 ```
 
-ANOVA检验的显著性在[图2A](#fig-2A)中可视化,并在[图2B和C](#fig-2B)中给出了显著和非显著结果的五个示例。此外,[图2S](#all-final-ratio)中提供了71种不同碳源的所有检验结果。
+ANOVA检验的显著性在 [@fig-2A] 中可视化,并在[@fig-2B]中给出了显著和非显著结果的五个示例。
 
-## 图2A: 最终比例ANOVA检验p值的密度分布 {#fig-2A}
+### 最终比例 ANOVA 检验p值的密度分布
+
+为了更好地理解最终比例的差异,我们绘制了所有碳源中三种共培养的最终比例是否不同的调整后 p 值(ANOVA)的密度分布。在[@fig-aov-p-density]中,垂直线表示 p 值截断值(0.05)的位置。
 
 ```{r}
+#| label: fig-aov-p-density
+#| fig-cap: "所有碳源中检验最终比例三种共培养是否不同的调整后p值(ANOVA)的密度分布。"
 p.cutoff <- 0.05
 p1 <- ggplot(aov_p,aes(p.adj)) + 
   # geom_histogram(bins=30) + 
   geom_line(stat = "density",lwd=1) +
   geom_density(lwd=0,color=NA,fill="lightblue") +
   geom_vline(xintercept = p.cutoff,lwd=1,lty="dashed",color="firebrick") +
-  labs(x="P.adj",y="密度")+
+  labs(x="P.adj",y="Density")+
   geom_text(x=0.06,y=0,label=p.cutoff,
             vjust="top",
             hjust="left",
             color="firebrick")
+p1
+```
 
+[@fig-aov-p-bar]显示了调整后 p 值显著性的频数，并按碳源偏好性着色。
+
+```{r}
+#| label: fig-aov-p-bar
+#| fig-width: 4
 p2 <- ggplot(aov_p, aes(p.adj.signif,fill=prefer)) + geom_bar() +
-  labs(x="调整后p值的显著性",y="频数") + 
+  labs(x="Significance of adjusted p-value",y="Frequency") + 
   # geom_text(aes(label=Freq),vjust=0,nudge_y = 1) +
-  scale_fill_discrete(breaks=c("None","EC","PP"),labels=c("无","大肠杆菌","铜绿假单胞菌"),name="偏好性") +
+  scale_fill_discrete(breaks=c("None","EC","PP"),labels=c("None","E. coli","P. putida"),name="Preference") +
   theme(legend.text = element_text(face="italic"),
         legend.position = c(0.65,0.7))
+p2
+```
 
+为了让图形布局更加紧凑，我们将 [@fig-aov-p-density] 和 [@fig-aov-p-bar] 合并为一个图[@fig-2A]。
+
+```{r}
+#| label: fig-2A
+#| fig-width: 7
+#| fig-height: 0.618
+#| fig-cap: "所有碳源中检验最终比例三种共培养是否不同的调整后p值(ANOVA)的密度分布。X轴表示调整后的p值,垂直线表示p值截断值(0.05)的位置。插图:柱状图显示调整后p值显著性的频数(**,p<0.01,*,p<0.05,ns,p≥0.05)。在柱状图中,频数按碳源偏好性着色。"
+
+# 使用 grid 将两个图合并为一个图
 library(grid)
 vp <- viewport(width=0.3,height=0.6,x=0.7,y=0.5)
 pushViewport(vp)
-```
-
-```{r}
-#| fig-width: 7
-#| fig-height: 0.618
-#| fig-cap: "图2A. 所有碳源中检验最终比例三种共培养是否不同的调整后p值(ANOVA)的密度分布。X轴表示调整后的p值,垂直线表示p值截断值(0.05)的位置。插图:柱状图显示调整后p值显著性的频数(**,p<0.01,*,p<0.05,ns,p≥0.05)。在柱状图中,频数按碳源偏好性着色。"
 print(p1)
 print(p2,vp=vp)
-#ggsave("ratio/figures/figure 2A.tiff",path="ratio/figures")
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
 ```
 
-## 图2B,C: 显著/非显著结果的示例 {#fig-2B}
+### 最终比例
 
+为了进一步佐证最终比例之间存在的差异，我们从显著/非显著结果分别挑选了 5 个实例。并使用箱线图展示了这些实例中最终比例的分布[@fig-2B]。
 
 ```{r}
 #| label: fig-2B
@@ -541,49 +370,26 @@ plots <- lapply(list(p1,p2),function(x){
     # stat_compare_means(method="aov") + 
     scale_x_discrete(breaks=c("less","equal","more"),labels=c("1:1000","1:1","1000:1")) +
     theme(axis.text.x = element_text(angle = 60, hjust = 1,vjust = 1)) +
-    scale_color_discrete(breaks=c("None","EC","PP"),labels=c("无","大肠杆菌","铜绿假单胞菌"),name="偏好性")+
+    scale_color_discrete(breaks=c("None","EC","PP"),labels=c("None","E. coli","P. putida"),name="Preference")+
     theme(legend.text = element_text(face="italic")) +
-    labs(x="",y="最终比例 (EC/PP)")
+    labs(x="",y="Final ratio (EC/PP)")
 })
 
 plot_grid(plotlist = plots,ncol=1,labels=c("B","C"))
-#ggsave("ratio/figures/figure 2.tiff",path="ratio/figures")
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
 ```
 
-## 图 S2: 所有培养的最终比例 {#all-final-ratio}
+这些结果表明，初始比例对最终比例有显著影响，但最终比例并不完全由初始比例决定。
 
-最终比例的完整图示。
+## 碳源偏好性对最终比例的影响
 
-```{r}
-#| label: fig-all-final-ratio
-#| fig-width: 8
-#| fig-height: 1
-#| fig-cap: "（原文图 S2）所有培养的最终比例。"  
-ggplot(merged %>% left_join(aov_p),aes(ratio0,ratio1,color=prefer)) + geom_boxplot() +
-  geom_text(aes(x="less",y=.75,label=paste0(carbon_id,"(p=",p.adj,")")),color="grey",vjust=1,hjust="inward",size=2.25,show.legend = F) + ylim(NA, 1) + 
-  # ggpubr::stat_compare_means(method="aov",label="p.signif") +
-  facet_wrap(~carbon_id) +
-  # geom_jitter() +
-  # geom_text(aes(x="equal", y=0.5,label= p.adj),check_overlap = T, data=aov_p,inherit.aes = FALSE,size=3) +
-  # scale_y_log10(breaks=c(0.001,0.01,0.1,1,10),labels=c("0.001","0.01","0.1","1","10")) +
-  xlab("") + ylab("最终比例 (EC/PP)") +
-    scale_x_discrete(breaks=c("less","equal","more"),labels=c("1:1000","1:1","1000:1")) +
-    theme(axis.text.x = element_text(angle = 60, hjust = 1,vjust = 1)) +
-    scale_color_discrete(breaks=c("None","EC","PP"),labels=c("无","大肠杆菌","铜绿假单胞菌"),name="偏好性")+
-    theme(legend.text = element_text(face="italic")) +
-  theme(axis.text.x = element_text(angle = 90,hjust = 1,vjust = 0.5),
-      legend.position = "top",
-      legend.direction = "horizontal",
-      strip.background = element_blank(),  # 移除分面标签 - "strip"
-      strip.text = element_blank())
-#ggsave("ratio/figures/figure S2.tiff",path="ratio/figures")
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
+为了分析碳源偏好性如何影响最终比例，我们将最终比例分为三组，然后分别对比碳源偏好性和初始比例。
 
-## 图 3. 碳源偏好性克服初始比例
+### 绘制偏好利用的碳源
+
+这里，分别绘制了大肠杆菌和恶臭假单胞菌偏好的碳源。在[@fig-3A]中，左侧是大肠杆菌偏好的碳源，右侧是恶臭假单胞菌偏好的碳源。
 
 ```{r}
+#| label: fig-3A
 plots <- lapply(c("EC","PP"),function(x){
   d <- biolog_mono_24h %>% 
     left_join(carbon_name) %>%
@@ -598,19 +404,19 @@ plots <- lapply(c("EC","PP"),function(x){
           legend.title = element_blank(),
           axis.text.x = element_text(angle = 60, hjust = 1,vjust = 1))
 })
+
+plot_grid(plotlist = plots, ncol=2,labels=c("A","B"))
 ```
 
+首先，按初始比例分为 3 组，分别分析碳源利用偏好性对最终比例的影响。[@fig-3C]显示了不同初始比例的前提下，不同碳源偏好性下的最终比例。
+
 ```{r}
+#| label: fig-3C
+#| fig-cap: "碳源利用偏好性对最终比例的影响。箱线图显示了不同初始比例的前提下，不同碳源偏好性下的最终比例。"
 ratio0_labeller <- function(x){
   name_of_ratio0 <- c("P. putida","1:1000","1:1","1000:1","E. coli") 
   names(name_of_ratio0) <- c("none","less","equal","more","all")
   return(as.character(name_of_ratio0[x]))
-}
-
-prefer_labeller <- function(x){
-  name_of_prefer <- c("None","E. coli","P. putida")
-  names(name_of_prefer) <- c("None","EC","PP") 
-  return(as.character(name_of_prefer[x]))
 }
 
 p1 <- ggplot(merged,aes(x=prefer,y=ratio1)) + 
@@ -626,6 +432,14 @@ p1 <- ggplot(merged,aes(x=prefer,y=ratio1)) +
   labs(x="Carbon Source Preference", y="Final Ratio (EC/PP)") +
   ylim(c(NA,1.5))
 
+p1
+```
+
+其次，我们将碳源偏好性分为 3 组，分别分析初始比例对最终比例的影响。[@fig-3D]显示了不同碳源偏好性下，不同初始比例的最终比例。
+
+```{r}
+#| label: fig-3D
+#| fig-cap: "初始比例对最终比例的影响。箱线图显示了不同碳源偏好类型中，不同初始比例下的最终比例。"
 prefer_labeller <- function(x){
   name_of_prefer <- c("None","E. coli","P. putida")
   names(name_of_prefer) <- c("None","EC","PP")
@@ -639,32 +453,22 @@ p2 <- ggplot(merged,aes(x=ratio0,y=ratio1)) +
   stat_compare_means(method="wilcox.test",comparisons = list(c("less","equal"),c("equal","more"),c("less","more")),size=3) +
   scale_x_discrete(breaks=c("less","equal","more"),labels=c("1:1000","1:1","1000:1")) +
     theme(axis.text.x = element_text(angle = 60, hjust = 1,vjust = 1)) +
-  labs(x="初始比例 (EC/PP)", y="最终比例 (EC/PP)") +
+  labs(x="Initial Ratio (EC/PP)", y="Final Ratio (EC/PP)") +
   ylim(c(NA,1.5))
+
+p2
 ```
+
+
+## 初始比例调控碳源利用效率
+
+### 单培养和共培养的比较
+
+首先，我们比较了单培养和共培养的碳源利用效率(CUE)。[@fig-coculture-enhance-CUE]显示了单培养和共培养的 CUE。为了便于比较，我们在图上做了一个水平参考线，表示所有样本的中位数。此外，还在图上标记了每个初始比例下的中位数。
 
 ```{r}
-#| label: fig-3
-#| fig-width: 8
-#| fig-height: 1
-#| fig-cap: "（原文图 3）碳源偏好性。"
-plot_grid(plot_grid(plots[[1]] + ylim(NA,0.7),
-                    plots[[2]]+ ylim(NA,2),
-                    labels = "AUTO",
-                    rel_widths  = c(18,27),
-                    ncol = 2,align = "h"),
-          plot_grid(p1,p2,labels = c("C","D"),ncol = 2),
-          ncol = 1,
-          rel_heights = c(5,4))
-#ggsave("ratio/figures/figure 3.tiff",path="ratio/figures")
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
-
-## 初始比例调控碳源利用谱
-
-### 图 S3. 单培养和共培养的比较
-
-```{r coculture_enhance_CUE, fig.width=5,fig.asp=0.618}
+#| label: coculture-enhance-CUE
+#| fig-cap: "单培养和共培养的比较。用箱线图显示了单培养和共培养的碳源利用效率(CUE)。为了便于比较，在图上做了一个水平参考线，表示所有样本的中位数。此外，还在图上标记了每个初始比例下的中位数。"
 p_cue <- ggplot(biolog_24h,aes(ratio0,A590)) + 
   geom_boxplot() +
   geom_hline(aes(yintercept = median(A590)),lty=2,color="firebrick") +
@@ -677,7 +481,13 @@ p_cue <- ggplot(biolog_24h,aes(ratio0,A590)) +
               summarise(y=median(A590)),
             vjust=-0.3) +
   labs(x="Initial Ratio (EC/PP)",y="CUE")
+
+p_cue
 ```
+
+接下来，我们对不同初始比例下的碳源利用情况进行 PCA 分析。[@fig-s3]显示了碳源利用谱的 PCA 分析。椭圆代表聚类的 95% 置信区间。
+
+为了给 PCA 添加置信区间，我们定义了一个函数 `add_ellipase()`。这并不是必须的。而且，现在也有很多包可以实现这个功能。
 
 ```{r}
 # 在PCA中添加置信区间
@@ -714,7 +524,11 @@ add_ellipase <- function(p, x="PC1", y="PC2", group="group",
 }
 ```
 
-```{r fig.width=5}
+为了更好地理解不同初始比例菌群碳源利用谱的差异，我们将 PCA 分析结果绘制成图。[@fig-cue-pca]显示了碳源利用谱的 PCA 分析。椭圆代表聚类的 95% 置信区间。由图可知，这 5 组样品大体上被分为 3 类。第一类是大肠杆菌单独培养，第二类是恶臭假单胞菌和1:1000 共培养，第三类是大肠杆菌与恶臭假单胞菌 1:1 和 1000:1 的共培养。
+
+```{r}
+#| label: fig-cue-pca
+#| fig-cap: "碳源利用谱的PCA分析。椭圆代表聚类的95%置信区间。"
 library(vegan)
 pca <- rda(t(M_A590_24h))
 percent_var <- pca$CA$eig/pca$tot.chi
@@ -728,44 +542,31 @@ df$ratio0 <- factor(df$ratio0,
 group <- cutree(hclust(dist(t(M_A590_24h))),k=3)
 clustered_group <- as.data.frame(group) %>% tibble::rownames_to_column(var = "sample")
 df = df |>  left_join(clustered_group) 
-p <- ggplot(df, aes(PC1,PC2,label=ratio0,color=ratio0))+
-  geom_point(size=3,show.legend = F) +
-  scale_color_manual(values = brewer.pal(9,"YlOrRd")[5:9],name="初始比例")+
-  xlab(paste0("PC1: ", round(percent_var[1] * 100), "% 方差")) +
-  ylab(paste0("PC2: ", round(percent_var[2] * 100), "% 方差")) +
- annotate("text", x = -.125, y = .9, label = "铜绿假单胞菌", 
-           colour = brewer.pal(9,"YlOrRd")[5], size = 4, fontface = "italic") + 
-  annotate("text", x = -.25, y = .25, label = "1:1000", size = 4, 
-           colour = brewer.pal(9,"YlOrRd")[6]) + 
-  annotate("text", x = -.8, y = -1, label = "大肠杆菌", 
-           colour = brewer.pal(9,"YlOrRd")[9], size = 4, fontface = "italic") + 
-  annotate("text", x = 1, y = -.2, label = "1:1", size = 4,  
-           colour = brewer.pal(9,"YlOrRd")[7]) + 
-  annotate("text", x = .45, y = -.35, label = "1000:1", size = 4, 
-           colour = brewer.pal(9,"YlOrRd")[8]) 
+p <- ggplot(df, aes(PC1,PC2,label=ratio0, color=ratio0))+
+  geom_point(size=3) +
+  scale_color_manual(values = brewer.pal(9,"YlOrRd")[5:9],name="initial ratio")+
+  xlab(paste0("PC1: ", round(percent_var[1] * 100), "% Variance")) +
+  ylab(paste0("PC2: ", round(percent_var[2] * 100), "% Variance"))
 
 p_pca <- add_ellipase(p,alpha=0.1,show.legend = F,lwd=1)
+
+p_pca
 ```
 
-```{r}
-#| label: fig-s3
-#| fig-width: 8
-#| fig-height: 1
-#| fig-cap: "（原文图 S3）单培养和共培养的比较。(A)箱线图。数字显示每种培养的中位数,水平线显示所有培养的平均值。(B)碳源利用谱的PCA分析。椭圆代表聚类的95%置信区间。"
-plot_grid(p_cue,p_pca,ncol = 2,labels = c("A","B"),rel_widths = c(7,10))
-#ggsave("ratio/figures/figure 4.tiff",path="ratio/figures")
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
 
-## 图4: 初始比例影响共培养的CUE
+### 初始比例调控共培养的碳源利用能力
+
+特定比例的大肠杆菌和恶臭假单胞菌共培养获得了对 14 种 U2 碳源更高的代谢能力[@fig-cue-heatmap]。
 
 ```{r}
+#| label: fig-cue-heatmap
+#| fig-cap: 初始比例调控共培养的碳源利用谱。按使用组对碳源进行聚类。在热图中,顶部的条带表示碳源类型,底部的数字表示碳源ID,右侧给出了实验重复。图例条表示CUE值的范围。
 anno_carbon_group <- carbon_group %>% 
   left_join(carbon_prefer) %>%
   column_to_rownames(var="carbon_id") %>%
   rename(Usage = usage, Preference = prefer)
 colnames(M_A590_24h) <- rep(c("E. coli","1:1","1:1000","1000:1","P. putida"),each=3)
-p_heatmap <- pheatmap(t(M_A590_24h),
+pheatmap(t(M_A590_24h),
          annotation_col = anno_carbon_group[c(2,1)],
          cutree_cols = 3,
          # cutree_rows = 3,
@@ -773,10 +574,14 @@ p_heatmap <- pheatmap(t(M_A590_24h),
          silent = T)
 ```
 
-图5. 九种U2碳源培养物的CUE(A)和最终比例(B)(从左到右,从上到下)。
+我们接下来分析，这14 种 U2 碳源下不同体系的CUE[@fig-u2-cue]。
 
 ```{r}
-biolog_24h_U2 <- left_join(biolog_24h,carbon_group) %>% filter(usage=="U2") 
+# 仅分析U2碳源
+biolog_24h_U2 <- left_join(biolog_24h,carbon_group) %>% 
+  filter(usage=="U2") 
+
+# 多重比较
 hsd_group <- lapply(unique(biolog_24h_U2$carbon_id), function(x){
   m <- aov(A590~ratio0,data=filter(biolog_24h_U2,carbon_id==x))
   library(agricolae)
@@ -785,14 +590,23 @@ hsd_group <- lapply(unique(biolog_24h_U2$carbon_id), function(x){
   d$carbon_id <- x
   return(d[-2])
 })
+
+# 合并多重比较结果
 hsd_group <- do.call("rbind",hsd_group)
 hsd_group$ratio0 <- factor(hsd_group$ratio0, 
                            levels = c("none","less","equal","more","all"))
 # 在箱线图顶部添加组标签
-hsd_group <- biolog_24h_U2 %>% group_by(ratio0,carbon_id) %>% summarize(q3=quantile(A590)[3]) %>% left_join(hsd_group)
+hsd_group <- biolog_24h_U2 %>% 
+  group_by(ratio0,carbon_id) %>%
+  summarize(q3=quantile(A590)[3]) %>% 
+  left_join(hsd_group)
 ```
 
-```{r fig.width=6,fig.asp=0.8}
+[@fig-u2-cue] 显示了 14 种 U2 碳源的单培养和共培养的 CUE。x 轴表示培养条件，y 轴表示 CUE。进行了 ANOVA 和 Tukey 多重比较。箱线图上的文本表示不同培养物之间是否观察到显著差异。明显可以得出，特定初始比例的大肠杆菌和恶臭假单胞菌共培养获得了对 14 种 U2 碳源更高的代谢能力。说明合成菌群的功能受到初始比例的调控。
+
+```{r}
+#| label: fig-u2-cue
+#| fig-cap: 14种U2碳源的单培养和共培养的CUE(从左到右,从上到下)。x轴表示培养条件,y轴表示CUE。进行了ANOVA和Tukey多重比较。箱线图上的文本表示不同培养物之间是否观察到显著差异。
 u2_p1 <- ggplot(biolog_24h_U2, aes(ratio0,A590)) + 
   geom_boxplot() + 
   geom_text(aes(x="none",y=max(A590)*1.1,label=carbon_id),color="grey",vjust=1,size=3,show.legend = F) +
@@ -809,287 +623,9 @@ u2_p1 <- ggplot(biolog_24h_U2, aes(ratio0,A590)) +
         legend.position = "top",
         legend.direction = "horizontal"
   )
+u2_p1
 ```
 
-```{r}
-#| label: fig-4
-#| fig-width: 8
-#| fig-asp: 1
-#| fig-cap: "（原文图 4）初始比例调控共培养的碳源利用谱。(A)按使用组对碳源进行聚类。在热图中,顶部的条带表示碳源类型,底部的数字表示碳源ID,右侧给出了实验重复。图例条表示CUE值的范围。(B)14种U2碳源的单培养和共培养的CUE(从左到右,从上到下)。x轴表示培养条件,y轴表示CUE。进行了ANOVA和Tukey多重比较。箱线图上的文本表示不同培养物之间是否观察到显著差异。"
-plot_grid(ggplotify::as.ggplot(p_heatmap),
-          u2_p1,
-          labels = "AUTO",ncol=1)
-#ggsave("ratio/figures/figure 5.tiff",path="ratio/figures")
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
+## 小结
 
-## 图 S4: 所有组合的CUE结果
-
-与图4相关。
-
-```{r}
-#| label: fig-s4
-#| fig-width: 6
-#| fig-asp: 1
-#| fig-cap: "图 S4: 所有组合的CUE结果。"
-ggplot(biolog_24h, aes(ratio0,A590)) + 
-  geom_boxplot() + 
-  geom_text(aes(x="less",y=max(A590)*1.1,label=carbon_id),
-            color="grey",
-            vjust=1,size=3,show.legend = F) +
-  facet_wrap(~carbon_id,ncol=9) +    
-  scale_x_discrete(breaks=c("none","less","equal","more","all"),labels=c("P. putida","1:1000","1:1","1000:1","E. coli")) + xlab(NULL) +
-  scale_y_continuous(breaks = c(0,1,2),name = "CUE") +
-  theme(axis.text.x = element_text(angle = 90,hjust = 1,vjust = 0.5),
-        legend.position = "top",
-        legend.direction = "horizontal",
-        strip.background = element_blank(),  # 移除分面标签 - "strip"
-        strip.text = element_blank())
-#ggsave("ratio/figures/figure S3.tiff",path="ratio/figures")
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
-
-## 初始比例调控社会互作
-
-社会互作模式按[图1](#fig1)所述计算。
-
-### 图5. 共培养中的社会互作
-
-```{r}
-#| label: fig-5
-#| fig-width: 8
-#| fig-asp: 1
-#| fig-cap: "（原文图 5）共培养中的社会互作。"
-plots_proportion <- lapply(list(c("ratio0","social_type"),c("ratio0","usage","social_type"),c("ratio0","prefer","social_type")), function(x){
-  df <- merged_qpcr %>%
-    group_by(.dots=x) %>%
-    summarise(count=n()) %>%
-    mutate(Proportion=count/sum(count)) %>%
-    mutate(label=paste(round(Proportion*100),"%",sep=""))
-  ggplot(df,aes_string("ratio0","Proportion",fill="social_type")) +
-    geom_col() +
-    geom_text(aes(label=label),color="white",
-              position = position_stack(vjust=0.5),
-              size=3) +
-    scale_fill_manual(values = c("+"="firebrick","-"="royalblue","unresolved"="grey"),
-                     labels = c("Unresolved", "Positive", "Negative"),
-                     name="Interaction") +
-   theme(legend.position = "none",
-          legend.title = element_text(face="bold")) +  
-    scale_x_discrete(breaks=c("less","equal","more"),labels=c("1:1000","1:1","1000:1")) +
-  theme(axis.text.x = element_text(angle = 60,hjust = 1,vjust = 1)  ) +
-    xlab("") 
-})
-
-legend <- get_legend(plots_proportion[[1]] + theme(legend.position = "right"))
-```
-
-```{r}
-plots_population <- lapply(c("EC","PP"),function(x){
-  ggplot(merged_qpcr,aes_string("social_type",x)) + geom_boxplot() +
-    stat_compare_means(method = "wilcox.test",comparisons = list(c("unresolved","+"),c("-","+")),size=3)+
-    theme(axis.text.x = element_text(angle = 60,hjust = 1,vjust = 1)  ) +
-    scale_x_discrete(labels = c("unresolved","positive","negative"),
-                     breaks = c("unresolved","+","-")) +
-    labs(x="")
-})
-```
-
-```{r}
-#| label: fig-5-1
-#| fig-width: 8
-#| fig-asp: 1
-#| fig-cap: "（原文图 5-1）基于细菌数量定义的社会互作。主要结论是两种方法定义的社会互作是可比的。与我们模型的结果一致,以'1:1'和'1000:1'共培养的两个物种比以'1:1000'共培养更容易协同利用碳源(A)。此外,'1:1000'共培养具有最多的负互作,无论碳源类型如何(A-C)。在传统模型中,'1:1'和'1000:1'共培养也没有负互作,尽管正互作比例较少(B)。然而,传统方法定义的未解析互作更多(A)。我们发现正互作中大肠杆菌的数量与未解析互作中的数量没有显著差异(D)。结果表明,与传统方法相比,我们的方法可以更准确地定义物种的互作行为。"
-
-plot_grid(plot_grid(plots_proportion[[1]],
-                    plots_proportion[[2]]+ facet_wrap(~usage ),
-                    legend, 
-                    rel_widths = c(1.8,4,1.5),
-                    ncol = 3,
-                    labels = c("A","B","")),
-          plot_grid(plots_proportion[[3]] + facet_wrap(~prefer, 
-                                                       labeller = labeller(prefer = prefer_labeller)) + 
-                      theme(strip.text = element_text(face = "italic")),
-                    plots_population[[1]] + labs(y="大肠杆菌数量"),
-                    plots_population[[2]] + labs(y="铜绿假单胞菌数量"),
-                    labels = c("C","D","E"),
-                    ncol = 3,
-                    rel_widths = c(5,2,2)),
-          ncol = 1)
-#ggsave("ratio/figures/figure 5-1.tiff",path="ratio/figures")
-```
-
-## 图5-1. 基于单培养和共培养两种菌的绝对密度定义的社会互作
-
-## 图 S5: 所有组合的互作模式
-
-与图5相关。
-
-```{r}
-#| label: fig-s5
-#| fig-width: 6
-#| fig-asp: 1.2
-#| fig-cap: "图 S5: 所有组合的互作模式。"
-left_join(biolog_coculture_24h,social) %>%
-  ggplot(aes(ratio0,A590,color=social_type)) + 
-    geom_boxplot() + 
-    geom_text(aes(x="less",y=max(A590)*1.1,label=carbon_id),vjust=1,color="grey",size=3) +
-    facet_wrap(~carbon_id,ncol=9) + 
-    scale_color_manual(values = c("+"="firebrick","-"="royalblue","unresolved"="grey"),
-                      labels = c("negative", "positive","unresolved"),
-                     name="Interaction: ") +
-    scale_y_continuous(breaks = c(0,1,2)) +
-    scale_x_discrete(breaks=c("less","equal","more"),labels=c("1:1000","1:1","1000:1")) +
-    labs(x="",y="CUE") +
-    theme(axis.text.x = element_text(angle = 90,hjust = 1,vjust = 0.5),
-          legend.position = "top",
-          strip.background = element_blank(),  # 移除分面标签 - "strip"
-          strip.text = element_blank())
-#ggsave("ratio/figures/figure S4.tiff",path="ratio/figures")
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
-
-## 图6. U2碳源利用中的代谢耦合
-
-```{r}
-#| label: fig-6
-#| fig-width: 8
-#| fig-asp: 1
-#| fig-cap: "（原文图 6）U2碳源利用中的代谢耦合。大肠杆菌单培养(A)和铜绿假单胞菌单培养(B)对U2碳源的利用效率都很低。在大肠杆菌数量较少的共培养中,由于大肠杆菌是限制代谢物流动的瓶颈,难以建立代谢耦合(C)。当大肠杆菌与铜绿假单胞菌数量相当时,可以建立代谢流,导致U2碳源的高CUE(D)。"
-knitr::include_graphics("ratio/figures/interaction_model.png")
-```
-
-## 补充数据
-
-### 生长曲线
-
-```{r}
-# ggplot中显示回归曲线的公式和R^2值
-source("ratio/functions/ggplot_smooth_func.R")
-files <- list.files(path="ratio/data/BIOLOG/",pattern = "*.csv",full.names = T)
-```
-
-```{r}
-read_BIOLOG <- function(f){
-  A590 <- read.csv(f,header = F,skip=18,nrows = 8) 
-  A590 <- t(A590[,1:9]) %>% as.matrix() %>% as.vector()
-  A750 <- read.csv(f,header = F,skip=28,nrows = 8)
-  A750 <- t(A750[,1:9]) %>% as.matrix() %>% as.vector()
-  time <- as.numeric(str_extract(str_extract(f,"\\d+h"),"\\d+"))
-  if (str_detect(f,"\\d++\\.\\d+")) ratio0 <- str_extract(f,"\\d++\\.\\d+")
-  if (str_detect(f, "(ec|pp)")) ratio0 <- str_extract(f, "(ec|pp)")
-  if (str_detect(f,"-[1-3]\\D")) plate <- str_extract(str_extract(f,"-[1-3]\\D"),"[1-3]")
-  
-data.frame(plate=plate, carbon_id=1:72,time=time,ratio0=ratio0,A590=A590,A750=A750)
-}
-
-biolog <- do.call("rbind", lapply(files, read_BIOLOG))
-biolog$ratio0 <- factor(biolog$ratio0,
-                        levels = c("pp","1.1000","1.1","1000.1","ec"),
-                        labels = c("P. putida","1:1000","1:1","1000:1","E. coli")) 
-biolog2 <- biolog %>% 
-  group_by(plate,ratio0,time) %>% 
-  mutate(A590=A590-A590[carbon_id==1],A750=A750-A750[carbon_id==1]) %>%   # 将阴性对照设为零
-  filter(carbon_id!=1) %>%
-  ungroup()
-
-df_750 <- biolog2 %>% group_by(time,ratio0,carbon_id) %>% 
-  summarise(mean=mean(A750),std=sd(A750))
-df_590 <- biolog2 %>% group_by(time,ratio0,carbon_id) %>% 
-  summarise(mean=mean(A590),std=sd(A590))
-df_590 <- df_590[!(df_590$time=="28" ),] 
-df_750 <- df_750[!(df_750$time=="28" ),] 
-
-dat <- df_590[853:1207, 1:5] #hour 24
-dat$time <- 0; dat$mean <- 0; dat$std <- 0 #change 24h to 0h
-dat$ratio0 <- factor(dat$ratio0) 
-da0_590 <- rbind(df_590, dat) 
-da0_750 <- rbind(df_750, dat) 
-rm(dat)
-```
-
-```{r}
-#| label: fig-s6
-#| fig-asp: 0.8
-#| fig-width: 8
-#| fig-cap: "（原文图 S6）A750生长曲线。"
-ggplot( da0_750,aes(time,mean,color=ratio0,shape=ratio0,ymin=mean-std,ymax=mean+std)) + 
-  geom_line(size=0.6) + 
-  geom_errorbar(width=0.1) + 
-  geom_point(size=0.8) +
-  xlab("Time (h)") + ylab("A750") + geom_text(aes(x=2,y=max(mean)*1.1,label=carbon_id),vjust=1,color="grey",size=4)+
-  facet_wrap(~carbon_id,ncol=9) + scale_y_continuous(breaks = c(0,0.5,1)) +
-  scale_x_continuous(breaks = seq(0, 24, by = 8), 
-                     labels = seq(0, 24, by = 8), 
-                     limits = c(0, 25))+
-  theme(axis.text = element_text(angle = 0,hjust = 1,vjust = 0.5, size = 10),
-        axis.title = element_text(size = 15), ##time(h)
-        legend.text = element_text(size = 15), ##1:1, 1:1000
-        legend.title= element_blank(), ##ratio0
-        #legend.key = element_rect(size = 10), 
-        legend.position = "top",
-        strip.background = element_blank(),  # 移除分面标签 - "strip"
-        strip.text = element_blank())
-```
-
-```{r}
-#| label: fig-s7
-#| fig-asp: 0.8
-#| fig-width: 8
-#| fig-cap: "（原文图 S7）A590生长曲线。"
-ggplot( da0_590,aes(time,mean,color=ratio0,shape=ratio0,ymin=mean-std,ymax=mean+std)) + 
-  geom_line(size=0.6) + 
-  geom_errorbar(width=0.1) + 
-  geom_point(size=0.8) +
-  xlab("Time (h)") + ylab("A590") + geom_text(aes(x=2,y=max(mean)*1.1,label=carbon_id),vjust=1,color="grey",size=4)+
-  facet_wrap(~carbon_id,ncol=9) + scale_y_continuous(breaks = c(0,1,2)) +
-  scale_x_continuous(breaks = seq(0, 24, by = 8), 
-                     labels = seq(0, 24, by = 8), 
-                     limits = c(0, 25))+
-  theme(axis.text = element_text(angle = 0,hjust = 1,vjust = 0.5, size = 10),
-        axis.title = element_text(size = 15), ##time(h)
-        legend.text = element_text(size = 15), ##1:1, 1:1000
-        legend.title= element_blank(),## 移除ratio0
-        #legend.key = element_rect(size = 10), 
-        legend.position = "top",
-        strip.background = element_blank(),  # 移除分面标签 - "strip"
-        strip.text = element_blank())
-
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
-
-### A590和A750的相关性
-
-```{r}
-#| label: fig-s8
-#| fig-cap: "（原文图 S8）A590(x轴)和A750(y轴)之间的相关性。"
-ggplot(biolog, aes(A590,A750)) +
-  geom_point(alpha=1/3) +
-  geom_smooth(method = "lm",size=1)+ 
-  stat_smooth_func(geom = "text",method = "lm",parse=T, hjust=0,xpos = 0.25,ypos = 1.4, show.legend = F)
-  
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
-
-### 单细胞CUE
-
-```{r}
-#| label: fig-s9
-#| fig-asp: 0.618
-#| fig-cap: "（原文图 S9）单培养中A590(y轴)和对数转换后的细胞数量(x轴)的相关性。左图,铜绿假单胞菌单培养;右图,大肠杆菌单培养。"
-mono_data <- mono_data %>% rename( species = Target.Name, quantity = Quantity_mono) %>%  filter(carbon_id!=1) %>%
-  ungroup()
-mono_data$species <-factor(mono_data$species,
-                        levels = c("PP","EC"),
-                        labels = c("P. putida","E. coli")) 
-d <- merge( mono_data,biolog_mono_24h, by = c("plate", "species","carbon_id"),all=T) 
-d$LogCFU <- log10(d$quantity)
-d2<- d[-c(4,74),]
-ggplot(d2, aes(LogCFU,A590,color=species)) +
-  geom_point(alpha=1/3,show.legend = F) +facet_wrap(.~species,scales = 'free_x' ) +
-   xlab("Log10(Quantity)") + ylab("A590")+
-  theme(strip.text = element_text(face = "italic"))+
-  geom_smooth(method = "lm",size=1,show.legend = F) + 
-  stat_smooth_func_with_pval(geom = "text",method = "lm",parse=T, hjust=0,xpos=7.0,xpos2 =7.0,ypos=2.0,ypos2 = 1.75, show.legend = F)
-#export::graph2ppt(file="ratio/figures.pptx",append=TRUE)
-```
+本研究通过对碳源利用谱的分析，揭示了初始比例对合成菌群的功能有重要影响。我们发现，初始比例对最终比例有显著影响，但最终比例并不完全由初始比例决定。碳源偏好性对最终比例有显著影响，但不能完全解释这种现象。进一步的分析发现，特定比例的大肠杆菌和恶臭假单胞菌共培养获得了对 14 种 U2 碳源更高的代谢能力。这些结果表明，合成菌群的功能受到初始比例的调控。

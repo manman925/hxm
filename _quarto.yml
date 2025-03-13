@@ -7,8 +7,8 @@ execute:
 engine: jupyter
 
 book:
-  title: "Data Driven Reproducible Study"
-  subtitle: "数据驱动的可重复性研究"
+  title: "数据驱动的可重复性研究"
+  subtitle: "Data Driven Reproducible Study"
   author: "高春辉"
   date: now
   cover-image: cover.png
@@ -19,8 +19,8 @@ book:
     - index.qmd
     - part: 课程简介
       chapters:
-        - intro.qmd
         - what-is-reproducible-study.qmd
+        - intro.qmd
     - part: 环境搭建
       chapters:
         - reproducible-data-analysis-environment.qmd
