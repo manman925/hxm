@@ -7,3 +7,6 @@
 [submodule "bacteria-ID"]
 	path = bacteria-ID
 	url = https://github.com/csho33/bacteria-ID.git
+[submodule "SegVeg"]
+	path = SegVeg
+	url = https://github.com/mserouar/SegVeg
