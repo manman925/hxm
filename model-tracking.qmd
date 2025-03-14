@@ -1,0 +1,77 @@
+# 可视化训练过程
+
+机器学习实验管理和可视化工具还有很多，主要包括 **Weights & Biases（W&B）、MLflow、TensorBoard、Neptune、Comet.ml** 等。以下是它们的特点和对比：  
+
+
+| 工具 | 主要用途 | 适用人群 | 主要优势 | 主要缺点 |  
+|------|---------|---------|---------|---------|  
+| **W&B** | 训练跟踪、可视化、模型管理 | 研究者、企业团队 | 界面直观、功能齐全、社区活跃 | 可能需要网络连接，隐私性较弱 |  
+| **MLflow** | 实验管理、MLOps | 企业、MLOps 工程师 | 灵活性高，支持本地部署 | UI 交互不如 W&B |  
+| **TensorBoard** | 训练可视化 | 深度学习研究者 | 轻量、开源、与 TensorFlow 深度集成 | 功能单一，模型管理较弱 |  
+| **Neptune** | 训练跟踪、可视化 | 小团队、个人研究者 | 简单易用，支持云端协作 | 功能较少，生态较小 |  
+| **Comet.ml** | 训练跟踪、超参数优化、报告 | 科研人员、团队 | 提供自动化实验报告，适合论文撰写 | 免费版有存储限制 |  
+
+如果你更关注 **可视化、实验跟踪**，W&B 和 Comet.ml 是不错的选择。  
+如果你更关注 **MLOps 和本地部署**，MLflow 更合适。  
+如果你是 **TensorFlow 用户**，TensorBoard 是默认选择。  
+如果你是 **个人用户**，Neptune 可能更轻量、易用。
+
+## W&B 安装和使用
+
+Weights & Biases（简称 **W&B**）是一个 **机器学习实验管理和可视化** 平台，主要用于 **深度学习和数据科学** 相关的工作流。它可以帮助你 **跟踪实验、记录超参数、可视化训练过程、管理模型版本**，并且支持 **团队协作**。  
+
+### 主要功能
+
+- **实验跟踪（Tracking）**：自动记录超参数、指标、损失等信息，方便比较不同实验的效果。  
+- **可视化（Visualization）**：提供实时的交互式图表，如 loss 曲线、学习率变化等。  
+- **模型管理（Model Management）**：支持存储和版本化模型，方便回溯和部署。  
+- **数据管理（Dataset Versioning）**：跟踪数据集版本，确保实验的可重复性。  
+- **分布式训练支持**：可以在多台机器上同步日志，适用于大规模训练。  
+
+### 使用示例（PyTorch）
+
+```python
+import wandb
+
+wandb.init(project="my_project")  # 初始化 W&B
+
+for epoch in range(10):
+    loss = some_training_step()
+    wandb.log({"epoch": epoch, "loss": loss})  # 记录训练指标
+```
+
+W&B 兼容 **PyTorch、TensorFlow、Keras、Scikit-Learn** 等主流机器学习框架，并支持与 **Hugging Face、Lightning** 等工具集成。
+
+### 安装方法
+
+你可以使用 conda 或 pip 安装 W&B：
+
+```bash
+# 使用 conda 安装
+conda install -c conda-forge wandb
+
+# 使用 pip 安装
+pip install wandb
+```
+
+### 注册和登录
+
+在使用 W&B 之前，你需要注册一个账号并登录。你可以在 [官网](https://wandb.ai/site) 上注册账号，或者使用 GitHub、Google 账号登录。
+
+登录成功后，在控制面板会看到你的 API 密钥，这是 W&B 与你的项目通信的凭证。你可以在本地设置 API 密钥，也可以在环境变量中设置 `WANDB_API_KEY`。
+
+```bash
+wandb login
+
+# wandb: Logging into wandb.ai. (Learn how to deploy a W&B server locally: https://wandb.me/wandb-server)
+# wandb: You can find your API key in your browser here: https://wandb.ai/authorize
+# wandb: Paste an API key from your profile and hit enter, or press ctrl+c to quit: 
+```
+
+这时粘贴 API 密钥，按回车【粘贴时秘钥不可见，按回车即可】。
+
+```bash
+# wandb: No netrc file found, creating one.
+# wandb: Appending key for api.wandb.ai to your netrc file: /Users/gaoch/.netrc
+# wandb: Currently logged in as: gaospecial to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+```
