@@ -67,6 +67,9 @@ book:
     - part: 计算机视觉分析实验图片
       chapters:
         - computer-vision-image-analysis.qmd
+        - segveg-data-preparation.qmd
+        - segveg-model-training.qmd
+        #- segveg-model-evaluation.qmd
     - part: 开发协作
       chapters:
         - collaboration-with-global-developers.qmd

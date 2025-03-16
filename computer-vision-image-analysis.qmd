@@ -1,6 +1,6 @@
 # 计算机视觉分析实验图片
 
-本项目以发表在 Plant Phenomics 杂志上的一篇论文为例[@serouart2022]，讲述如何使用一种名为 SegVeg 的两阶段语义分割方法，将高分辨率 RGB 图像分割成背景、绿色植被和衰老植被三类。以用来评估植被的生长状态。
+本项目以发表在 Plant Phenomics 杂志上的一篇论文为例 [@serouart2022] ，讲述如何使用一种名为 SegVeg 的两阶段语义分割方法，将高分辨率 RGB 图像分割成背景、绿色植被和衰老植被三类。以用来评估植被的生长状态。
 
 ## 研究内容简介
 
@@ -41,14 +41,22 @@ SegVeg 方法分为两个阶段：
 - 在某些情况下，背景和衰老植被之间存在混淆，尤其是在图像的暗区和亮区。光照条件对分割结果有显著影响。
 - U-net 3C 模型的表现与 SegVeg 方法相似，但在绿色植被的分割上略有下降。
 
+
+## 环境依赖
+
+本项目需要下列 Python 库的支持：
+
+- `datasets`：用于从 Huggingface 加载数据集
+- PyTorch Lightning: 用于构建神经网络模型和训练循环。
+- Segmentation Models PyTorch: 提供了许多预训练的图像分割模型，如 U-net、DeepLabV3、PSPNet 等。
+- OpenCV: 用于图像处理和可视化。
+- Matplotlib: 用于绘制图表和图像。
+- 其他库: 用于数据处理、评估指标计算等。
+
+
 ## 数据集
 
-
 VegAnn 是一个包含 3,775 张多作物 RGB 图像的集合，旨在增强作物植被分割研究。
-
-这些数据是由包括 Arvalis、INRAe、东京大学、昆士兰大学、NEON 和 EOLAB 等机构的合作提供的。
-
-这些图像涵盖了不同的物候阶段，并在各种照明条件下使用不同的系统和平台捕获。通过聚合来自不同项目和机构的子数据集，VegAnn 代表了广泛的测量条件、作物种类和发育阶段。
 
 - VegAnn 数据集包含 3775 张图片
 - 图片尺寸为 512*512 像素
@@ -56,455 +64,129 @@ VegAnn 是一个包含 3,775 张多作物 RGB 图像的集合，旨在增强作�
 - 该数据集包含 26 种以上作物物种，各物种的图片数量分布不均匀
 - VegAnn 数据集由使用不同采集系统和配置拍摄的户外图像编译而成
 
-VegAnn 项目的数据集可以在 Huggingface 上访问。请参阅以下链接：<https://huggingface.co/datasets/simonMadec/VegAnn>。
+VegAnn 项目的数据集可以在 Huggingface 上访问。请参阅以下链接：<https://huggingface.co/datasets/simonMadec/VegAnn>。数据预处理的步骤参见 [数据预处理](./segveg-data-preprocess.qmd)。
+
+**数据来源与组成**
+
+- **Dataset #1**：  
+  - **内容**：2015个512×512像素的RGB图像块，覆盖8个子数据集（UTokyo、P2S2、Wuhan、CVPPP、GEVES、Phenofix、Phenomobile、Bonirob）。  
+  - **标注**：手动标注为“植被（绿色+衰老）”和“背景”。  
+  - **多样性**：涵盖水稻、小麦、玉米、棉花等多种作物，不同生长阶段（营养期至衰老期），以及不同光照条件和土壤背景。  
+  - **空间分辨率**：0.3–2 mm，确保细节捕捉。  
+
+- **Dataset #2**：  
+  - **内容**：441张512×512像素图像，通过规则网格（8–11像素间隔）标注像素点，共19,738个标注像素（训练集6132，测试集13,606）。  
+  - **标注类别**：绿色植被、衰老植被、背景、不确定像素（未用于训练）。  
+  - **子数据集**：LITERAL（手持设备）、PHENOMOBILE（无人车+闪光灯）、P2S2（多作物多平台）。  
+  - **挑战**：不确定像素（16%）主要因光照过暗/过亮或混合像素导致。  
+
+- **Dataset #3**：  
+  - **生成方式**：通过SegVeg对Dataset #1图像生成伪标签（3类：背景、绿色、衰老），用于训练U-net 3C模型。  
+
+**数据特点与局限**
+
+- **优势**：覆盖广泛作物、生长阶段和光照条件，增强模型泛化能力。  
+- **局限**：  
+  - 标注不一致性：不同操作者对“衰老”与“背景”的主观判断差异。  
+  - 不确定像素处理：排除部分像素可能导致模型对极端光照场景适应不足。  
+
+## 模型架构
+
+作者自定义了一个 `VegAnnModel` 类。这个类初始化一个 U-net 模型，使用 ResNet34 作为编码器，输入通道数为 3（RGB 图像），输出类别数为 1（二值分割）。
+
+**SegVeg两阶段模型**
+
+1. **第一阶段（U-net 2C）**：  
+   - **架构**：基于EfficientNet-B2骨干网络（ImageNet预训练），编码器-解码器结构，输出植被与背景二分类分割。  
+   - **输入/输出**：512×512 RGB图像 → 二值掩膜（植被 vs 背景）。  
+
+2. **第二阶段（SVM分类器）**：  
+   - **输入特征**：从植被像素中提取14个颜色空间特征（R、G、B、H、S、a、b、GE、M、YE、Cb、Cr、I、Q），通过前向选择法筛选。  
+   - **分类目标**：绿色植被 vs 衰老植被。  
+   - **超参数**：RBF核，C=1，γ=10⁻³，通过网格搜索优化。  
+
+**对比模型（U-net 3C）**
+
+- **架构**：与U-net 2C相同，但输出三分类（背景、绿色、衰老）。  
+- **训练数据**：使用SegVeg生成的伪标签（弱监督），未依赖手动标注的全类别掩膜。  
+
+## 训练过程
+
+**U-net 2C训练细节**
+
+- **损失函数**：Dice Loss（优化分割边界）。  
+- **优化器**：Adam，初始学习率0.01，逐步降至10⁻⁶。  
+- **数据增强**：Albumentations库（旋转、缩放、翻转等），提升模型鲁棒性。  
+- **硬件**：NVIDIA GeForce RTX 3090 GPU，批大小32。  
+
+**SVM训练细节**
+
+- **特征归一化**：标准化颜色空间特征以消除量纲差异。  
+- **交叉验证**：留一法验证，确保泛化能力。  
+
+**U-net 3C训练**
+
+- **弱监督策略**：利用SegVeg生成的伪标签，减少人工标注成本。  
+- **潜在问题**：伪标签误差可能传播至U-net 3C训练中。  
+
+## 预测性能
+
+**SegVeg性能**
+
+- **像素级精度**：  
+  - 绿色植被：F1=94%（R²=0.94），背景：F1=73%（R²=0.73），衰老植被：F1=70%（R²=0.70）。  
+  - 主要混淆：衰老植被与背景（尤其暗区/高光区）。  
+- **图像级分数预测**：  
+  - 绿色分数误差：1%（95%置信区间），衰老和背景误差：2.1–2.7%。  
+
+**U-net 3C性能对比**
+
+- **像素级精度**：与SegVeg接近，但绿色植被F1略低（90% vs 94%）。  
+- **细节处理**：卷积特性导致边缘模糊，而SVM像素分类更清晰（如图像细小结构保留）。  
+
+## 结果分析
+
+**优点**
+
+1. **标注效率**：两阶段设计减少全图像标注需求（仅需部分像素标注）。  
+2. **颜色空间融合**：SVM结合多颜色空间特征（如CMYK、YIQ），提升衰老植被区分能力。  
+3. **适用性**：公开代码与预训练模型（GitHub），支持快速部署。  
+
+**缺点**
+
+1. **光照敏感性**：暗区/高光区分类性能下降（如PHENOMOBILE数据集因闪光灯导致暗区混淆）。  
+2. **颜色连续性挑战**：衰老早期与绿色植被颜色过渡区域易误判。  
+3. **弱监督限制**：U-net 3C依赖SegVeg伪标签，可能继承其误差。  
+
+
+## 预测性能
 
 ```{python}
-# 使用 Huggingface Datasets 加载数据集
-from datasets import load_dataset
-
-# VegAnn 只有 train 集
-ds = load_dataset("simonMadec/VegAnn")
-print(ds)
-```
-
-
-### 数据字段
-
-*   `Name`: 每个图像补丁的唯一标识符。
-*   `System`: 用于获取照片的成像系统（例如，手持相机、DHP、无人机）。
-*   `Orientation`: 图像捕捉时相机的方向（例如，正下方，45 度）。
-*   `latitude` 和 `longitude`: 拍摄图像的地理坐标。
-*   `date`: 图像获取日期。
-*   `LocAcc`: 位置准确性标志（1 表示高准确性，0 表示低或不确定的准确性）。
-*   `Species`: 图像中展示的作物种类（例如，小麦、玉米、大豆）。
-*   `Owner`: 提供图像的机构或实体（例如，Arvalis，INRAe）。
-*   `Dataset-Name`: 图像来源的子数据集或项目（例如，Phenomobile，Easypcc）。
-*   `TVT-split1` 到 `TVT-split5`: 表示训练/验证/测试划分配置的字段，便于各种实验设置。
-
-
-## 配置神经网络模型
-
-### 载入需要的库
-
-这些库包括 PyTorch Lightning、Segmentation Models PyTorch、OpenCV、Matplotlib 等。他们在这个项目中的功能如下：
-
-- PyTorch Lightning: 用于构建神经网络模型和训练循环。
-- Segmentation Models PyTorch: 提供了许多预训练的图像分割模型，如 U-net、DeepLabV3、PSPNet 等。
-- OpenCV: 用于图像处理和可视化。
-- Matplotlib: 用于绘制图表和图像。
-- 其他库: 用于数据处理、评估指标计算等。
-
-```{python}
-import pytorch_lightning as pl
+#| eval: false
 import torch
-import segmentation_models_pytorch as smp
-import numpy as np
 import cv2
-from segmentation_models_pytorch.encoders import get_preprocessing_fn
+import numpy as np
 import matplotlib.pyplot as plt
-from typing import Dict, List
-```
 
-
-### 模型初始化
-
-首先，配置一个名为 `VegAnnModel` 的 PyTorch Lightning 模型，用于训练 U-net 模型。这个模型包含以下几个部分：
-
-- `__init__` 方法：初始化模型，包括选择模型架构、编码器名称、输入通道数、输出类别数等。
-- `forward` 方法：定义前向传播过程，包括图像预处理、模型推理和输出。
-- `shared_step` 方法：定义共享的训练/验证/测试步骤，包括计算损失、评估指标等。
-- `shared_epoch_end` 方法：定义共享的训练/验证/测试 epoch 结束方法，用于计算并输出评估指标。
-- `training_step` 方法：定义训练步骤，包括调用 `shared_step` 方法并保存输出。
-- `on_train_epoch_end` 方法：定义训练 epoch 结束方法，用于调用 `shared_epoch_end` 方法。
-- `validation_step` 方法：定义验证步骤，包括调用 `shared_step` 方法并保存输出。
-- `on_validation_epoch_end` 方法：定义验证 epoch 结束方法，用于调用 `shared_epoch_end` 方法。
-- `test_step` 方法：定义测试步骤，包括调用 `shared_step` 方法并保存输出。
-- `on_test_epoch_end` 方法：定义测试 epoch 结束方法，用于调用 `shared_epoch_end` 方法。
-- `configure_optimizers` 方法：定义优化器，这里使用 Adam 优化器。
-
-另外，还定义了一个辅助函数：
-
-- `colorTransform_VegGround` 方法：定义一个颜色转换函数，用于将预测的掩膜可视化。
-
-```{python}
-class VegAnnModel(pl.LightningModule):
-    def __init__(self, arch: str, encoder_name: str, in_channels: int, out_classes: int, **kwargs):
-        super().__init__()
-        self.model = smp.create_model(
-            arch,
-            encoder_name=encoder_name,
-            in_channels=in_channels,
-            classes=out_classes,
-            **kwargs,
-        )
-
-        # preprocessing parameteres for image
-        params = smp.encoders.get_preprocessing_params(encoder_name)
-        self.register_buffer("std", torch.tensor(params["std"]).view(1, 3, 1, 1))
-        self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
-
-        # for image segmentation dice loss could be the best first choice
-        self.loss_fn = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)
-        self.train_outputs, self.val_outputs, self.test_outputs = [], [], []
-
-    def forward(self, image: torch.Tensor):
-        # normalize image here #todo
-        image = (image - self.mean) / self.std
-        mask = self.model(image)
-        return mask
-
-    def shared_step(self, batch: Dict, stage: str):
-        image = batch["image"]
-
-        # Shape of the image should be (batch_size, num_channels, height, width)
-        # if you work with grayscale images, expand channels dim to have [batch_size, 1, height, width]
-        assert image.ndim == 4
-
-        # Check that image dimensions are divisible by 32,
-        # encoder and decoder connected by `skip connections` and usually encoder have 5 stages of
-        # downsampling by factor 2 (2 ^ 5 = 32); e.g. if we have image with shape 65x65 we will have
-        # following shapes of features in encoder and decoder: 84, 42, 21, 10, 5 -> 5, 10, 20, 40, 80
-        # and we will get an error trying to concat these features
-        h, w = image.shape[2:]
-        assert h % 32 == 0 and w % 32 == 0
-
-        mask = batch["mask"]
-
-        # Shape of the mask should be [batch_size, num_classes, height, width]
-        # for binary segmentation num_classes = 1
-        assert mask.ndim == 4
-
-        # Check that mask values in between 0 and 1, NOT 0 and 255 for binary segmentation
-        assert mask.max() <= 1.0 and mask.min() >= 0
-
-        logits_mask = self.forward(image)
-
-        # Predicted mask contains logits, and loss_fn param `from_logits` is set to True
-        loss = self.loss_fn(logits_mask, mask)
-
-        # Lets compute metrics for some threshold
-        # first convert mask values to probabilities, then
-        # apply thresholding
-        prob_mask = logits_mask.sigmoid()
-        pred_mask = (prob_mask > 0.5).float()
-
-        # We will compute IoU metric by two ways
-        #   1. dataset-wise
-        #   2. image-wise
-        # but for now we just compute true positive, false positive, false negative and
-        # true negative 'pixels' for each image and class
-        # these values will be aggregated in the end of an epoch
-        tp, fp, fn, tn = smp.metrics.get_stats(pred_mask.long(), mask.long(), mode="binary")
-
-        return {
-            "loss": loss,
-            "tp": tp,
-            "fp": fp,
-            "fn": fn,
-            "tn": tn,
-        }
-
-    def shared_epoch_end(self, outputs: List[Dict], stage: str):
-        # aggregate step metics
-        tp = torch.cat([x["tp"] for x in outputs])
-        fp = torch.cat([x["fp"] for x in outputs])
-        fn = torch.cat([x["fn"] for x in outputs])
-        tn = torch.cat([x["tn"] for x in outputs])
-
-        # per image IoU means that we first calculate IoU score for each image
-        # and then compute mean over these scores
-        per_image_iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro-imagewise")
-        per_image_f1 = smp.metrics.f1_score(tp, fp, fn, tn, reduction="micro-imagewise")
-        per_image_acc = smp.metrics.accuracy(tp, fp, fn, tn, reduction="micro-imagewise")
-        # dataset IoU means that we aggregate intersection and union over whole dataset
-        # and then compute IoU score. The difference between dataset_iou and per_image_iou scores
-        # in this particular case will not be much, however for dataset
-        # with "empty" images (images without target class) a large gap could be observed.
-        # Empty images influence a lot on per_image_iou and much less on dataset_iou.
-        dataset_iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
-        dataset_f1 = smp.metrics.f1_score(tp, fp, fn, tn, reduction="micro")
-        dataset_acc = smp.metrics.accuracy(tp, fp, fn, tn, reduction="micro")
-
-        metrics = {
-            f"{stage}_per_image_iou": per_image_iou,
-            f"{stage}_dataset_iou": dataset_iou,
-            f"{stage}_per_image_f1": per_image_f1,
-            f"{stage}_dataset_f1": dataset_f1,
-            f"{stage}_per_image_acc": per_image_acc,
-            f"{stage}_dataset_acc": dataset_acc,
-        }
-
-        self.log_dict(metrics, prog_bar=True, sync_dist=True, rank_zero_only=True)
-
-    def training_step(self, batch: Dict, batch_idx: int):
-        step_outputs = self.shared_step(batch, "train")
-        self.train_outputs.append(step_outputs)
-        return step_outputs
-
-    def on_train_epoch_end(self):
-        self.shared_epoch_end(self.train_outputs, "train")
-        self.train_outputs = []
-
-    def validation_step(self, batch: Dict, batch_idx: int):
-        step_outputs = self.shared_step(batch, "valid")
-        self.val_outputs.append(step_outputs)
-        return step_outputs
-
-    def on_validation_epoch_end(self, *args, **kwargs):
-        self.shared_epoch_end(self.val_outputs, "valid")
-        self.val_outputs = []
-
-    def test_step(self, batch: Dict, batch_idx: int):
-        step_outputs = self.shared_step(batch, "test")
-        self.test_outputs.append(step_outputs)
-        return step_outputs
-
-    def on_test_epoch_end(self):
-        self.shared_epoch_end(self.test_outputs, "test")
-        self.test_outputs = []
-
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.0001)
-
-
-def colorTransform_VegGround(im,X_true,alpha_vert,alpha_g):
-    alpha = alpha_vert
-    color = [97,65,38]
-    # color = [x / 255 for x in color]
-    image=np.copy(im)
-    for c in range(3):
-        image[:, :, c] =np.where(X_true == 0,image[:, :, c] *(1 - alpha) + alpha * color[c] ,image[:, :, c])
-    alpha = alpha_g
-    color = [34,139,34]
-#    color = [x / 255 for x in color]
-    for c in range(3):
-        image[:, :, c] =np.where(X_true == 1,image[:, :, c] *(1 - alpha) + alpha * color[c] ,image[:, :, c])
-    return image 
-```
-
-现在，我们可以使用 `VegAnnModel` 类初始化一个 U-net 模型。这个模型使用 ResNet34 作为编码器，输入通道数为 3（RGB 图像），输出类别数为 1（二值分割）。
-
-```{python}
-# Initialize the model
-model = VegAnnModel("Unet", "resnet34", in_channels=3, out_classes=1)
-```
-
-接下来，使用 `torchinfo` 可视化模型的结构。
-
-```{python}
-from torchinfo import summary
-
-# Show detailed model summary using torchinfo
-summary(model, input_size=(1, 3, 512, 512), 
-    col_names=["input_size", "output_size", "num_params", "kernel_size"],
-    depth=4)
-```
-
-## 数据预处理 
-
-我们需要定义一个自定义的数据集类来处理从 Hugging Face 加载的数据。
-
-```{python}
-from torch.utils.data import Dataset, DataLoader
-
-class VegAnnDataset(Dataset):
-    def __init__(self, dataset, transform=None):
-        self.dataset = dataset
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        item = self.dataset[idx]
-        image = np.array(item['image'])
-        mask = np.array(item['mask'])
-
-        if self.transform:
-            augmented = self.transform(image=image, mask=mask)
-            image = augmented['image']
-            mask = augmented['mask']
-
-        image = transforms.ToTensor()(image)
-        mask = torch.tensor(mask, dtype=torch.long).unsqueeze(0)
-
-        return image, mask
-```
-
-
-### 定义数据增强
-
-我们使用 `albumentations` 库来定义数据增强的方法。这里我们使用 `Resize` 和 `Normalize` 方法。
-
-```{python}
-from albumentations import Compose, Resize, Normalize
-transform = Compose([
-    Resize(512, 512),
-    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
-```
-
-::: {.callout-tip}
-
-在 Conda 中安装 `albumentations` 可以使用 `conda-forge` 源：  
-
-```bash
-conda install -c conda-forge albumentations
-```
-
-如果你使用的是 `pip`，也可以安装：  
-
-```bash
-pip install albumentations
-```  
-
-建议检查你的 Conda 环境是否已经包含 `opencv` 和 `numpy`，因为 `albumentations` 依赖它们。
-
-:::
-
-### 加载数据集
-
-这里，我们将数据集分为训练集和验证集，并创建相应的数据加载器。
-
-```{python}
-from sklearn.model_selection import train_test_split
-
-# Load the dataset from Hugging Face
-ds = load_dataset("simonMadec/VegAnn")
-
-# Convert the dataset to a Pandas DataFrame
-df = ds['train'].to_pandas()
-
-# Split the DataFrame into training and validation sets
-train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
-
-# Create custom datasets
-train_dataset = VegAnnDataset(train_df, transform=transform)
-val_dataset = VegAnnDataset(val_df, transform=transform)
-
-# Create data loaders
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
-val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=4)
-```
-
-## 模型训练
-
-
-### 定义损失器和优化器
-
-通过 Dice loss 函数和 Adam 优化器进行训练。
-
-```{python}
-from torch import nn, optim
-
-# Using Dice loss and Adam optimizer as specified
-criterion = smp.losses.DiceLoss(mode='binary')
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-```
-
-### 定义训练循环
-
-```{python}
-def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs=5, device="mps"):
-    best_val_loss = float('inf')
-    for epoch in range(num_epochs):
-        model.train()
-        running_loss = 0.0
-        for images, masks in train_loader:
-            images = images.to(device)
-            masks = masks.squeeze(1).to(device)
-
-            optimizer.zero_grad()
-            outputs = model(images)['out']
-            loss = criterion(outputs, masks)
-            loss.backward()
-            optimizer.step()
-
-            running_loss += loss.item() * images.size(0)
-
-        epoch_loss = running_loss / len(train_loader.dataset)
-        print(f'Epoch {epoch+1}/{num_epochs}, Training Loss: {epoch_loss:.4f}')
-
-        # Validation
-        model.eval()
-        running_val_loss = 0.0
-        with torch.no_grad():
-            for images, masks in val_loader:
-                images = images.to(device)
-                masks = masks.squeeze(1).to(device)
-
-                outputs = model(images)['out']
-                loss = criterion(outputs, masks)
-                running_val_loss += loss.item() * images.size(0)
-
-        val_loss = running_val_loss / len(val_loader.dataset)
-        print(f'Epoch {epoch+1}/{num_epochs}, Validation Loss: {val_loss:.4f}')
-
-        # Save the best model
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            torch.save(model.state_dict(), 'best_model.pth')
-
-        scheduler.step()
-
-    print('Training complete.')
-
-```
-
-### 开始训练
-
-首先，检查设备是否可用，然后将模型和数据加载器绑定到 GPU。
-
-```{python}
-# check device availability
-if torch.mps.is_available:
-    device = torch.device("mps")
-elif torch.cuda.is_available():
-    device = torch.device("cuda")
-else:
-    device = torch.device("cpu")
-
-# Bind the model to the GPU
-model.to(device)
-```
-
-训练模型。
-
-```{python}
-train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs=5, device=device)
-```
-
-### 保存训练结果
-
-```{python}
-# Save the model
-torch.save(model.state_dict(), 'data/vegann/epoch5.ckpt')
-```
-
-## 模型预测
-
-```{python}
-# Load the model
+# Load the model - 统一使用一种加载方式
 ckt_path = "data/vegann/epoch5.ckpt"
-model.load_state_dict(torch.load(ckt_path))
-
-# Load the model
 checkpoint = torch.load(ckt_path, map_location=torch.device('cpu'))
 model = VegAnnModel("Unet","resnet34",in_channels = 3, out_classes=1 )
 model.load_state_dict(checkpoint["state_dict"])
-preprocess_fn = smp.encoders.get_preprocessing_fn("resnet34", pretrained= "imagenet")
+# 只保留一个预处理函数
+preprocess_input = get_preprocessing_fn('resnet34', pretrained='imagenet')
 model.eval()
 ```
 
 
 ```{python}
+#| eval: false
 imname = "data/vegann/test.jpg"
 
 image = cv2.imread(imname)
 im = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-preprocess_input = get_preprocessing_fn('resnet34', pretrained='imagenet')
+# 使用已定义的预处理函数
 image = preprocess_input(im)
 image = image.astype('float32')
 
