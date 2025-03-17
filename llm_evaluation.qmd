@@ -1,0 +1,84 @@
+# 模型性能测试
+
+本项目介绍如何使用自定义数据集测试多个大语言模型（LLM）的性能，并计算其准确率。我们将使用 OpenAI API 兼容的模型，包括 GPT-4、DeepSeek R1、Qwen-Max、Claude、Gemini 和 ChatGLM。
+
+## 数据集
+
+数据集包含判断题、单选题和多选题，格式如下：
+
+```json
+[
+  {"question": "太阳是恒星吗？", "options": ["是", "否"], "answer": ["是"]},
+  {"question": "以下哪个是哺乳动物？", "options": ["鸡", "蛇", "鲸鱼", "蜥蜴"], "answer": ["鲸鱼"]},
+  {"question": "选择所有的偶数", "options": ["1", "2", "3", "4"], "answer": ["2", "4"]}
+]
+```
+
+## 方法
+
+1. **加载数据集**：读取 JSON 格式的客观题数据。
+2. **调用 LLM API**：使用 OpenAI API 兼容的接口获取模型回答。
+3. **使用 Inspect AI 计算准确率**：对比模型回答与标准答案，并计算得分。
+
+## 代码实现
+
+```{python}
+import json
+import openai
+import os
+
+def load_dataset(file_path):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def query_model(model_name, question, options):
+    prompt = f"{question}\n选项: {', '.join(options)}\n请仅返回正确答案的文本。"
+    
+    if model_name in ["deepseek-r1", "qwen-max"]:
+        api_base = "https://dashscope.aliyuncs.com/v1"
+        api_key = os.getenv("DASHSCOPE_API_KEY")
+    else:
+        api_base = "https://api.chatanywhere.tech/v1"
+        api_key = os.getenv("CHATANYWHERE_API_KEY")
+    
+    openai.api_base = api_base
+    openai.api_key = api_key
+    
+    response = openai.ChatCompletion.create(
+        model=model_name,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response["choices"][0]["message"]["content"].strip()
+
+def evaluate(models, dataset):
+    results = {model: {"correct": 0, "total": 0} for model in models}
+    
+    for model in models:
+        predictions = []
+        for item in dataset:
+            predicted = query_model(model, item["question"], item["options"])
+            predictions.append({
+                "question": item["question"],
+                "expected": item["answer"],
+                "predicted": predicted.split(", ")
+            })
+        
+        accuracy = inspect(predictions, metric="accuracy")
+        print(f"{model} 准确率: {accuracy:.2f}%")
+```
+
+
+```{python}
+dataset = load_dataset("data/score/questions.json")
+models = ["gpt-4", "deepseek-r1", "qwen-max", "claude", "gemini", "chatglm"]
+evaluate(models, dataset)
+```
+
+## 结果分析
+
+运行代码后，可以得到每个模型的准确率。通过 Inspect AI 评估模型表现，可获得更精准的性能测量。
+
+## 结论
+
+本案例展示了如何批量测试多个大语言模型，并计算其在客观题上的准确率。该方法可用于 LLM 评估与基准测试。
+
