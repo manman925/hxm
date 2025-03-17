@@ -37,6 +37,7 @@ book:
       chapters:
         - grouped-data-analysis.qmd
         - grouped-data-analysis-in-action.qmd
+        - score-analysis.qmd
     - part: 转录组数据分析
       chapters:
         - transcriptomics-data-analysis-and-visualization.qmd
