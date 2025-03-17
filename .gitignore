@@ -84,3 +84,6 @@ logs/
 
 
 /data/MiSeq_SOP/filtered/
+
+# wandb
+wandb/
