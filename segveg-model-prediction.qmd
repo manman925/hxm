@@ -1,0 +1,56 @@
+# 模型预测
+
+## 预测性能
+
+```{python}
+import torch
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from src.segveg import VegAnnModel, get_preprocessing_fn
+
+# Load the model
+ckt_path = "data/segveg/best_model.pth"
+checkpoint = torch.load(ckt_path, map_location=torch.device('cpu'))
+model = VegAnnModel("Unet","resnet34",in_channels = 3, out_classes=1 )
+model.load_state_dict(checkpoint["state_dict"])
+
+# 只保留一个预处理函数
+preprocess_input = get_preprocessing_fn('resnet34', pretrained='imagenet')
+model.eval()
+```
+
+
+```{python}
+from src.segveg import colorTransform_VegGround
+imname = "data/segveg/test.png"
+
+image = cv2.imread(imname)
+im = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+# 使用已定义的预处理函数
+image = preprocess_input(im)
+image = image.astype('float32')
+
+
+inputs = torch.tensor(image) # , dtype=float
+# print(inputs.size)
+inputs = inputs.permute(2,0,1)
+inputs = inputs[None,:,:,:]
+# print(inputs.shape)
+logits = model(inputs)
+pr_mask = logits.sigmoid()
+
+pred = (pr_mask > 0.5).numpy().astype(np.uint8) 
+
+im1_pred = colorTransform_VegGround(im,pred,0.8,0.2)
+im2_pred = colorTransform_VegGround(im,pred,0.2,0.8)
+
+fig, (ax1, ax2) = plt.subplots(1, 2)
+ax1.imshow(im)
+ax1.set_title("Input Image")
+
+ax2.imshow(im2_pred)
+ax2.set_title("Prediction")
+plt.show()
+```

@@ -407,6 +407,6 @@ train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, nu
 ```{python}
 #| eval: false
 # Save the model - 使用与前面一致的格式保存
-torch.save({"state_dict": model.state_dict()}, 'data/vegann/epoch5.ckpt')
+torch.save({"state_dict": model.state_dict()}, 'data/segveg/best_model.pth')
 ```
 
