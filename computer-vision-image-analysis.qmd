@@ -64,7 +64,7 @@ VegAnn 是一个包含 3,775 张多作物 RGB 图像的集合，旨在增强作�
 - 该数据集包含 26 种以上作物物种，各物种的图片数量分布不均匀
 - VegAnn 数据集由使用不同采集系统和配置拍摄的户外图像编译而成
 
-VegAnn 项目的数据集可以在 Huggingface 上访问。请参阅以下链接：<https://huggingface.co/datasets/simonMadec/VegAnn>。数据预处理的步骤参见 [数据预处理](./segveg-data-preprocess.qmd)。
+VegAnn 项目的数据集可以在 Huggingface 上访问。请参阅以下链接：<https://huggingface.co/datasets/simonMadec/VegAnn>。数据预处理的步骤参见 [数据预处理](./segveg-data-preparation.qmd)。
 
 **数据来源与组成**
 

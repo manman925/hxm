@@ -8,7 +8,7 @@
 
 ```{r}
 #| label: raw-score
-#| inlcude: false
+#| include: false
 #| eval: false
 
 # 读取全部成绩数据
@@ -32,7 +32,10 @@ write.csv(score, file = "./data/score/score-anonymized.csv", row.names = FALSE)
 # 读取数据
 library(tidyverse)
 # 这里使用的是不含有学生真实姓名的匿名数据
-score = read_csv("./data/score/score-anonymized.csv")
+score = read_csv("./data/score/score-anonymized.csv") |> 
+    filter(grade > 0) # 去掉成绩为 0 的数据
+
+# 查看数据集的前几行
 score
 ```
 
