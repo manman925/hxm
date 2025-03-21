@@ -1,0 +1,726 @@
+---
+title: "写一个R包"
+author: "高春辉"
+format:
+  revealjs: 
+    theme: white
+    echo: true
+    message: true
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    css: slide.css
+    footer: '[课程仓库](https://github.com/D2RS-2025spring)'
+  pptx:
+    reference-doc: template.pptx
+bibliography: 
+    - ../references.bib
+    - ../packages.bib
+---
+
+# “包治百病”
+
+> 在 R 语言中，包（package）是解决问题的工具。
+
+- 本章节主要介绍如何开发一个 R 包，包括
+  - 如何初始化一个 R 包
+  - 如何添加代码和文档
+  - 如何测试和上传
+  - 如何分发（dev/stable）等。
+
+---
+
+## 开发者档案
+
+开发 R 包的第一步，不妨建立一个开发者档案（*上一节课已讲*）。
+
+::: {.cell}
+```{r}
+#| echo: false
+#| label: fig-github-a-level
+knitr::include_graphics("https://vnote-1251564393.cos.ap-chengdu.myqcloud.com/20231020095321.png")
+```
+:::
+
+在这个项目中，我会以自己开发的 `ggVennDiagram` 包[@R-ggVennDiagram]为例，介绍开发一个 R 包的始末。
+
+---
+
+## 需求的产生
+
+- 需求是画一个韦恩图，并基于图形语法在韦恩图的不同区域填充上不同的颜色，以表示每个子集中对象的多少。
+
+- 在 `ggVennDiagram` 包之前，有哪些工具可以用来绘制韦恩图。
+
+---
+
+## 现有的维恩图工具
+
+当时可用的绘制韦恩图的工具有下列这些：
+
+- `VennDiagram`
+- `venn`
+- `nVennR`
+- `eulerr`
+- `venneuler`
+- `gplots`
+- `ggVennDiagram`
+
+---
+
+## 使用现有工具
+
+- 假设我们有一个基因列表
+- 现在分别使用上述软件包绘制韦恩图。
+
+::: {.cell}
+```{r}
+genes <- paste0("gene", 1:1000)
+set.seed(20210302)
+gene_list <- list(A = sample(genes, 100),
+                  B = sample(genes, 200),
+                  C = sample(genes, 300),
+                  D = sample(genes, 200))
+library(dplyr)
+```
+:::
+
+---
+
+## 示例：VennDiagram
+
+`VennDiagram` [@R-VennDiagram]：当时最流行的韦恩图绘制工具。
+
+::: {.cell}
+```{r}
+library(VennDiagram)
+VennDiagram <- venn.diagram(x = gene_list, filename = NULL)
+cowplot::plot_grid(VennDiagram)
+```
+:::
+
+---
+
+## 示例：venn
+
+`venn` 这个包[@R-venn]使用起来非常简单：
+
+::: {.cell}
+```{r}
+library(venn)
+venn(gene_list)
+```
+:::
+
+---
+
+支持不同形状：
+
+::: {.cell}
+```{r}
+venn(x = gene_list, ellipse = TRUE)
+```
+:::
+
+---
+
+并且可以绘制多达 7 个集合的韦恩图：
+
+::: {.cell}
+```{r}
+venn::venn(7)
+```
+:::
+
+
+## eulerr
+
+`eulerr` [@R-eulerr] 绘制的韦恩图还不错：
+
+::: {.cell}
+```{r}
+library(eulerr)
+venn_plot <- venn(gene_list)
+plot(venn_plot)
+
+euler_plot <- euler(gene_list)
+plot(euler_plot)
+```
+:::
+
+---
+
+## RVenn
+
+::: {.cell}
+```{r}
+library(RVenn)
+RVenn::ggvenn(Venn(gene_list[1:3]))
+```
+:::
+
+## gplots
+
+::: {.cell}
+```{r}
+library(gplots)
+venn(gene_list)
+```
+:::
+
+---
+
+# ggVennDiagram？
+
+最初我并没有想开发一个包，只是想画一个韦恩图。而当发现所有包都不能满足我的需求时，我决定自己动手开发。
+
+---
+
+## 任务的分解
+
+- 韦恩图作为一种几何图形，由集合、子集以及标注组成。
+- 任务分解（以 4 个集合为例）包括：
+
+  - 生成 4 个椭圆（sets）
+  - 获取元素的子集
+  - 获取图形的子集
+  - 计算中心点坐标（用于添加标签）
+  - 添加文字标注
+
+---
+
+## 生成 4 个椭圆
+
+
+```{r}
+a <- 5  # 长轴
+b <- 3  # 短轴
+theta <- seq(0, 2 * pi, length.out = 100) # 角度
+x <- a * cos(theta) # 计算椭圆上点的坐标
+y <- b * sin(theta) # 计算椭圆上点的坐标
+plot(x, y, type = "l", asp = 1)# 绘制椭圆
+```
+
+---
+
+### 旋转椭圆
+
+若需旋转椭圆，使用旋转矩阵：
+
+```{r}
+angle <- pi / 6  # 旋转角度
+x_rot <- x * cos(angle) - y * sin(angle)
+y_rot <- x * sin(angle) + y * cos(angle)
+plot(x_rot, y_rot, type = "l", asp = 1)
+```
+
+---
+
+### 绘制 4 个椭圆
+
+参考 `VennDiagram` 包中的 `ell2poly` 函数来生成数据，并用 `ggplot2` 绘制：
+
+```{r}
+library(VennDiagram)
+library(tidyverse)
+library(cowplot)
+sets <- 4
+ellipse_4d_parameters <- list(
+  c(0.65, 0.47, 0.35, 0.20, 45),
+  c(0.35, 0.47, 0.35, 0.20, 135),
+  c(0.50, 0.57, 0.33, 0.15, 45),
+  c(0.50, 0.57, 0.35, 0.15, 135)
+)
+ellipse_4d_coordinations <- lapply(1:sets, function(i){
+  x <- ellipse_4d_parameters[[i]]
+  do.call("ell2poly", as.list(c(x, n.sides = 3000))) %>% 
+    data.frame() |> 
+    mutate(x = round(x, 4),
+           y = round(y, 4))
+})
+```
+
+---
+
+使用 `ggplot2` 绘图：
+
+::: {.cell}
+```{r}
+df <- bind_rows(ellipse_4d_coordinations, .id = "group")
+ggplot(df, aes(x, y)) + 
+  geom_polygon(aes(group = group)) + 
+  coord_equal()
+```
+:::
+
+---
+
+并可自定义填充色、线条属性等：
+
+::: {.cell}
+```{r}
+ggplot(df, aes(x, y)) +
+  geom_polygon(aes(group = group), color = "grey", fill = rep(1:4, each = 3001),
+               alpha = 1/4, size = 2) + 
+  coord_equal()
+```
+:::
+
+现在只需确定每个 Venn 图区域的坐标，便可使用 `ggplot2::geom_polygon()` 绘图。
+
+---
+
+## 获取元素的子集
+
+利用 R 提供的 `union()`、`intersect()`、`setdiff()` 等函数获取子集：
+
+::: {.cell}
+```{r}
+A <- c("a", "b", "c")
+B <- c("b", "c", "d")
+union(A, B)
+intersect(A, B)
+setdiff(A, B)
+```
+:::
+
+---
+
+## 获取图形的子集
+
+利用 `sf` 包中的 `st_union()`、`st_intersect()`、`st_difference()` 等函数对图形进行集合操作。
+
+::: {.cell}
+```{r}
+#| fig-asp: 1
+#| label: fig-venn-subset
+#| fig-cap: 4 个椭圆转变为 sf 对象，可以对图形进行集合操作。
+library(sf)
+polygons <- lapply(ellipse_4d_coordinations, function(x) st_polygon(list(as.matrix(x))))
+
+# 计算交集示例
+par(mfrow = c(2, 2))
+A <- st_difference(st_difference(st_difference(polygons[[1]], polygons[[2]]), polygons[[3]]), polygons[[4]])
+plot(A, main = "A")
+
+ABCD <- st_intersection(st_intersection(st_intersection(polygons[[1]], polygons[[2]]), polygons[[3]]), polygons[[4]])
+plot(ABCD, main = "ABCD")
+
+ABC <- st_difference(st_intersection(st_intersection(polygons[[1]], polygons[[2]]), polygons[[3]]), polygons[[4]])
+plot(ABC, main = "ABC")
+
+AB <- st_difference(st_intersection(polygons[[1]], polygons[[2]]), st_union(polygons[[3]], polygons[[4]]))
+plot(AB, main = "AB")
+```
+:::
+
+---
+
+## 计算中心点坐标
+
+利用 `sf::st_centroid()` 计算多边形中心点，便于添加文字标注：
+
+```{r}
+library(sf)
+library(ggplot2)
+
+nc <- st_read(system.file('shape/nc.shp', package = "sf"), quiet = TRUE)
+
+# 使用 sf 计算中心点
+sf_cent <- st_centroid(nc)
+
+# 绘制以确认
+ggplot() + 
+  geom_sf(data = nc, fill = 'white') +
+  geom_sf(data = sf_cent, color = 'red')
+```
+
+---
+
+## 添加文字 {.smaller .scrollable}
+
+首先获取所有图形子集，再计算每个子集的中心点坐标。
+
+```{r}
+library(sf)
+A <- st_difference(st_difference(st_difference(polygons[[1]], polygons[[2]]), polygons[[3]]), polygons[[4]])
+B <- st_difference(st_difference(st_difference(polygons[[2]], polygons[[1]]), polygons[[3]]), polygons[[4]])
+C <- st_difference(st_difference(st_difference(polygons[[3]], polygons[[1]]), polygons[[2]]), polygons[[4]])
+D <- st_difference(st_difference(st_difference(polygons[[4]], polygons[[1]]), polygons[[3]]), polygons[[2]])
+AB <- st_difference(st_intersection(polygons[[1]], polygons[[2]]), st_union(polygons[[3]], polygons[[4]]))
+AC <- st_difference(st_intersection(polygons[[1]], polygons[[3]]), st_union(polygons[[2]], polygons[[4]]))
+AD <- st_difference(st_intersection(polygons[[1]], polygons[[4]]), st_union(polygons[[3]], polygons[[2]]))
+BC <- st_difference(st_intersection(polygons[[3]], polygons[[2]]), st_union(polygons[[1]], polygons[[4]]))
+BD <- st_difference(st_intersection(polygons[[4]], polygons[[2]]), st_union(polygons[[3]], polygons[[1]]))
+CD <- st_difference(st_intersection(polygons[[3]], polygons[[4]]), st_union(polygons[[1]], polygons[[2]]))
+ABC <- st_difference(st_intersection(st_intersection(polygons[[1]], polygons[[2]]), polygons[[3]]), polygons[[4]])
+ABD <- st_difference(st_intersection(st_intersection(polygons[[1]], polygons[[2]]), polygons[[4]]), polygons[[3]])
+ACD <- st_difference(st_intersection(st_intersection(polygons[[1]], polygons[[4]]), polygons[[3]]), polygons[[2]])
+BCD <- st_difference(st_intersection(st_intersection(polygons[[4]], polygons[[2]]), polygons[[3]]), polygons[[1]])
+ABCD <- st_intersection(st_intersection(st_intersection(polygons[[1]], polygons[[2]]), polygons[[3]]), polygons[[4]])
+```
+
+---
+
+将所有子集放入列表，并计算多边形的参数：
+
+```{r}
+ggpolygons <- list(A = A, B = B, C = C, D = D, AB = AB, AC = AC, AD = AD,
+                   BC = BC, BD = BD, CD = CD, ABC = ABC, ABD = ABD, ACD = ACD,
+                   BCD = BCD, ABCD = ABCD)
+polygon_names <- names(ggpolygons)
+ggpolygons_df <- lapply(1:length(ggpolygons), function(i){
+  df <- unlist(ggpolygons[[i]]) %>% matrix(ncol = 2) %>% data.frame()
+  colnames(df) <- c("x", "y")
+  df$group <- polygon_names[[i]]
+  return(df)
+})
+data_ploygons <- do.call(rbind, ggpolygons_df)
+```
+
+---
+
+计算中心点：
+
+::: {.cell}
+```{r}
+center_df <- lapply(ggpolygons, st_centroid) %>% 
+  unlist %>% 
+  matrix(byrow = TRUE, ncol = 2) %>% 
+  data.frame()
+center_df$group <- polygon_names
+colnames(center_df) <- c("x", "y", "group")
+data_centers <- center_df
+```
+:::
+
+---
+
+在正确位置添加文字，查看结果：
+
+::: {.cell}
+```{r}
+ggplot(data_ploygons, aes(x, y, fill = group)) +
+  geom_polygon(show.legend = FALSE) +
+  geom_text(aes(label = group), data = data_centers) +
+  coord_equal() +
+  theme_void()
+```
+:::
+
+---
+
+## 功能的取舍 {.smaller}
+
+开发一个画 Venn 图的包，它可以：
+
+- [x] 接受传统上的输入，输出优于 `VennDiagram` 和 `gplots` 的 Venn 图
+- [x] 支持颜色、透明度、线型、粗细等自定义
+- [ ] 固定比例（参数 `scaled = True`）
+- [x] 随意显示标签（label 和 text）
+- [ ] 参数：circle 还是 ellipse？（circle在4d venn中不能显示所有组合）
+- [x] 参数：color 可选择不同色块还是按梯度填充
+- [ ] 接受直接的 `data.frame` 或 `matrix` 输入，通过指定 `Threshold` 自行创建存在矩阵
+- [x] 也可接受 `list` 输入
+- [ ] 分组过多 (>5) 时自动切换为 upsetR 绘制无限 Venn 图
+- [x] Venn 图内每个区域均可单独上色
+
+---
+
+## 算法的优化
+
+### 原始版本
+
+::: {.cell}
+```r
+library(sf)
+A <- st_difference(st_difference(st_difference(polygons[[1]], polygons[[2]]), polygons[[3]]), polygons[[4]])
+B <- st_difference(st_difference(st_difference(polygons[[2]], polygons[[1]]), polygons[[3]]), polygons[[4]])
+C <- st_difference(st_difference(st_difference(polygons[[3]], polygons[[1]]), polygons[[2]]), polygons[[4]])
+D <- st_difference(st_difference(st_difference(polygons[[4]], polygons[[1]]), polygons[[3]]), polygons[[2]])
+# ...
+```
+:::
+
+### 现代版本
+
+::: {.cell}
+```r
+function(venn, slice = "all"){
+  overlap = overlap(venn, slice = slice)
+  if (slice[1] == "all" | identical(venn@sets[slice], venn@sets)){
+    discern = NULL
+    return(overlap)
+  } else {
+    discern = discern(venn, slice1 = slice)
+    return(sf::st_intersection(overlap, discern))
+  }
+}
+```
+:::
+
+---
+
+## 问题的解决
+
+```{r}
+library(ggVennDiagram)
+library(ggplot2)
+ggVennDiagram(gene_list) + scale_fill_gradient(low = "white", high = "red")
+```
+
+---
+
+### 更多维的数据
+
+::: {.cell}
+```{r}
+#| echo: false
+x <- list(A = sample(genes, 300),
+          B = sample(genes, 525),
+          C = sample(genes, 440),
+          D = sample(genes, 350),
+          E = sample(genes, 200),
+          F = sample(genes, 150),
+          G = sample(genes, 100))
+
+# 七维
+p7 <- ggVennDiagram(x, label = "none", edge_size = 2) + 
+  scale_fill_distiller(palette = "RdBu") +
+  theme(legend.position = "none")
+
+# 六维
+p6 <- ggVennDiagram(x[1:6], label = "none", edge_size = 2) +
+  scale_fill_distiller(palette = "RdBu") +
+  theme(legend.position = "none")
+
+# 五维
+p5 <- ggVennDiagram(x[1:5], label = "none", edge_size = 2) +
+  scale_fill_distiller(palette = "RdBu") +
+  theme(legend.position = "none")
+
+# 四维
+p4 <- ggVennDiagram(x[1:4], label = "none", edge_size = 2) +
+  scale_fill_distiller(palette = "RdBu") +
+  theme(legend.position = "none")
+
+# 三维
+p3 <- ggVennDiagram(x[1:3], label = "none", edge_size = 2) +
+  scale_fill_distiller(palette = "RdBu") +
+  theme(legend.position = "none")
+
+# 二维
+p2 <- ggVennDiagram(x[1:2], label = "none", edge_size = 2) +
+  scale_fill_distiller(palette = "RdBu") +
+  theme(legend.position = "none")
+
+cowplot::plot_grid(p7, p6, p5, p4, p3, p2, ncol = 3, labels = "AUTO")
+```
+:::
+
+---
+
+# R 包开发者工具
+
+常用工具包括：
+
+- **devtools**：开发 R 包的工具
+
+这些工具会在你开发 R 包过程中**自动出现**。
+
+- **usethis**：简化开发流程
+- **rmarkdown**：制作 R 包帮助文档
+- **roxygen2**：生成 R 包文档
+- **pkgdown**：发布 R 包文档为独立网站
+- **testthat**：测试 R 包功能
+
+
+---
+
+## 工作流程
+
+### 初始化项目仓库
+
+一般使用 Git 管理代码，使用 GitHub 托管项目。可使用 `usethis` 包初始化仓库：
+
+```r
+library(devtools)
+create_package("mypackage")
+```
+
+或通过 RStudio 菜单进行初始化：
+
+- 点击 **File -> New Project -> Package**
+- 输入项目名称，选中 **Git** 选项，点击 **Create Project**
+
+---
+
+### 添加代码
+
+使用 `use_r()` 添加 R 脚本，自动在 `R/` 目录下创建文件并打开：
+
+```r
+use_r("myfunction")
+```
+
+示例函数：
+
+```r
+myfunction <- function(a, b) {
+  return(a + b)
+}
+```
+
+加载包内函数：
+
+```r
+load_all()
+myfunction(1, 2)
+```
+
+---
+
+### 添加文档
+
+为函数添加 roxygen2 格式文档：
+
+```r
+#' 计算两个数的和
+#'
+#' @param a 第一个数
+#' @param b 第二个数
+#' @return 两个数的和
+#' @export
+myfunction <- function(a, b) {
+  return(a + b)
+}
+```
+
+生成文档：
+
+```r
+document()
+```
+
+查看文档：
+
+```r
+?myfunction
+```
+
+---
+
+### 测试和上传
+
+使用 `check()` 测试包：
+
+```r
+check()
+```
+
+---
+
+### 修改 DESCRIPTION 文件 {.scrollable}
+
+DESCRIPTION 文件包含包的基本信息，需要根据实际情况修改：
+
+```r
+edit_file("DESCRIPTION")
+```
+
+示例：
+
+```r
+Package: ggVennDiagram
+Type: Package
+Title: A 'ggplot2' Implement of Venn Diagram
+Version: 1.5.3
+Authors@R: c(
+  person("Chun-Hui", "Gao", email = "gaospecial@gmail.com", role = c("aut","cre"), comment = c(ORCID = "0000-0002-1445-7939")),
+  )
+Maintainer: Chun-Hui Gao <gaospecial@gmail.com>
+Description: Easy-to-use functions to generate 2-7 sets Venn or upset plot in publication quality. 
+Depends: R (>= 4.1.0)
+Imports: ggplot2 (>= 3.4.0), dplyr, methods, tibble, aplot, venn (>= 1.12), yulab.utils, forcats
+URL: https://github.com/gaospecial/ggVennDiagram, https://gaospecial.github.io/ggVennDiagram/
+License: GPL-3
+Encoding: UTF-8
+RoxygenNote: 7.2.3
+Suggests: testthat (>= 2.1.0), knitr, plotly, RColorBrewer, shiny, rmarkdown, tidyr
+VignetteBuilder: knitr
+LazyData: true
+```
+
+---
+
+### 写一个 README 文件
+
+使用 `use_readme_rmd()` 生成 README 文件：
+
+::: {.cell}
+```r
+use_readme_rmd()
+```
+:::
+
+---
+
+### 上传到 GitHub
+
+使用 `usethis` 包上传：
+
+::: {.cell}
+```r
+use_github()
+```
+:::
+
+---
+
+### 分发到 CRAN
+
+使用 `devtools` 提交到 CRAN：
+
+::: {.cell}
+```r
+devtools::submit_cran()
+```
+:::
+
+---
+
+## 维护
+
+完成开发和发布后，还需对包进行维护：
+
+- 修复 bug
+- 添加新功能
+- 更新文档
+
+常用维护方式：
+
+- GitHub Issues 管理 bug 和需求
+- Pull request 合并贡献代码
+- 使用 `devtools::submit_cran()` 提交新版本
+
+---
+
+# 也写一个 R 包？
+
+- **既为自己：** 你的**需求**是什么？
+- **也为他人：** 领域的**需求**是什么？
+
+安装开发版 R 包的方式：
+
+- `devtools::install_github("gaospecial/ggVennDiagram")`
+- `remotes::install_github("gaospecial/ggVennDiagram")`
+- `pak::pak("gaospecial/ggVennDiagram")`
+
+---
+
+## 参考资料
+
+- 团队的第一个 R 包：<https://github.com/gaospecial/rconf2020-my-org-first-pkg>
+- R 包开发指南：<https://r-pkgs.org/>
+
